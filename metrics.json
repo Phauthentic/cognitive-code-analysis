@@ -1,0 +1,1298 @@
+[
+    {
+        "class": "Phauthentic\\CodeQuality\\Business\\Metrics",
+        "methods": {
+            "__construct": {
+                "name": "__construct",
+                "line_count": 24,
+                "arg_count": 1,
+                "return_count": 0,
+                "variable_count": 1,
+                "property_call_count": 10,
+                "if_nesting_level": 0,
+                "else_count": 0,
+                "score": 0.336
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\Business\\Metrics",
+        "methods": {
+            "fromArray": {
+                "name": "fromArray",
+                "line_count": 4,
+                "arg_count": 1,
+                "return_count": 1,
+                "variable_count": 0,
+                "property_call_count": 0,
+                "if_nesting_level": 0,
+                "else_count": 0,
+                "score": 0
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\Business\\Metrics",
+        "methods": {
+            "assertArrayKeyIsPresent": {
+                "name": "assertArrayKeyIsPresent",
+                "line_count": 6,
+                "arg_count": 2,
+                "return_count": 0,
+                "variable_count": 0,
+                "property_call_count": 0,
+                "if_nesting_level": 1,
+                "else_count": 0,
+                "score": 0
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\Business\\Metrics",
+        "methods": {
+            "getClass": {
+                "name": "getClass",
+                "line_count": 4,
+                "arg_count": 0,
+                "return_count": 1,
+                "variable_count": 1,
+                "property_call_count": 1,
+                "if_nesting_level": 0,
+                "else_count": 0,
+                "score": 0
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\Business\\Metrics",
+        "methods": {
+            "getMethod": {
+                "name": "getMethod",
+                "line_count": 4,
+                "arg_count": 0,
+                "return_count": 1,
+                "variable_count": 1,
+                "property_call_count": 1,
+                "if_nesting_level": 0,
+                "else_count": 0,
+                "score": 0
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\Business\\Metrics",
+        "methods": {
+            "getLineCount": {
+                "name": "getLineCount",
+                "line_count": 4,
+                "arg_count": 0,
+                "return_count": 1,
+                "variable_count": 1,
+                "property_call_count": 1,
+                "if_nesting_level": 0,
+                "else_count": 0,
+                "score": 0
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\Business\\Metrics",
+        "methods": {
+            "getArgCount": {
+                "name": "getArgCount",
+                "line_count": 4,
+                "arg_count": 0,
+                "return_count": 1,
+                "variable_count": 1,
+                "property_call_count": 1,
+                "if_nesting_level": 0,
+                "else_count": 0,
+                "score": 0
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\Business\\Metrics",
+        "methods": {
+            "getReturnCount": {
+                "name": "getReturnCount",
+                "line_count": 4,
+                "arg_count": 0,
+                "return_count": 1,
+                "variable_count": 1,
+                "property_call_count": 1,
+                "if_nesting_level": 0,
+                "else_count": 0,
+                "score": 0
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\Business\\Metrics",
+        "methods": {
+            "getVariableCount": {
+                "name": "getVariableCount",
+                "line_count": 4,
+                "arg_count": 0,
+                "return_count": 1,
+                "variable_count": 1,
+                "property_call_count": 1,
+                "if_nesting_level": 0,
+                "else_count": 0,
+                "score": 0
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\Business\\Metrics",
+        "methods": {
+            "getPropertyCallCount": {
+                "name": "getPropertyCallCount",
+                "line_count": 4,
+                "arg_count": 0,
+                "return_count": 1,
+                "variable_count": 1,
+                "property_call_count": 1,
+                "if_nesting_level": 0,
+                "else_count": 0,
+                "score": 0
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\Business\\Metrics",
+        "methods": {
+            "getIfCount": {
+                "name": "getIfCount",
+                "line_count": 4,
+                "arg_count": 0,
+                "return_count": 1,
+                "variable_count": 1,
+                "property_call_count": 1,
+                "if_nesting_level": 0,
+                "else_count": 0,
+                "score": 0
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\Business\\Metrics",
+        "methods": {
+            "getIfNestingLevel": {
+                "name": "getIfNestingLevel",
+                "line_count": 4,
+                "arg_count": 0,
+                "return_count": 1,
+                "variable_count": 1,
+                "property_call_count": 1,
+                "if_nesting_level": 0,
+                "else_count": 0,
+                "score": 0
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\Business\\Metrics",
+        "methods": {
+            "getElseCount": {
+                "name": "getElseCount",
+                "line_count": 4,
+                "arg_count": 0,
+                "return_count": 1,
+                "variable_count": 1,
+                "property_call_count": 1,
+                "if_nesting_level": 0,
+                "else_count": 0,
+                "score": 0
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\Business\\Metrics",
+        "methods": {
+            "getLineCountWeight": {
+                "name": "getLineCountWeight",
+                "line_count": 4,
+                "arg_count": 0,
+                "return_count": 1,
+                "variable_count": 1,
+                "property_call_count": 1,
+                "if_nesting_level": 0,
+                "else_count": 0,
+                "score": 0
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\Business\\Metrics",
+        "methods": {
+            "setLineCountWeight": {
+                "name": "setLineCountWeight",
+                "line_count": 4,
+                "arg_count": 1,
+                "return_count": 0,
+                "variable_count": 1,
+                "property_call_count": 1,
+                "if_nesting_level": 0,
+                "else_count": 0,
+                "score": 0
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\Business\\Metrics",
+        "methods": {
+            "getArgCountWeight": {
+                "name": "getArgCountWeight",
+                "line_count": 4,
+                "arg_count": 0,
+                "return_count": 1,
+                "variable_count": 1,
+                "property_call_count": 1,
+                "if_nesting_level": 0,
+                "else_count": 0,
+                "score": 0
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\Business\\Metrics",
+        "methods": {
+            "setArgCountWeight": {
+                "name": "setArgCountWeight",
+                "line_count": 4,
+                "arg_count": 1,
+                "return_count": 0,
+                "variable_count": 1,
+                "property_call_count": 1,
+                "if_nesting_level": 0,
+                "else_count": 0,
+                "score": 0
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\Business\\Metrics",
+        "methods": {
+            "getReturnCountWeight": {
+                "name": "getReturnCountWeight",
+                "line_count": 4,
+                "arg_count": 0,
+                "return_count": 1,
+                "variable_count": 1,
+                "property_call_count": 1,
+                "if_nesting_level": 0,
+                "else_count": 0,
+                "score": 0
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\Business\\Metrics",
+        "methods": {
+            "setReturnCountWeight": {
+                "name": "setReturnCountWeight",
+                "line_count": 4,
+                "arg_count": 1,
+                "return_count": 0,
+                "variable_count": 1,
+                "property_call_count": 1,
+                "if_nesting_level": 0,
+                "else_count": 0,
+                "score": 0
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\Business\\Metrics",
+        "methods": {
+            "getVariableCountWeight": {
+                "name": "getVariableCountWeight",
+                "line_count": 4,
+                "arg_count": 0,
+                "return_count": 1,
+                "variable_count": 1,
+                "property_call_count": 1,
+                "if_nesting_level": 0,
+                "else_count": 0,
+                "score": 0
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\Business\\Metrics",
+        "methods": {
+            "setVariableCountWeight": {
+                "name": "setVariableCountWeight",
+                "line_count": 4,
+                "arg_count": 1,
+                "return_count": 0,
+                "variable_count": 1,
+                "property_call_count": 1,
+                "if_nesting_level": 0,
+                "else_count": 0,
+                "score": 0
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\Business\\Metrics",
+        "methods": {
+            "getPropertyCallCountWeight": {
+                "name": "getPropertyCallCountWeight",
+                "line_count": 4,
+                "arg_count": 0,
+                "return_count": 1,
+                "variable_count": 1,
+                "property_call_count": 1,
+                "if_nesting_level": 0,
+                "else_count": 0,
+                "score": 0
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\Business\\Metrics",
+        "methods": {
+            "setPropertyCallCountWeight": {
+                "name": "setPropertyCallCountWeight",
+                "line_count": 4,
+                "arg_count": 1,
+                "return_count": 0,
+                "variable_count": 1,
+                "property_call_count": 1,
+                "if_nesting_level": 0,
+                "else_count": 0,
+                "score": 0
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\Business\\Metrics",
+        "methods": {
+            "getIfCountWeight": {
+                "name": "getIfCountWeight",
+                "line_count": 4,
+                "arg_count": 0,
+                "return_count": 1,
+                "variable_count": 1,
+                "property_call_count": 1,
+                "if_nesting_level": 0,
+                "else_count": 0,
+                "score": 0
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\Business\\Metrics",
+        "methods": {
+            "setIfCountWeight": {
+                "name": "setIfCountWeight",
+                "line_count": 4,
+                "arg_count": 1,
+                "return_count": 0,
+                "variable_count": 1,
+                "property_call_count": 1,
+                "if_nesting_level": 0,
+                "else_count": 0,
+                "score": 0
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\Business\\Metrics",
+        "methods": {
+            "getIfNestingLevelWeight": {
+                "name": "getIfNestingLevelWeight",
+                "line_count": 4,
+                "arg_count": 0,
+                "return_count": 1,
+                "variable_count": 1,
+                "property_call_count": 1,
+                "if_nesting_level": 0,
+                "else_count": 0,
+                "score": 0
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\Business\\Metrics",
+        "methods": {
+            "setIfNestingLevelWeight": {
+                "name": "setIfNestingLevelWeight",
+                "line_count": 4,
+                "arg_count": 1,
+                "return_count": 0,
+                "variable_count": 1,
+                "property_call_count": 1,
+                "if_nesting_level": 0,
+                "else_count": 0,
+                "score": 0
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\Business\\Metrics",
+        "methods": {
+            "getElseCountWeight": {
+                "name": "getElseCountWeight",
+                "line_count": 4,
+                "arg_count": 0,
+                "return_count": 1,
+                "variable_count": 1,
+                "property_call_count": 1,
+                "if_nesting_level": 0,
+                "else_count": 0,
+                "score": 0
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\Business\\Metrics",
+        "methods": {
+            "setElseCountWeight": {
+                "name": "setElseCountWeight",
+                "line_count": 4,
+                "arg_count": 1,
+                "return_count": 0,
+                "variable_count": 1,
+                "property_call_count": 1,
+                "if_nesting_level": 0,
+                "else_count": 0,
+                "score": 0
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\Business\\Metrics",
+        "methods": {
+            "setScore": {
+                "name": "setScore",
+                "line_count": 4,
+                "arg_count": 1,
+                "return_count": 0,
+                "variable_count": 1,
+                "property_call_count": 1,
+                "if_nesting_level": 0,
+                "else_count": 0,
+                "score": 0
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\Business\\Metrics",
+        "methods": {
+            "getScore": {
+                "name": "getScore",
+                "line_count": 4,
+                "arg_count": 0,
+                "return_count": 1,
+                "variable_count": 1,
+                "property_call_count": 1,
+                "if_nesting_level": 0,
+                "else_count": 0,
+                "score": 0
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\Business\\Metrics",
+        "methods": {
+            "equals": {
+                "name": "equals",
+                "line_count": 5,
+                "arg_count": 1,
+                "return_count": 1,
+                "variable_count": 1,
+                "property_call_count": 2,
+                "if_nesting_level": 0,
+                "else_count": 0,
+                "score": 0
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\Business\\Metrics",
+        "methods": {
+            "toArray": {
+                "name": "toArray",
+                "line_count": 23,
+                "arg_count": 0,
+                "return_count": 1,
+                "variable_count": 1,
+                "property_call_count": 18,
+                "if_nesting_level": 0,
+                "else_count": 0,
+                "score": 0.659
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\Business\\Metrics",
+        "methods": {
+            "jsonSerialize": {
+                "name": "jsonSerialize",
+                "line_count": 4,
+                "arg_count": 0,
+                "return_count": 1,
+                "variable_count": 1,
+                "property_call_count": 0,
+                "if_nesting_level": 0,
+                "else_count": 0,
+                "score": 0
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\Business\\Exporter\\JsonExporter",
+        "methods": {
+            "export": {
+                "name": "export",
+                "line_count": 37,
+                "arg_count": 2,
+                "return_count": 0,
+                "variable_count": 5,
+                "property_call_count": 0,
+                "if_nesting_level": 1,
+                "else_count": 0,
+                "score": 0.47
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\Business\\Exporter\\CsvExporter",
+        "methods": {
+            "export": {
+                "name": "export",
+                "line_count": 30,
+                "arg_count": 2,
+                "return_count": 0,
+                "variable_count": 5,
+                "property_call_count": 1,
+                "if_nesting_level": 1,
+                "else_count": 0,
+                "score": 0.47
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\Business\\MetricsFacade",
+        "methods": {
+            "__construct": {
+                "name": "__construct",
+                "line_count": 5,
+                "arg_count": 0,
+                "return_count": 0,
+                "variable_count": 1,
+                "property_call_count": 2,
+                "if_nesting_level": 0,
+                "else_count": 0,
+                "score": 0
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\Business\\MetricsFacade",
+        "methods": {
+            "getMetrics": {
+                "name": "getMetrics",
+                "line_count": 10,
+                "arg_count": 1,
+                "return_count": 1,
+                "variable_count": 3,
+                "property_call_count": 2,
+                "if_nesting_level": 0,
+                "else_count": 0,
+                "score": 0.182
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\Business\\MetricsFacade",
+        "methods": {
+            "metricsCollectionToCsv": {
+                "name": "metricsCollectionToCsv",
+                "line_count": 5,
+                "arg_count": 2,
+                "return_count": 0,
+                "variable_count": 1,
+                "property_call_count": 0,
+                "if_nesting_level": 0,
+                "else_count": 0,
+                "score": 0
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\Business\\MetricsFacade",
+        "methods": {
+            "metricsCollectionToJson": {
+                "name": "metricsCollectionToJson",
+                "line_count": 5,
+                "arg_count": 2,
+                "return_count": 0,
+                "variable_count": 1,
+                "property_call_count": 0,
+                "if_nesting_level": 0,
+                "else_count": 0,
+                "score": 0
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\Business\\MetricsCollection",
+        "methods": {
+            "add": {
+                "name": "add",
+                "line_count": 4,
+                "arg_count": 1,
+                "return_count": 0,
+                "variable_count": 1,
+                "property_call_count": 1,
+                "if_nesting_level": 0,
+                "else_count": 0,
+                "score": 0
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\Business\\MetricsCollection",
+        "methods": {
+            "filter": {
+                "name": "filter",
+                "line_count": 11,
+                "arg_count": 1,
+                "return_count": 1,
+                "variable_count": 4,
+                "property_call_count": 1,
+                "if_nesting_level": 0,
+                "else_count": 0,
+                "score": 0.336
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\Business\\MetricsCollection",
+        "methods": {
+            "getIterator": {
+                "name": "getIterator",
+                "line_count": 4,
+                "arg_count": 0,
+                "return_count": 1,
+                "variable_count": 1,
+                "property_call_count": 1,
+                "if_nesting_level": 0,
+                "else_count": 0,
+                "score": 0
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\Business\\MetricsCollection",
+        "methods": {
+            "count": {
+                "name": "count",
+                "line_count": 4,
+                "arg_count": 0,
+                "return_count": 1,
+                "variable_count": 1,
+                "property_call_count": 1,
+                "if_nesting_level": 0,
+                "else_count": 0,
+                "score": 0
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\Business\\MetricsCollection",
+        "methods": {
+            "filterWithScoreGreaterThan": {
+                "name": "filterWithScoreGreaterThan",
+                "line_count": 6,
+                "arg_count": 1,
+                "return_count": 2,
+                "variable_count": 2,
+                "property_call_count": 0,
+                "if_nesting_level": 0,
+                "else_count": 0,
+                "score": 0
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\Business\\MetricsCollection",
+        "methods": {
+            "contains": {
+                "name": "contains",
+                "line_count": 10,
+                "arg_count": 1,
+                "return_count": 2,
+                "variable_count": 2,
+                "property_call_count": 1,
+                "if_nesting_level": 1,
+                "else_count": 0,
+                "score": 0
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\Business\\MetricsCollection",
+        "methods": {
+            "filterByClassName": {
+                "name": "filterByClassName",
+                "line_count": 6,
+                "arg_count": 1,
+                "return_count": 2,
+                "variable_count": 2,
+                "property_call_count": 0,
+                "if_nesting_level": 0,
+                "else_count": 0,
+                "score": 0
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\Business\\MetricsCollection",
+        "methods": {
+            "groupBy": {
+                "name": "groupBy",
+                "line_count": 23,
+                "arg_count": 1,
+                "return_count": 1,
+                "variable_count": 5,
+                "property_call_count": 1,
+                "if_nesting_level": 1,
+                "else_count": 0,
+                "score": 0.47
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\Business\\ScoreCalculator",
+        "methods": {
+            "calculate": {
+                "name": "calculate",
+                "line_count": 74,
+                "arg_count": 1,
+                "return_count": 0,
+                "variable_count": 4,
+                "property_call_count": 3,
+                "if_nesting_level": 0,
+                "else_count": 0,
+                "score": 2.416
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\Business\\ScoreCalculator",
+        "methods": {
+            "calculateLogWeight": {
+                "name": "calculateLogWeight",
+                "line_count": 8,
+                "arg_count": 4,
+                "return_count": 2,
+                "variable_count": 0,
+                "property_call_count": 0,
+                "if_nesting_level": 1,
+                "else_count": 0,
+                "score": 0
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\Business\\ScoreCalculator",
+        "methods": {
+            "assertThresholdIsGreaterThanZero": {
+                "name": "assertThresholdIsGreaterThanZero",
+                "line_count": 6,
+                "arg_count": 1,
+                "return_count": 0,
+                "variable_count": 0,
+                "property_call_count": 0,
+                "if_nesting_level": 1,
+                "else_count": 0,
+                "score": 0
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\Business\\MetricsCollector",
+        "methods": {
+            "__construct": {
+                "name": "__construct",
+                "line_count": 7,
+                "arg_count": 0,
+                "return_count": 0,
+                "variable_count": 1,
+                "property_call_count": 3,
+                "if_nesting_level": 0,
+                "else_count": 0,
+                "score": 0
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\Business\\MetricsCollector",
+        "methods": {
+            "collect": {
+                "name": "collect",
+                "line_count": 15,
+                "arg_count": 1,
+                "return_count": 1,
+                "variable_count": 2,
+                "property_call_count": 0,
+                "if_nesting_level": 1,
+                "else_count": 2,
+                "score": 0.693
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\Business\\MetricsCollector",
+        "methods": {
+            "findMetrics": {
+                "name": "findMetrics",
+                "line_count": 29,
+                "arg_count": 1,
+                "return_count": 1,
+                "variable_count": 11,
+                "property_call_count": 0,
+                "if_nesting_level": 1,
+                "else_count": 0,
+                "score": 1.03
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\Business\\MetricsCollector",
+        "methods": {
+            "getMethodMetrics": {
+                "name": "getMethodMetrics",
+                "line_count": 12,
+                "arg_count": 1,
+                "return_count": 1,
+                "variable_count": 3,
+                "property_call_count": 3,
+                "if_nesting_level": 0,
+                "else_count": 0,
+                "score": 0.182
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\Command\\ParseMetricsCommand",
+        "methods": {
+            "configure": {
+                "name": "configure",
+                "line_count": 9,
+                "arg_count": 0,
+                "return_count": 0,
+                "variable_count": 1,
+                "property_call_count": 0,
+                "if_nesting_level": 0,
+                "else_count": 0,
+                "score": 0
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\Command\\ParseMetricsCommand",
+        "methods": {
+            "execute": {
+                "name": "execute",
+                "line_count": 23,
+                "arg_count": 2,
+                "return_count": 1,
+                "variable_count": 3,
+                "property_call_count": 0,
+                "if_nesting_level": 1,
+                "else_count": 0,
+                "score": 0.182
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\Command\\Presentation\\MetricTextRenderer",
+        "methods": {
+            "render": {
+                "name": "render",
+                "line_count": 22,
+                "arg_count": 2,
+                "return_count": 0,
+                "variable_count": 8,
+                "property_call_count": 0,
+                "if_nesting_level": 0,
+                "else_count": 0,
+                "score": 0.788
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\Command\\Presentation\\MetricTextRenderer",
+        "methods": {
+            "getTableHeaders": {
+                "name": "getTableHeaders",
+                "line_count": 15,
+                "arg_count": 0,
+                "return_count": 1,
+                "variable_count": 0,
+                "property_call_count": 0,
+                "if_nesting_level": 0,
+                "else_count": 0,
+                "score": 0
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\Command\\Presentation\\MetricTextRenderer",
+        "methods": {
+            "prepareTableRow": {
+                "name": "prepareTableRow",
+                "line_count": 35,
+                "arg_count": 2,
+                "return_count": 1,
+                "variable_count": 5,
+                "property_call_count": 0,
+                "if_nesting_level": 0,
+                "else_count": 0,
+                "score": 0.47
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\Config\\ConfigLoader",
+        "methods": {
+            "getConfigTreeBuilder": {
+                "name": "getConfigTreeBuilder",
+                "line_count": 24,
+                "arg_count": 0,
+                "return_count": 1,
+                "variable_count": 2,
+                "property_call_count": 0,
+                "if_nesting_level": 0,
+                "else_count": 0,
+                "score": 0
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\Config\\ConfigService",
+        "methods": {
+            "__construct": {
+                "name": "__construct",
+                "line_count": 4,
+                "arg_count": 1,
+                "return_count": 0,
+                "variable_count": 1,
+                "property_call_count": 1,
+                "if_nesting_level": 0,
+                "else_count": 0,
+                "score": 0
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\Config\\ConfigService",
+        "methods": {
+            "loadConfig": {
+                "name": "loadConfig",
+                "line_count": 10,
+                "arg_count": 1,
+                "return_count": 1,
+                "variable_count": 3,
+                "property_call_count": 0,
+                "if_nesting_level": 0,
+                "else_count": 0,
+                "score": 0.182
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\Config\\ConfigService",
+        "methods": {
+            "getConfig": {
+                "name": "getConfig",
+                "line_count": 4,
+                "arg_count": 0,
+                "return_count": 1,
+                "variable_count": 1,
+                "property_call_count": 1,
+                "if_nesting_level": 0,
+                "else_count": 0,
+                "score": 0
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\PhpParser\\MethodMetricsVisitor",
+        "methods": {
+            "resetValues": {
+                "name": "resetValues",
+                "line_count": 12,
+                "arg_count": 0,
+                "return_count": 0,
+                "variable_count": 1,
+                "property_call_count": 9,
+                "if_nesting_level": 0,
+                "else_count": 0,
+                "score": 0.288
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\PhpParser\\MethodMetricsVisitor",
+        "methods": {
+            "classMethodOnEnterNode": {
+                "name": "classMethodOnEnterNode",
+                "line_count": 27,
+                "arg_count": 1,
+                "return_count": 1,
+                "variable_count": 2,
+                "property_call_count": 7,
+                "if_nesting_level": 1,
+                "else_count": 0,
+                "score": 0.182
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\PhpParser\\MethodMetricsVisitor",
+        "methods": {
+            "setCurrentNamespaceOnEnterNode": {
+                "name": "setCurrentNamespaceOnEnterNode",
+                "line_count": 6,
+                "arg_count": 1,
+                "return_count": 0,
+                "variable_count": 1,
+                "property_call_count": 2,
+                "if_nesting_level": 1,
+                "else_count": 0,
+                "score": 0
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\PhpParser\\MethodMetricsVisitor",
+        "methods": {
+            "setCurrentClassOnEnterNode": {
+                "name": "setCurrentClassOnEnterNode",
+                "line_count": 11,
+                "arg_count": 1,
+                "return_count": 2,
+                "variable_count": 1,
+                "property_call_count": 3,
+                "if_nesting_level": 2,
+                "else_count": 0,
+                "score": 0
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\PhpParser\\MethodMetricsVisitor",
+        "methods": {
+            "enterNode": {
+                "name": "enterNode",
+                "line_count": 13,
+                "arg_count": 1,
+                "return_count": 1,
+                "variable_count": 1,
+                "property_call_count": 1,
+                "if_nesting_level": 1,
+                "else_count": 0,
+                "score": 0
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\PhpParser\\MethodMetricsVisitor",
+        "methods": {
+            "gatherMetrics": {
+                "name": "gatherMetrics",
+                "line_count": 12,
+                "arg_count": 1,
+                "return_count": 0,
+                "variable_count": 1,
+                "property_call_count": 0,
+                "if_nesting_level": 0,
+                "else_count": 0,
+                "score": 0
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\PhpParser\\MethodMetricsVisitor",
+        "methods": {
+            "incrementReturnCount": {
+                "name": "incrementReturnCount",
+                "line_count": 4,
+                "arg_count": 0,
+                "return_count": 0,
+                "variable_count": 1,
+                "property_call_count": 1,
+                "if_nesting_level": 0,
+                "else_count": 0,
+                "score": 0
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\PhpParser\\MethodMetricsVisitor",
+        "methods": {
+            "trackVariable": {
+                "name": "trackVariable",
+                "line_count": 7,
+                "arg_count": 1,
+                "return_count": 0,
+                "variable_count": 1,
+                "property_call_count": 3,
+                "if_nesting_level": 1,
+                "else_count": 0,
+                "score": 0
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\PhpParser\\MethodMetricsVisitor",
+        "methods": {
+            "trackPropertyFetch": {
+                "name": "trackPropertyFetch",
+                "line_count": 15,
+                "arg_count": 1,
+                "return_count": 1,
+                "variable_count": 2,
+                "property_call_count": 3,
+                "if_nesting_level": 1,
+                "else_count": 0,
+                "score": 0
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\PhpParser\\MethodMetricsVisitor",
+        "methods": {
+            "trackIfStatement": {
+                "name": "trackIfStatement",
+                "line_count": 9,
+                "arg_count": 0,
+                "return_count": 0,
+                "variable_count": 1,
+                "property_call_count": 3,
+                "if_nesting_level": 1,
+                "else_count": 0,
+                "score": 0
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\PhpParser\\MethodMetricsVisitor",
+        "methods": {
+            "incrementElseCount": {
+                "name": "incrementElseCount",
+                "line_count": 4,
+                "arg_count": 0,
+                "return_count": 0,
+                "variable_count": 1,
+                "property_call_count": 1,
+                "if_nesting_level": 0,
+                "else_count": 0,
+                "score": 0
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\PhpParser\\MethodMetricsVisitor",
+        "methods": {
+            "checkNestingLevelOnLeaveNode": {
+                "name": "checkNestingLevelOnLeaveNode",
+                "line_count": 6,
+                "arg_count": 1,
+                "return_count": 0,
+                "variable_count": 1,
+                "property_call_count": 1,
+                "if_nesting_level": 1,
+                "else_count": 0,
+                "score": 0
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\PhpParser\\MethodMetricsVisitor",
+        "methods": {
+            "writeMetricsOnLeaveNode": {
+                "name": "writeMetricsOnLeaveNode",
+                "line_count": 13,
+                "arg_count": 1,
+                "return_count": 0,
+                "variable_count": 2,
+                "property_call_count": 9,
+                "if_nesting_level": 1,
+                "else_count": 0,
+                "score": 0.288
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\PhpParser\\MethodMetricsVisitor",
+        "methods": {
+            "checkNameSpaceOnLeaveNode": {
+                "name": "checkNameSpaceOnLeaveNode",
+                "line_count": 6,
+                "arg_count": 1,
+                "return_count": 0,
+                "variable_count": 1,
+                "property_call_count": 1,
+                "if_nesting_level": 1,
+                "else_count": 0,
+                "score": 0
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\PhpParser\\MethodMetricsVisitor",
+        "methods": {
+            "checkClassOnLeaveNode": {
+                "name": "checkClassOnLeaveNode",
+                "line_count": 6,
+                "arg_count": 1,
+                "return_count": 0,
+                "variable_count": 1,
+                "property_call_count": 1,
+                "if_nesting_level": 1,
+                "else_count": 0,
+                "score": 0
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\PhpParser\\MethodMetricsVisitor",
+        "methods": {
+            "leaveNode": {
+                "name": "leaveNode",
+                "line_count": 7,
+                "arg_count": 1,
+                "return_count": 0,
+                "variable_count": 1,
+                "property_call_count": 0,
+                "if_nesting_level": 0,
+                "else_count": 0,
+                "score": 0
+            }
+        }
+    },
+    {
+        "class": "Phauthentic\\CodeQuality\\PhpParser\\MethodMetricsVisitor",
+        "methods": {
+            "getMethodMetrics": {
+                "name": "getMethodMetrics",
+                "line_count": 4,
+                "arg_count": 0,
+                "return_count": 1,
+                "variable_count": 1,
+                "property_call_count": 1,
+                "if_nesting_level": 0,
+                "else_count": 0,
+                "score": 0
+            }
+        }
+    }
+]

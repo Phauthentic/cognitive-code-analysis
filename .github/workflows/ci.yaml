@@ -1,0 +1,74 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  testsuite:
+    name: Unittests
+    runs-on: ubuntu-20.04
+
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version: ['8.2', '8.3']
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 1
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ matrix.php-version }}
+        extensions: json, fileinfo
+        tools: pecl
+        coverage: pcov
+
+    - name: Composer install
+      run: |
+        if [[ ${{ matrix.prefer-lowest == 'prefer-lowest' }} ]]; then
+          composer update --prefer-lowest --prefer-stable
+        else
+          composer install
+        fi
+
+    - name: Run PHPUnit
+      run: |
+        if [[ ${{ matrix.php-version }} == '8.2' ]]; then
+          bin/phpunit --coverage-clover=coverage.xml
+        else
+          bin/phpunit
+        fi
+    - name: Code Coverage Report
+      if: success() && matrix.php-version == '8.2'
+      uses: codecov/codecov-action@v4
+
+  code-analysis:
+    name: Coding Standard & Static Analysis
+    runs-on: ubuntu-20.04
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 1
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ matrix.php-version }}
+        extensions: json, fileinfo
+        coverage: pcov
+        tools: pecl
+
+    - name: Composer install
+      run: composer update --prefer-lowest --prefer-stable
+
+    - name: Run phpcs
+      run: bin/phpcs --version && bin/phpcs --report=source --standard=phpcs.xml
+
+    - name: Run phpstan
+      run: bin/phpstan -V && bin/phpstan --error-format=github
+
+    - name: Run Infection
+      run: bin/infection

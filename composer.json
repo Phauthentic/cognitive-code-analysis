@@ -1,0 +1,78 @@
+{
+    "name": "phauthentic/code-quality",
+    "type": "project",
+    "require": {
+        "php": "^8.1",
+        "nikic/php-parser": "^5.1",
+        "symfony/console": "^7.1",
+        "symfony/finder": "^7.1",
+        "symfony/filesystem": "^7.1",
+        "symfony/config": "^7.1",
+        "symfony/yaml": "^7.1",
+        "symfony/dependency-injection": "^7.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "Phauthentic\\CodeQuality\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phauthentic\\CodeQuality\\Tests\\": "tests/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Florian Krämer"
+        }
+    ],
+    "require-dev": {
+        "phpunit/phpunit": "^11.3",
+        "infection/infection": "^0.29.6",
+        "phpmd/phpmd": "^2.15",
+        "phpstan/phpstan": "^1.11",
+        "squizlabs/php_codesniffer": "^3.10",
+        "symfony/var-dumper": "^7.1"
+    },
+    "config": {
+        "bin-dir": "bin",
+        "allow-plugins": {
+            "infection/extension-installer": true
+        }
+    },
+    "scripts": {
+        "test": [
+            "phpunit"
+        ],
+        "infection": [
+            "infection"
+        ],
+        "test-coverage": [
+            "phpunit --coverage-text"
+        ],
+        "test-coverage-html": [
+            "phpunit --coverage-html tmp/coverage/"
+        ],
+        "cscheck": [
+            "phpcs src/ tests/ --standard=PSR12 -s"
+        ],
+        "csfix": [
+            "phpcbf src/ tests/ --standard=PSR12"
+        ],
+        "analyze": [
+            "phpstan analyse src/"
+        ],
+        "phpmd": [
+            "bin/phpmd ./src text cleancode,codesize,controversial,design"
+        ],
+        "benchmark": [
+            "bin/phpbench run tests/Benchmark/ --report=aggregate"
+        ],
+        "all": [
+            "@csfix",
+            "@cscheck",
+            "@analyze",
+            "@test"
+        ]
+    }
+}
