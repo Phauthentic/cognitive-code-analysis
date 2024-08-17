@@ -1,0 +1,81 @@
+{
+    "name": "phauthentic/code-quality",
+    "type": "project",
+    "require": {
+        "php": "^8.1",
+        "nikic/php-parser": "^5.1",
+        "symfony/console": "^7.1",
+        "symfony/config": "^7.1",
+        "symfony/yaml": "^7.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "Phauthentic\\CodeQualityMetrics\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phauthentic\\CodeQualityMetrics\\Tests\\": "tests/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Florian Krämer"
+        }
+    ],
+    "require-dev": {
+        "roave/security-advisories": "dev-latest",
+        "phpunit/phpunit": "^11.3",
+        "infection/infection": "^0.29.6",
+        "phpmd/phpmd": "^2.15",
+        "phpstan/phpstan": "^1.11",
+        "squizlabs/php_codesniffer": "^3.10",
+        "symfony/var-dumper": "^7.1"
+    },
+    "config": {
+        "bin-dir": "bin",
+        "allow-plugins": {
+            "infection/extension-installer": true
+        }
+    },
+    "scripts": {
+        "test": [
+            "phpunit"
+        ],
+        "infection": [
+            "infection"
+        ],
+        "test-coverage": [
+            "phpunit --coverage-text"
+        ],
+        "test-coverage-html": [
+            "phpunit --coverage-html tmp/coverage/"
+        ],
+        "cscheck": [
+            "phpcs src/ tests/ -s"
+        ],
+        "csfix": [
+            "phpcbf src/ tests/"
+        ],
+        "analyze": [
+            "phpstan analyse src/"
+        ],
+        "phpmd": [
+            "bin/phpmd ./src text cleancode,codesize,controversial,design"
+        ],
+        "benchmark": [
+            "bin/phpbench run tests/Benchmark/ --report=aggregate"
+        ],
+        "all": [
+            "@csfix",
+            "@cscheck",
+            "@analyze",
+            "@test"
+        ],
+        "build-phar": [
+            "if [ ! -f phive.phar ]; then wget -O phive.phar \"https://phar.io/releases/phive.phar\"; fi",
+            "if [ ! -f tools/box ]; then php phive.phar install humbug/box; fi",
+            "tools/box compile"
+        ]
+    }
+}

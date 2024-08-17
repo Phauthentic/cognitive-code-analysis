@@ -1,0 +1,11 @@
+/vendor/
+/bin/
+/.phive/
+/.phpunit.cache/
+/tmp/
+/tools/
+.idea/
+.env
+infection.log
+phive.phar
+cognitive-analysis.phar

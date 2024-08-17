@@ -1,0 +1,8 @@
+parameters:
+    level: 8
+    paths:
+        - src
+    parallel:
+        maximumNumberOfProcesses: 4
+    excludePaths:
+        - src/PhpParser/*
