@@ -40,7 +40,7 @@ class MetricsFacadeTest extends TestCase
         $facade = new MetricsFacade();
 
         // Load a valid configuration file
-        $facade->loadConfig('./config.yml');
+        $facade->loadConfig('./tests/Fixtures/config-with-one-metric.yml');
 
         // Assuming the loadConfig method in ConfigService is correctly tested,
         // here we're just ensuring that it doesn't throw exceptions

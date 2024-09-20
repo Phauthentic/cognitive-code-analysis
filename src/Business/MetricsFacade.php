@@ -53,10 +53,10 @@ class MetricsFacade
      */
     public function getCognitiveMetrics(string $path): CognitiveMetricsCollection
     {
-        $metricsCollection = $this->cognitiveMetricsCollector->collect($path);
+        $metricsCollection = $this->cognitiveMetricsCollector->collect($path, $this->configService->getConfig()['cognitive']);
 
         foreach ($metricsCollection as $metric) {
-            $this->scoreCalculator->calculate($metric, $this->configService->getConfig());
+            $this->scoreCalculator->calculate($metric, $this->configService->getConfig()['cognitive']);
         }
 
         return $metricsCollection;

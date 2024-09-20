@@ -10,44 +10,6 @@ namespace Phauthentic\CodeQualityMetrics\Business\Cognitive;
 class ScoreCalculator
 {
     /**
-     * @var array<string, mixed>
-     */
-    private array $defaultConfig = [
-        'lineCount' => [
-            'threshold' => 60,
-            'scale' => 2.0,
-        ],
-        'argCount' => [
-            'threshold' => 4,
-            'scale' => 1.0,
-        ],
-        'returnCount' => [
-            'threshold' => 2,
-            'scale' => 5.0,
-        ],
-        'variableCount' => [
-            'threshold' => 2,
-            'scale' => 5.0,
-        ],
-        'propertyCallCount' => [
-            'threshold' => 2,
-            'scale' => 15.0,
-        ],
-        'ifCount' => [
-            'threshold' => 3,
-            'scale' => 1.0,
-        ],
-        'ifNestingLevel' => [
-            'threshold' => 1,
-            'scale' => 1.0,
-        ],
-        'elseCount' => [
-            'threshold' => 1,
-            'scale' => 1.0,
-        ],
-    ];
-
-    /**
      * @var string[]
      */
     private array $combinedMetrics = [
@@ -63,14 +25,12 @@ class ScoreCalculator
 
     /**
      * @param CognitiveMetrics $metrics
-     * @param array<string, mixed> $config
+     * @param array<string, mixed> $metricConfiguration
      * @return void
      */
-    public function calculate(CognitiveMetrics $metrics, array $config = []): void
+    public function calculate(CognitiveMetrics $metrics, array $metricConfiguration = []): void
     {
-        // Merge the provided config with the default config
-        $config['metrics'] = $config['metrics'] ?? $this->defaultConfig;
-        $config = array_merge($this->defaultConfig, $config['metrics']);
+        $metricConfiguration = $metricConfiguration['metrics'];
 
         // List of metric types to process
         $metricTypes = [
@@ -85,7 +45,7 @@ class ScoreCalculator
         ];
 
         // Calculate and set weights for each metric type
-        $this->calculateMetricWeights($metricTypes, $metrics, $config);
+        $this->calculateMetricWeights($metricTypes, $metrics, $metricConfiguration);
 
         // Calculate the overall score
         $this->calculateScore($metrics);

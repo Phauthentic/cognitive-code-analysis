@@ -14,14 +14,16 @@ use SplFileInfo;
  */
 class CognitiveMetricsCollector extends AbstractMetricCollector
 {
-    public function __construct()
+    /**
+     * Collect cognitive metrics from the given path
+     *
+     * @param string $path
+     * @param array<string, mixed> $config
+     * @return CognitiveMetricsCollection
+     */
+    public function collect(string $path, array $config = []): CognitiveMetricsCollection
     {
-        parent::__construct();
-    }
-
-    public function collect(string $path): CognitiveMetricsCollection
-    {
-        $files = $this->findSourceFiles($path);
+        $files = $this->findSourceFiles($path, $this->getExcludePatternsFromConfig($config));
 
         return $this->findMetrics($files);
     }
@@ -35,6 +37,7 @@ class CognitiveMetricsCollector extends AbstractMetricCollector
     protected function findMetrics(iterable $files): CognitiveMetricsCollection
     {
         $metricsCollection = new CognitiveMetricsCollection();
+        $visitor = new CognitiveMetricsVisitor();
 
         foreach ($files as $file) {
             $code = file_get_contents($file->getRealPath());
@@ -43,9 +46,7 @@ class CognitiveMetricsCollector extends AbstractMetricCollector
                 throw new RuntimeException("Could not read file: {$file->getRealPath()}");
             }
 
-            $visitor = new CognitiveMetricsVisitor();
             $this->traverser->addVisitor($visitor);
-
             $this->traverseAbstractSyntaxTree($code);
 
             $methodMetrics = $visitor->getMethodMetrics();
@@ -63,8 +64,10 @@ class CognitiveMetricsCollector extends AbstractMetricCollector
      * @param array<string, mixed> $methodMetrics
      * @param CognitiveMetricsCollection $metricsCollection
      */
-    private function processMethodMetrics(array $methodMetrics, CognitiveMetricsCollection $metricsCollection): void
-    {
+    private function processMethodMetrics(
+        array $methodMetrics,
+        CognitiveMetricsCollection $metricsCollection
+    ): void {
         foreach ($methodMetrics as $classAndMethod => $metrics) {
             [$class, $method] = explode('::', $classAndMethod);
 

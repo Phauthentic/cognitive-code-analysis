@@ -1,0 +1,44 @@
+# Project name
+projectName: "Test"
+
+# Directories and files for analysis relative to the configuration files directory.
+# By default, it is "."
+include:
+  - "./src"
+
+# Directories and files excluded from analysis.
+# Please note that for correct work, you need to add a slash at the end
+# so that only the necessary folders are excluded, and not all that have the same value in the path.
+#
+# For example:
+#    "src/utils" can exclude both the desired "src/utils" folder and the "src/utilsForMe" folder for example.
+#
+# By default, it is empty
+# exclude:
+#   - ""
+
+# The port on which the server will be launched
+# to interact with the analyzer from other programs.
+# By default, it is 8080
+port: 8080
+
+# The path where the cache will be stored.
+# Caching can significantly speed up data collection.
+# By default, it is set to the value of the temporary folder + /phpstats.
+cacheDir: ""
+
+# Disables caching.
+# By default, it is false
+disableCache: false
+
+# Path to the project relative to which all imports are allowed.
+# By default, it is equal to the analyzed directory.
+projectPath: ""
+
+# File extensions to be included in the analysis.
+# By default, it is php, inc, php5, phtml.
+extensions:
+  - "php"
+  - "inc"
+  - "php5"
+  - "phtml"
