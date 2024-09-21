@@ -24,6 +24,16 @@ Given a value of 75 that is greater than the threshold of 50, the function calcu
 
 This calculation is done for each metric and the results are summed to get the final cognitive complexity score for a method.
 
+## Result Interpretation
+
+Interpreting the results of **any** code metrics like cognitive complexity, cyclomatic complexity, efferent and afferent dependencies and other traditional measures requires understanding what each metric tells you about the code and how to use that information effectively. Each of those metrics are *indicators* but not *absolute truths*.
+
+There are cases in which the code simply ends up with a lot of things that might result in a bad score but are necessary and acceptable under certain circumstances. For example a complex calculation or a complex algorithm might have plenty of variables and input arguments. If the problem **can't** be divided (if it can you really should!) into smaller logical units (methods), the score for that method will inevitably be high.
+
+* **Bias** - When it comes to cognition, consider that something that you perceive as easy or understandable, might not be the same for someone else.
+* **Constructors** -  Constructors are often more complex than other methods because they have to initialize the object's state. This can lead to higher cognitive complexity scores, which may be acceptable in some cases.
+* **Data Structure Building** - Methods that build complex data structures or perform complex calculations may have higher cognitive complexity scores. This is often unavoidable and may be acceptable if the complexity is necessary for the task at hand.
+
 ## Metrics Collected
 
 - **Line Count**: 
@@ -57,11 +67,3 @@ This calculation is done for each metric and the results are summed to get the f
 - **If Count**: 
   - **Description**: The total number of `if` statements within the method.
   - **Purpose**: Like else count, this measures the complexity of branching logic. A high if count can make code harder to understand and maintain.
-
-## Result Interpretation
-
-Interpreting the results of code complexity metrics like cognitive complexity, cyclomatic complexity, and other traditional measures requires understanding what each metric tells you about the code and how to use that information effectively.
-
-Also consider that something that you perceive as easy or understandable might not be the same for someone else.
-
-There are cases in which the code simply ends up with a lot of things that might result in a bad score but are necessary and acceptable under certain circumstances. For example a complex calculation or a complex algorithm might have plenty of variables and input arguments. If the problem **can't** be divided into smaller logical units (methods), the score for that class will inevitably be high.
