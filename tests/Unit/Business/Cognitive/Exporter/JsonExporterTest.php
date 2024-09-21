@@ -62,38 +62,56 @@ class JsonExporterTest extends TestCase
         $decodedData = json_decode($jsonData, true);
 
         $expected = [
-            [
-                "class" => "TestClass1",
-                "methods" => [
-                    "testMethod1" => [
-                        "name" => "testMethod1",
-                        "line_count" => 10,
-                        "arg_count" => 2,
-                        "return_count" => 1,
-                        "variable_count" => 5,
-                        "property_call_count" => 3,
-                        "if_nesting_level" => 2,
-                        "else_count" => 1,
-                        "score" => 0,
-                    ],
-                ],
-            ],
-            [
-                "class" => "TestClass2",
-                "methods" => [
-                    "testMethod2" => [
-                        "name" => "testMethod2",
-                        "line_count" => 15,
-                        "arg_count" => 3,
-                        "return_count" => 1,
-                        "variable_count" => 5,
-                        "property_call_count" => 3,
-                        "if_nesting_level" => 2,
-                        "else_count" => 1,
-                        "score" => 0,
-                    ],
-                ],
-            ],
+             [
+                'class' => 'TestClass1',
+                'methods' => [
+                    'testMethod1' => [
+                        'name' => 'testMethod1',
+                        'lineCount' => 10,
+                        'lineCountWeight' => 0,
+                        'argCount' => 2,
+                        'argCountWeight' => 0,
+                        'returnCount' => 1,
+                        'returnCountWeight' => 0,
+                        'variableCount' => 5,
+                        'variableCountWeight' => 0,
+                        'propertyCallCount' => 3,
+                        'propertyCallCountWeight' => 0,
+                        'ifCount' => 4,
+                        'ifCountWeight' => 0,
+                        'ifNestingLevel' => 2,
+                        'ifNestingLevelWeight' => 0,
+                        'elseCount' => 1,
+                        'elseCountWeight' => 0,
+                        'score' => 0
+                    ]
+                ]
+             ],
+             [
+                'class' => 'TestClass2',
+                'methods' => [
+                    'testMethod2' => [
+                        'name' => 'testMethod2',
+                        'lineCount' => 15,
+                        'lineCountWeight' => 0,
+                        'argCount' => 3,
+                        'argCountWeight' => 0,
+                        'returnCount' => 1,
+                        'returnCountWeight' => 0,
+                        'variableCount' => 5,
+                        'variableCountWeight' => 0,
+                        'propertyCallCount' => 3,
+                        'propertyCallCountWeight' => 0,
+                        'ifCount' => 4,
+                        'ifCountWeight' => 0,
+                        'ifNestingLevel' => 2,
+                        'ifNestingLevelWeight' => 0,
+                        'elseCount' => 1,
+                        'elseCountWeight' => 0,
+                        'score' => 0
+                    ]
+                ]
+             ]
         ];
 
         $this->assertSame($expected, $decodedData);

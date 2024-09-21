@@ -1,5 +1,3 @@
-excludePatterns: []
-
 cognitive:
   excludedClasses: [],
   excludedMethods: [],
@@ -40,29 +38,3 @@ halstead:
     time: 0.0
     bugs: 0.0
     volume: 0.0
-
-metrics:
-  lineCount:
-    threshold: 60
-    scale: 25.0
-  argCount:
-    threshold: 4
-    scale: 1.0
-  returnCount:
-    threshold: 2
-    scale: 5.0
-  variableCount:
-    threshold: 2
-    scale: 5.0
-  propertyCallCount:
-    threshold: 2
-    scale: 15.0
-  ifCount:
-    threshold: 3
-    scale: 1.0
-  ifNestingLevel:
-    threshold: 1
-    scale: 1.0
-  elseCount:
-    threshold: 1
-    scale: 1.0

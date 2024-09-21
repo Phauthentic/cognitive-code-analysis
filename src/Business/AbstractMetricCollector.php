@@ -22,6 +22,19 @@ abstract class AbstractMetricCollector
     protected NodeTraverserInterface $traverser;
     protected DirectoryScanner $directoryScanner;
 
+    /**
+     * @param array<string, mixed> $config
+     * @return array<int, string>
+     */
+    protected function getExcludePatternsFromConfig(array $config): array
+    {
+        if (isset($config['excludePatterns'])) {
+            return $config['excludePatterns'];
+        }
+
+        return [];
+    }
+
     public function __construct()
     {
         $this->parser = (new ParserFactory())->createForHostVersion();
@@ -33,11 +46,12 @@ abstract class AbstractMetricCollector
      * Find source files using DirectoryScanner
      *
      * @param string $path Path to the directory or file to scan
+     * @param array<int, string> $exclude List of regx to exclude
      * @return Generator<mixed, SplFileInfo, mixed, mixed> An iterable of SplFileInfo objects
      */
-    protected function findSourceFiles(string $path): iterable
+    protected function findSourceFiles(string $path, array $exclude = []): iterable
     {
-        return $this->directoryScanner->scan([$path], ['^(?!.*\.php$).+']); // Exclude non-PHP files
+        return $this->directoryScanner->scan([$path], ['^(?!.*\.php$).+'] + $exclude); // Exclude non-PHP files
     }
 
 

@@ -23,13 +23,18 @@ class ConfigService
     {
         $this->processor = new Processor();
         $this->configuration = new ConfigLoader();
+
+        $this->config = $this->processor->processConfiguration($this->configuration, [
+            Yaml::parseFile(__DIR__ . '/../../config.yml'),
+        ]);
     }
 
     public function loadConfig(string $configFilePath): void
     {
-        $yamlConfig = Yaml::parseFile($configFilePath);
-
-        $this->config = $this->processor->processConfiguration($this->configuration, [$yamlConfig]);
+        $this->config = $this->processor->processConfiguration($this->configuration, [
+            Yaml::parseFile(__DIR__ . '/../../config.yml'),
+            Yaml::parseFile($configFilePath),
+        ]);
     }
 
     /**

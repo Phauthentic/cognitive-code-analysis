@@ -20,11 +20,12 @@ class HtmlExporter implements DataExporterInterface
         'Method',
         'Line Count',
         'Argument Count',
+        'If Count',
+        'If Nesting Level',
+        'Else Count',
         'Return Count',
         'Variable Count',
         'Property Call Count',
-        'If Nesting Level',
-        'Else Count',
         'Combined Cognitive Complexity'
     ];
 
@@ -65,8 +66,8 @@ class HtmlExporter implements DataExporterInterface
             <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
         </head>
         <body>
-            <div class="container mt-5">
-                <h1 class="mb-4">Metrics Report</h1>
+            <div class="container-fluid">
+                <h1 class="mb-4">Cognitive Metrics Report</h1>
                 <table class="table table-bordered table-striped">
                     <thead>
                         <tr>
@@ -81,14 +82,15 @@ class HtmlExporter implements DataExporterInterface
                                 <tr>
                                     <td><?php echo htmlspecialchars($data->getClass(), ENT_QUOTES, 'UTF-8'); ?></td>
                                     <td><?php echo htmlspecialchars($data->getMethod(), ENT_QUOTES, 'UTF-8'); ?></td>
-                                    <td><?php echo htmlspecialchars((string)$data->getLineCount(), ENT_QUOTES, 'UTF-8'); ?></td>
-                                    <td><?php echo htmlspecialchars((string)$data->getArgCount(), ENT_QUOTES, 'UTF-8'); ?></td>
-                                    <td><?php echo htmlspecialchars((string)$data->getReturnCount(), ENT_QUOTES, 'UTF-8'); ?></td>
-                                    <td><?php echo htmlspecialchars((string)$data->getVariableCount(), ENT_QUOTES, 'UTF-8'); ?></td>
-                                    <td><?php echo htmlspecialchars((string)$data->getPropertyCallCount(), ENT_QUOTES, 'UTF-8'); ?></td>
-                                    <td><?php echo htmlspecialchars((string)$data->getIfNestingLevel(), ENT_QUOTES, 'UTF-8'); ?></td>
-                                    <td><?php echo htmlspecialchars((string)$data->getElseCount(), ENT_QUOTES, 'UTF-8'); ?></td>
-                                    <td><?php echo htmlspecialchars((string)$data->getScore(), ENT_QUOTES, 'UTF-8'); ?></td>
+                                    <td><?php echo htmlspecialchars((string)$data->getLineCount(), ENT_QUOTES, 'UTF-8') . ' (' . number_format($data->getLineCountWeight(), 3) . ')'; ?></td>
+                                    <td><?php echo htmlspecialchars((string)$data->getArgCount(), ENT_QUOTES, 'UTF-8') . ' (' . number_format($data->getArgCountWeight(), 3) . ')'; ?></td>
+                                    <td><?php echo htmlspecialchars((string)$data->getIfCount(), ENT_QUOTES, 'UTF-8') . ' (' . number_format($data->getIfCountWeight(), 3) . ')'; ?></td>
+                                    <td><?php echo htmlspecialchars((string)$data->getIfNestingLevel(), ENT_QUOTES, 'UTF-8') . ' (' . number_format($data->getIfNestingLevelWeight(), 3) . ')'; ?></td>
+                                    <td><?php echo htmlspecialchars((string)$data->getElseCount(), ENT_QUOTES, 'UTF-8') . ' (' . number_format($data->getElseCountWeight(), 3) . ')'; ?></td>
+                                    <td><?php echo htmlspecialchars((string)$data->getReturnCount(), ENT_QUOTES, 'UTF-8') . ' (' . number_format($data->getReturnCountWeight(), 3) . ')'; ?></td>
+                                    <td><?php echo htmlspecialchars((string)$data->getVariableCount(), ENT_QUOTES, 'UTF-8') . ' (' . number_format($data->getVariableCountWeight(), 3) . ')'; ?></td>
+                                    <td><?php echo htmlspecialchars((string)$data->getPropertyCallCount(), ENT_QUOTES, 'UTF-8') . ' (' . number_format($data->getPropertyCallCountWeight(), 3) . ')'; ?></td>
+                                    <td><?php echo number_format($data->getScore(), 3); ?></td>
                                 </tr>
                             <?php endforeach; ?>
                         <?php endforeach; ?>

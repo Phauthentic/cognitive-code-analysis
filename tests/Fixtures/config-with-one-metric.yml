@@ -1,0 +1,10 @@
+cognitive:
+  excludedClasses: []
+  excludedMethods:
+    - '*.test'
+  excludePatterns: []
+  metrics:
+    lineCount:
+      threshold: 1000
+      scale: 900.0
+      enabled: false

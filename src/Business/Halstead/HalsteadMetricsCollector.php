@@ -14,14 +14,16 @@ use SplFileInfo;
  */
 class HalsteadMetricsCollector extends AbstractMetricCollector
 {
-    public function __construct()
+    /**
+     * Collect Halstead metrics from the given path.
+     *
+     * @param string $path
+     * @param array<string, mixed> $config
+     * @return HalsteadMetricsCollection
+     */
+    public function collect(string $path, array $config = []): HalsteadMetricsCollection
     {
-        parent::__construct();
-    }
-
-    public function collect(string $path): HalsteadMetricsCollection
-    {
-        $files = $this->findSourceFiles($path);
+        $files = $this->findSourceFiles($path, $this->getExcludePatternsFromConfig($config));
 
         return $this->findMetrics($files);
     }
