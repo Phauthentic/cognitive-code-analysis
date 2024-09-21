@@ -38,27 +38,25 @@ class CognitiveMetricTextRenderer
 
             $table->setRows($rows);
             $table->render();
+
             $output->writeln("");
         }
     }
 
-    /**
-     * @return string[]
-     */
-    protected function getTableHeaders(): array
+    protected function renderTable(OutputInterface $output, CognitiveMetricsCollection $metricsCollection): void
     {
-        return [
-            "Method Name",
-            "Lines",
-            "Arguments",
-            "Returns",
-            "Variables",
-            "Property\nAccesses",
-            "If",
-            "If Nesting\nLevel",
-            "Else",
-            "Cognitive\nComplexity"
-        ];
+        $table = new Table($output);
+        $table->setStyle('box');
+        $table->setHeaders($this->tableHeaders);
+
+        $rows = [];
+        foreach ($metricsCollection as $metric) {
+            $rows[] = $this->prepareTableRow($metric);
+            ;
+        }
+
+        $table->setRows($rows);
+        $table->render();
     }
 
     /**
@@ -78,21 +76,20 @@ class CognitiveMetricTextRenderer
             'ifCount' => $metrics->getIfCount(),
             'ifNestingLevel' => $metrics->getIfNestingLevel(),
             'elseCount' => $metrics->getElseCount(),
-            'score' => $metrics->getScore() > 0.5 ? '<error>' . $metrics->getScore() . '</error>' : '<info>' . $metrics->getScore() . '</info>',
+            'score' => $metrics->getScore() > $this->scoreThreshold ? '<error>' . $metrics->getScore() . '</error>' : '<info>' . $metrics->getScore() . '</info>',
         ];
 
-        $keys = [
-            'lineCount',
-            'argCount',
-            'returnCount',
-            'variableCount',
-            'propertyCallCount',
-            'ifCount',
-            'ifNestingLevel',
-            'elseCount',
-        ];
+        return $this->formatValues($row, $metrics);
+    }
 
-        foreach ($keys as $key) {
+    /**
+     * @param array<string, mixed> $row
+     * @param CognitiveMetrics $metrics
+     * @return array<string, mixed>
+     */
+    protected function formatValues(array $row, CognitiveMetrics $metrics): array
+    {
+        foreach ($this->keys as $key) {
             $getMethod = 'get' . $key;
             $getMethodWeight = 'get' . $key . 'Weight';
             $weight = $metrics->{$getMethodWeight}();

@@ -169,6 +169,7 @@ class CognitiveMetricsVisitor extends NodeVisitorAbstract
             if ($node->name === null) {
                 return false;
             }
+
             $this->currentClassName = $this->currentNamespace . '\\' . $node->name->toString();
         }
 
@@ -263,6 +264,8 @@ class CognitiveMetricsVisitor extends NodeVisitorAbstract
             $this->methodMetrics[$method]['if_count'] = $this->ifCount;
             $this->methodMetrics[$method]['if_nesting_level'] = $this->maxIfNestingLevel;
             $this->methodMetrics[$method]['else_count'] = $this->elseCount;
+            $this->methodMetrics[$method]['line_count'] = $node->getEndLine() - $node->getStartLine() + 1;
+            $this->methodMetrics[$method]['arg_count'] = count($node->getParams());
             $this->currentMethod = '';
         }
     }
