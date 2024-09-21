@@ -14,7 +14,12 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class CognitiveMetricTextRenderer
 {
-    public function render(CognitiveMetricsCollection $metricsCollection, OutputInterface $output): void
+    /**
+     * @param CognitiveMetricsCollection $metricsCollection
+     * @param array<int, array<string, mixed>> $baseline
+     * @param OutputInterface $output
+     */
+    public function render(CognitiveMetricsCollection $metricsCollection, array $baseline, OutputInterface $output): void
     {
         $groupedByClass = $metricsCollection->groupBy('class');
 
@@ -27,7 +32,7 @@ class CognitiveMetricTextRenderer
 
             $rows = [];
             foreach ($metrics as $metric) {
-                $row = $this->prepareTableRow($metric);
+                $row = $this->prepareTableRow($metric, $baseline);
                 $rows[] = $row;
             }
 
@@ -58,9 +63,10 @@ class CognitiveMetricTextRenderer
 
     /**
      * @param CognitiveMetrics $metrics
+     * @param array<int, array<string, mixed>> $baseline
      * @return array<string, mixed>
      */
-    protected function prepareTableRow(CognitiveMetrics $metrics): array
+    protected function prepareTableRow(CognitiveMetrics $metrics, array $baseline): array
     {
         $row = [
             'methodName' => $metrics->getMethod(),
@@ -91,6 +97,53 @@ class CognitiveMetricTextRenderer
             $getMethodWeight = 'get' . $key . 'Weight';
             $weight = $metrics->{$getMethodWeight}();
             $row[$key] = $metrics->{$getMethod}() . ' (' . round($weight, 3) . ')';
+            $row = $this->addDelta($row, $metrics, $baseline, $key, $weight);
+        }
+
+        return $row;
+    }
+
+    /**
+     * @param array<string, mixed> $row
+     * @param CognitiveMetrics $metrics
+     * @param array<int, array<string, mixed>> $baseline
+     * @param string $key
+     * @param float $weight
+     * @return array<string, mixed>
+     */
+    private function addDelta(
+        array $row,
+        CognitiveMetrics $metrics,
+        array $baseline,
+        string $key,
+        float $weight
+    ): array {
+        foreach ($baseline as $classMetrics) {
+            if (!isset($classMetrics['class']) || $classMetrics['class'] !== $metrics->getClass()) {
+                continue;
+            }
+
+            if (!isset($classMetrics['methods'][$metrics->getMethod()])) {
+                continue;
+            }
+
+            $method = $key . 'Weight';
+            if (!isset($classMetrics['methods'][$metrics->getMethod()][$method])) {
+                continue;
+            }
+
+            $baselineWeight = (float)$classMetrics['methods'][$metrics->getMethod()][$method];
+            if ($baselineWeight === $weight) {
+                return $row;
+            }
+
+            if ($baselineWeight > $weight) {
+                $row[$key] .= PHP_EOL . '<info>Δ -' . round($baselineWeight - $weight, 3) . '</info>';
+            }
+
+            if ($baselineWeight < $weight) {
+                $row[$key] .= PHP_EOL . '<error>Δ +' . round($weight - $baselineWeight, 3)  . '</error>';
+            }
         }
 
         return $row;

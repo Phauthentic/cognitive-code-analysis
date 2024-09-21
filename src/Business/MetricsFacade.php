@@ -6,6 +6,9 @@ namespace Phauthentic\CodeQualityMetrics\Business;
 
 use Phauthentic\CodeQualityMetrics\Business\Cognitive\CognitiveMetricsCollection;
 use Phauthentic\CodeQualityMetrics\Business\Cognitive\CognitiveMetricsCollector;
+use Phauthentic\CodeQualityMetrics\Business\Cognitive\Exporter\CsvExporter;
+use Phauthentic\CodeQualityMetrics\Business\Cognitive\Exporter\HtmlExporter;
+use Phauthentic\CodeQualityMetrics\Business\Cognitive\Exporter\JsonExporter;
 use Phauthentic\CodeQualityMetrics\Business\Cognitive\ScoreCalculator;
 use Phauthentic\CodeQualityMetrics\Business\Halstead\HalsteadMetricsCollection;
 use Phauthentic\CodeQualityMetrics\Business\Halstead\HalsteadMetricsCollector;
@@ -71,5 +74,20 @@ class MetricsFacade
     public function loadConfig(string $configFilePath): void
     {
         $this->configService->loadConfig($configFilePath);
+    }
+
+    public function metricsCollectionToCsv(CognitiveMetricsCollection $metricsCollection, string $filename): void
+    {
+        (new CsvExporter())->export($metricsCollection, $filename);
+    }
+
+    public function metricsCollectionToJson(CognitiveMetricsCollection $metricsCollection, string $filename): void
+    {
+        (new JsonExporter())->export($metricsCollection, $filename);
+    }
+
+    public function metricsCollectionToHtml(CognitiveMetricsCollection $metricsCollection, string $filename): void
+    {
+        (new HtmlExporter())->export($metricsCollection, $filename);
     }
 }

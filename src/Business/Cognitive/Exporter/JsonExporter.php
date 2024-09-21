@@ -24,21 +24,26 @@ class JsonExporter implements DataExporterInterface
                     'methods' => [
                         $metrics->getMethod() => [
                             'name' => $metrics->getMethod(),
-                            'line_count' => $metrics->getLineCount(),
-                            'arg_count' => $metrics->getArgCount(),
-                            'return_count' => $metrics->getReturnCount(),
-                            'variable_count' => $metrics->getVariableCount(),
-                            'property_call_count' => $metrics->getPropertyCallCount(),
-                            'if_nesting_level' => $metrics->getIfNestingLevel(),
-                            'else_count' => $metrics->getElseCount(),
+                            'lineCount' => $metrics->getLineCount(),
+                            'lineCountWeight' => $metrics->getLineCountWeight(),
+                            'argCount' => $metrics->getArgCount(),
+                            'argCountWeight' => $metrics->getArgCountWeight(),
+                            'returnCount' => $metrics->getReturnCount(),
+                            'returnCountWeight' => $metrics->getReturnCountWeight(),
+                            'variableCount' => $metrics->getVariableCount(),
+                            'variableCountWeight' => $metrics->getVariableCountWeight(),
+                            'propertyCallCount' => $metrics->getPropertyCallCount(),
+                            'propertyCallCountWeight' => $metrics->getPropertyCallCountWeight(),
+                            'ifCount' => $metrics->getIfCount(),
+                            'ifCountWeight' => $metrics->getIfCountWeight(),
+                            'ifNestingLevel' => $metrics->getIfNestingLevel(),
+                            'ifNestingLevelWeight' => $metrics->getIfNestingLevelWeight(),
+                            'elseCount' => $metrics->getElseCount(),
+                            'elseCountWeight' => $metrics->getElseCountWeight(),
                             'score' => $metrics->getScore()
                         ]
                     ]
                 ];
-
-                $metrics->setScore(
-                    $metrics->getPropertyCallCount() + $metrics->getVariableCount() + $metrics->getArgCount()
-                );
             }
         }
 

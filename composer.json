@@ -60,6 +60,9 @@
         "analyze": [
             "phpstan analyse src/"
         ],
+        "analyse": [
+            "phpstan analyse src/"
+        ],
         "phpmd": [
             "bin/phpmd ./src text cleancode,codesize,controversial,design"
         ],
