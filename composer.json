@@ -1,5 +1,5 @@
 {
-    "name": "phauthentic/code-quality",
+    "name": "phauthentic/cognitive-code-analysis",
     "type": "project",
     "require": {
         "php": "^8.1",
