@@ -39,6 +39,9 @@
             "infection/extension-installer": true
         }
     },
+    "bin": [
+        "bin/cognitive-analysis"
+    ],
     "scripts": {
         "test": [
             "phpunit"

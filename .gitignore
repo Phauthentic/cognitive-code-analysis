@@ -1,5 +1,7 @@
 /vendor/
 /bin/
+!/bin/cognitive-analysis
+!/bin/cognitive-analysis.bat
 /.phive/
 /.phpunit.cache/
 /tmp/
