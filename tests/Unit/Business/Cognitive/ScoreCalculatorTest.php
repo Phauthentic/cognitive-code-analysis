@@ -25,14 +25,14 @@ class ScoreCalculatorTest extends TestCase
         $this->metrics = new CognitiveMetrics([
             'class' => 'Test',
             'method' => 'test',
-            'line_count' => 10,
-            'arg_count' => 5,
-            'return_count' => 2,
-            'variable_count' => 3,
-            'property_call_count' => 2,
-            'if_count' => 3,
-            'if_nesting_level' => 2,
-            'else_count' => 2,
+            'lineCount' => 10,
+            'argCount' => 5,
+            'returnCount' => 2,
+            'variableCount' => 3,
+            'propertyCallCount' => 2,
+            'ifCount' => 3,
+            'ifNestingLevel' => 2,
+            'elseCount' => 2,
         ]);
     }
 

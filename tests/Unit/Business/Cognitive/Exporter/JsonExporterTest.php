@@ -28,26 +28,27 @@ class JsonExporterTest extends TestCase
         $metrics1 = new CognitiveMetrics([
             'class' => 'TestClass1',
             'method' => 'testMethod1',
-            'line_count' => 10,
-            'arg_count' => 2,
-            'return_count' => 1,
-            'variable_count' => 5,
-            'property_call_count' => 3,
-            'if_count' => 4,
-            'if_nesting_level' => 2,
-            'else_count' => 1,
+            'lineCount' => 10,
+            'argCount' => 2,
+            'returnCount' => 1,
+            'variableCount' => 5,
+            'propertyCallCount' => 3,
+            'ifCount' => 4,
+            'ifNestingLevel' => 2,
+            'elseCount' => 1,
         ]);
+
         $metrics2 = new CognitiveMetrics([
             'class' => 'TestClass2',
             'method' => 'testMethod2',
-            'line_count' => 15,
-            'arg_count' => 3,
-            'return_count' => 1,
-            'variable_count' => 5,
-            'property_call_count' => 3,
-            'if_count' => 4,
-            'if_nesting_level' => 2,
-            'else_count' => 1,
+            'lineCount' => 15,
+            'argCount' => 3,
+            'returnCount' => 1,
+            'variableCount' => 5,
+            'propertyCallCount' => 3,
+            'ifCount' => 4,
+            'ifNestingLevel' => 2,
+            'elseCount' => 1,
         ]);
 
         $metricsCollection->add($metrics1);

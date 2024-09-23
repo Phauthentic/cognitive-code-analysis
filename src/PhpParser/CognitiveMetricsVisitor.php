@@ -97,14 +97,14 @@ class CognitiveMetricsVisitor extends NodeVisitorAbstract
     private function recordMethodMetrics(Node\Stmt\ClassMethod $node): void
     {
         $this->methodMetrics["{$this->currentClassName}::{$this->currentMethod}"] = [
-            'line_count' => $this->calculateLineCount($node),
-            'arg_count' => $this->countMethodArguments($node),
-            'return_count' => 0,
-            'variable_count' => 0,
-            'property_call_count' => 0,
-            'if_nesting_level' => 0,
-            'else_count' => 0,
-            'if_count' => 0,
+            'lineCount' => $this->calculateLineCount($node),
+            'argCount' => $this->countMethodArguments($node),
+            'returnCount' => 0,
+            'variableCount' => 0,
+            'propertyCallCount' => 0,
+            'ifNestingLevel' => 0,
+            'elseCount' => 0,
+            'ifCount' => 0,
         ];
     }
 
