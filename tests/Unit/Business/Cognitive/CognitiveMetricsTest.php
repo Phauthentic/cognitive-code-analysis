@@ -156,7 +156,7 @@ class CognitiveMetricsTest extends TestCase
     public function testCalculateDeltas(): void
     {
         // Create first set of metrics
-        $metrics1 = new CognitiveMetrics([
+        $presentMetrics = new CognitiveMetrics([
             'class' => 'TestClass',
             'method' => 'testMethod',
             'lineCount' => 10,
@@ -170,17 +170,17 @@ class CognitiveMetricsTest extends TestCase
         ]);
 
         // Set weights for metrics1
-        $metrics1->setLineCountWeight(1.5);
-        $metrics1->setArgCountWeight(0.5);
-        $metrics1->setReturnCountWeight(2.0);
-        $metrics1->setVariableCountWeight(1.0);
-        $metrics1->setPropertyCallCountWeight(1.5);
-        $metrics1->setIfCountWeight(0.0);
-        $metrics1->setIfNestingLevelWeight(1.0);
-        $metrics1->setElseCountWeight(0.5);
+        $presentMetrics->setLineCountWeight(1.5);
+        $presentMetrics->setArgCountWeight(0.5);
+        $presentMetrics->setReturnCountWeight(2.0);
+        $presentMetrics->setVariableCountWeight(1.0);
+        $presentMetrics->setPropertyCallCountWeight(1.5);
+        $presentMetrics->setIfCountWeight(0.0);
+        $presentMetrics->setIfNestingLevelWeight(1.0);
+        $presentMetrics->setElseCountWeight(0.5);
 
         // Create second set of metrics with different weights
-        $metrics2 = new CognitiveMetrics([
+        $beforeMetrics = new CognitiveMetrics([
             'class' => 'TestClass',
             'method' => 'testMethod',
             'lineCount' => 10,
@@ -194,41 +194,41 @@ class CognitiveMetricsTest extends TestCase
         ]);
 
         // Set weights for metrics2
-        $metrics2->setLineCountWeight(1.0);
-        $metrics2->setArgCountWeight(1.0);
-        $metrics2->setReturnCountWeight(2.5);
-        $metrics2->setVariableCountWeight(1.0);
-        $metrics2->setPropertyCallCountWeight(2.0);
-        $metrics2->setIfCountWeight(0.0);
-        $metrics2->setIfNestingLevelWeight(2.0);
-        $metrics2->setElseCountWeight(0.5);
+        $beforeMetrics->setLineCountWeight(1.0);
+        $beforeMetrics->setArgCountWeight(1.0);
+        $beforeMetrics->setReturnCountWeight(2.5);
+        $beforeMetrics->setVariableCountWeight(1.0);
+        $beforeMetrics->setPropertyCallCountWeight(2.0);
+        $beforeMetrics->setIfCountWeight(0.0);
+        $beforeMetrics->setIfNestingLevelWeight(2.0);
+        $beforeMetrics->setElseCountWeight(0.5);
 
         // Calculate deltas
-        $metrics1->calculateDeltas($metrics2);
+        $presentMetrics->calculateDeltas($beforeMetrics);
 
         // Check deltas for each weight
-        $this->assertInstanceOf(Delta::class, $metrics1->getLineCountWeightDelta());
-        $this->assertEquals(-0.5, $metrics1->getLineCountWeightDelta()->getValue());
+        $this->assertInstanceOf(Delta::class, $presentMetrics->getLineCountWeightDelta());
+        $this->assertEquals(0.5, $presentMetrics->getLineCountWeightDelta()->getValue());
 
-        $this->assertInstanceOf(Delta::class, $metrics1->getArgCountWeightDelta());
-        $this->assertEquals(0.5, $metrics1->getArgCountWeightDelta()->getValue());
+        $this->assertInstanceOf(Delta::class, $presentMetrics->getArgCountWeightDelta());
+        $this->assertEquals(-0.5, $presentMetrics->getArgCountWeightDelta()->getValue());
 
-        $this->assertInstanceOf(Delta::class, $metrics1->getReturnCountWeightDelta());
-        $this->assertEquals(0.5, $metrics1->getReturnCountWeightDelta()->getValue());
+        $this->assertInstanceOf(Delta::class, $presentMetrics->getReturnCountWeightDelta());
+        $this->assertEquals(-0.5, $presentMetrics->getReturnCountWeightDelta()->getValue());
 
-        $this->assertInstanceOf(Delta::class, $metrics1->getVariableCountWeightDelta());
-        $this->assertEquals(0.0, $metrics1->getVariableCountWeightDelta()->getValue());
+        $this->assertInstanceOf(Delta::class, $presentMetrics->getVariableCountWeightDelta());
+        $this->assertEquals(0.0, $presentMetrics->getVariableCountWeightDelta()->getValue());
 
-        $this->assertInstanceOf(Delta::class, $metrics1->getPropertyCallCountWeightDelta());
-        $this->assertEquals(0.5, $metrics1->getPropertyCallCountWeightDelta()->getValue());
+        $this->assertInstanceOf(Delta::class, $presentMetrics->getPropertyCallCountWeightDelta());
+        $this->assertEquals(-0.5, $presentMetrics->getPropertyCallCountWeightDelta()->getValue());
 
-        $this->assertInstanceOf(Delta::class, $metrics1->getIfCountWeightDelta());
-        $this->assertEquals(0.0, $metrics1->getIfCountWeightDelta()->getValue());
+        $this->assertInstanceOf(Delta::class, $presentMetrics->getIfCountWeightDelta());
+        $this->assertEquals(0.0, $presentMetrics->getIfCountWeightDelta()->getValue());
 
-        $this->assertInstanceOf(Delta::class, $metrics1->getIfNestingLevelWeightDelta());
-        $this->assertEquals(1.0, $metrics1->getIfNestingLevelWeightDelta()->getValue());
+        $this->assertInstanceOf(Delta::class, $presentMetrics->getIfNestingLevelWeightDelta());
+        $this->assertEquals(-1.0, $presentMetrics->getIfNestingLevelWeightDelta()->getValue());
 
-        $this->assertInstanceOf(Delta::class, $metrics1->getElseCountWeightDelta());
-        $this->assertEquals(0.0, $metrics1->getElseCountWeightDelta()->getValue());
+        $this->assertInstanceOf(Delta::class, $presentMetrics->getElseCountWeightDelta());
+        $this->assertEquals(0.0, $presentMetrics->getElseCountWeightDelta()->getValue());
     }
 }

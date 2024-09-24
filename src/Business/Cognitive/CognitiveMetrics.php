@@ -12,8 +12,23 @@ use JsonSerializable;
  */
 class CognitiveMetrics implements JsonSerializable
 {
-    private string $class = '';
-    private string $method = '';
+    /**
+     * @var array<int, string>
+     */
+    private array $metrics = [
+        'lineCount',
+        'argCount',
+        'returnCount',
+        'variableCount',
+        'propertyCallCount',
+        'ifCount',
+        'ifNestingLevel',
+        'elseCount'
+    ];
+
+    private string $class;
+    private string $method;
+
     private int $lineCount = 0;
     private int $argCount = 0;
     private int $returnCount = 0;
@@ -49,25 +64,37 @@ class CognitiveMetrics implements JsonSerializable
     {
         $this->assertArrayKeyIsPresent($metrics, 'class');
         $this->assertArrayKeyIsPresent($metrics, 'method');
-        $this->assertArrayKeyIsPresent($metrics, 'lineCount');
-        $this->assertArrayKeyIsPresent($metrics, 'argCount');
-        $this->assertArrayKeyIsPresent($metrics, 'returnCount');
-        $this->assertArrayKeyIsPresent($metrics, 'variableCount');
-        $this->assertArrayKeyIsPresent($metrics, 'propertyCallCount');
-        $this->assertArrayKeyIsPresent($metrics, 'ifCount');
-        $this->assertArrayKeyIsPresent($metrics, 'ifNestingLevel');
-        $this->assertArrayKeyIsPresent($metrics, 'elseCount');
-
-        $this->class = $metrics['class'];
         $this->method = $metrics['method'];
-        $this->lineCount = $metrics['lineCount'];
-        $this->argCount = $metrics['argCount'];
-        $this->returnCount = $metrics['returnCount'];
-        $this->variableCount = $metrics['variableCount'];
-        $this->propertyCallCount = $metrics['propertyCallCount'];
-        $this->ifCount = $metrics['ifCount'];
-        $this->ifNestingLevel = $metrics['ifNestingLevel'];
-        $this->elseCount = $metrics['elseCount'];
+        $this->class = $metrics['class'];
+
+        $this->setRequiredMetricProperties($metrics);
+        $this->setOptionalMetricProperties($metrics);
+    }
+
+    /**
+     * @param array<string, mixed> $metrics
+     * @return void
+     */
+    private function setRequiredMetricProperties(array $metrics): void
+    {
+        foreach ($this->metrics as $metricName) {
+            $this->assertArrayKeyIsPresent($metrics, $metricName);
+            $this->$metricName = $metrics[$metricName];
+        }
+    }
+
+    /**
+     * @param array<string, mixed> $metrics
+     * @return void
+     */
+    private function setOptionalMetricProperties(array $metrics): void
+    {
+        foreach ($this->metrics as $metricName) {
+            $property = $metricName . 'Weight';
+            if (array_key_exists($property, $metrics)) {
+                $this->$property = $metrics[$property];
+            }
+        }
     }
 
     private function assertSame(self $other): void
@@ -93,16 +120,15 @@ class CognitiveMetrics implements JsonSerializable
     {
         $this->assertSame($other);
 
-        $this->lineCountWeightDelta = new Delta($this->lineCountWeight, $other->getLineCountWeight());
-        $this->argCountWeightDelta = new Delta($this->argCountWeight, $other->getArgCountWeight());
-        $this->returnCountWeightDelta = new Delta($this->returnCountWeight, $other->getReturnCountWeight());
-        $this->variableCountWeightDelta = new Delta($this->variableCountWeight, $other->getVariableCountWeight());
-        $this->propertyCallCountWeightDelta = new Delta($this->propertyCallCountWeight, $other->getPropertyCallCountWeight());
-        $this->ifCountWeightDelta = new Delta($this->ifCountWeight, $other->getIfCountWeight());
-        $this->ifNestingLevelWeightDelta = new Delta($this->ifNestingLevelWeight, $other->getIfNestingLevelWeight());
-        $this->elseCountWeightDelta = new Delta($this->elseCountWeight, $other->getElseCountWeight());
+        $this->lineCountWeightDelta = new Delta($other->getLineCountWeight(), $this->lineCountWeight);
+        $this->argCountWeightDelta = new Delta($other->getArgCountWeight(), $this->argCountWeight);
+        $this->returnCountWeightDelta = new Delta($other->getReturnCountWeight(), $this->returnCountWeight);
+        $this->variableCountWeightDelta = new Delta($other->getVariableCountWeight(), $this->variableCountWeight);
+        $this->propertyCallCountWeightDelta = new Delta($other->getPropertyCallCountWeight(), $this->propertyCallCountWeight);
+        $this->ifCountWeightDelta = new Delta($other->getIfCountWeight(), $this->ifCountWeight);
+        $this->ifNestingLevelWeightDelta = new Delta($other->getIfNestingLevelWeight(), $this->ifNestingLevelWeight);
+        $this->elseCountWeightDelta = new Delta($other->getElseCountWeight(), $this->elseCountWeight);
     }
-
 
     /**
      * @param array<string, mixed> $metrics

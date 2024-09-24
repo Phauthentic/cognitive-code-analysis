@@ -16,12 +16,12 @@ final class Delta
     {
         if ($before < $after) {
             $this->hasIncreased = true;
-            $this->difference = $after - $before; // Positive difference for increase
+            $this->difference = $after - $before;
             return;
         }
 
         $this->hasIncreased = false;
-        $this->difference = $after - $before; // Negative difference for decrease or zero
+        $this->difference = $after - $before;
     }
 
     public function getValue(): float
@@ -37,5 +37,10 @@ final class Delta
     public function __toString(): string
     {
         return (string)$this->difference;
+    }
+
+    public function hasNotChanged(): bool
+    {
+        return $this->difference === 0.0;
     }
 }

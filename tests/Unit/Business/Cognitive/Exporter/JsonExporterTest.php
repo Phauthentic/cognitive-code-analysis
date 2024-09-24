@@ -63,11 +63,11 @@ class JsonExporterTest extends TestCase
         $decodedData = json_decode($jsonData, true);
 
         $expected = [
-             [
-                'class' => 'TestClass1',
+            'TestClass1' => [
                 'methods' => [
                     'testMethod1' => [
-                        'name' => 'testMethod1',
+                        'class' => 'TestClass1',
+                        'method' => 'testMethod1',
                         'lineCount' => 10,
                         'lineCountWeight' => 0,
                         'argCount' => 2,
@@ -84,15 +84,15 @@ class JsonExporterTest extends TestCase
                         'ifNestingLevelWeight' => 0,
                         'elseCount' => 1,
                         'elseCountWeight' => 0,
-                        'score' => 0
+                        'score' => 0,
                     ]
                 ]
-             ],
-             [
-                'class' => 'TestClass2',
+            ],
+            'TestClass2' => [
                 'methods' => [
                     'testMethod2' => [
-                        'name' => 'testMethod2',
+                        'class' => 'TestClass2',
+                        'method' => 'testMethod2',
                         'lineCount' => 15,
                         'lineCountWeight' => 0,
                         'argCount' => 3,
@@ -109,10 +109,10 @@ class JsonExporterTest extends TestCase
                         'ifNestingLevelWeight' => 0,
                         'elseCount' => 1,
                         'elseCountWeight' => 0,
-                        'score' => 0
+                        'score' => 0,
                     ]
                 ]
-             ]
+            ]
         ];
 
         $this->assertSame($expected, $decodedData);
