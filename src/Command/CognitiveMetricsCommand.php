@@ -40,8 +40,7 @@ class CognitiveMetricsCommand extends Command
         private MetricsFacade $metricsFacade,
         private CognitiveMetricTextRenderer $metricTextRenderer,
         private BaselineService $baselineService
-    )
-    {
+    ) {
         parent::__construct();
     }
 

@@ -23,12 +23,11 @@ class MetricsFacade
      * Constructor initializes the metrics collectors, score calculator, and config service.
      */
     public function __construct(
-        private readonly HalsteadMetricsCollector  $halsteadMetricsCollector,
+        private readonly HalsteadMetricsCollector $halsteadMetricsCollector,
         private readonly CognitiveMetricsCollector $cognitiveMetricsCollector,
-        private readonly ScoreCalculator           $scoreCalculator,
-        private readonly ConfigService             $configService
-    )
-    {
+        private readonly ScoreCalculator $scoreCalculator,
+        private readonly ConfigService $configService
+    ) {
         $this->loadConfig(__DIR__ . '/../../config.yml');
     }
 

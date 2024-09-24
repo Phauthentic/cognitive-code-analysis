@@ -33,9 +33,9 @@ abstract class AbstractMetricCollector
     }
 
     public function __construct(
-        protected readonly ParserFactory          $parserFactory,
+        protected readonly ParserFactory $parserFactory,
         protected readonly NodeTraverserInterface $traverser,
-        protected readonly DirectoryScanner       $directoryScanner
+        protected readonly DirectoryScanner $directoryScanner
     ) {
         $this->parser = $this->parserFactory->createForHostVersion();
     }
