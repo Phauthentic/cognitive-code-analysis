@@ -28,26 +28,27 @@ class JsonExporterTest extends TestCase
         $metrics1 = new CognitiveMetrics([
             'class' => 'TestClass1',
             'method' => 'testMethod1',
-            'line_count' => 10,
-            'arg_count' => 2,
-            'return_count' => 1,
-            'variable_count' => 5,
-            'property_call_count' => 3,
-            'if_count' => 4,
-            'if_nesting_level' => 2,
-            'else_count' => 1,
+            'lineCount' => 10,
+            'argCount' => 2,
+            'returnCount' => 1,
+            'variableCount' => 5,
+            'propertyCallCount' => 3,
+            'ifCount' => 4,
+            'ifNestingLevel' => 2,
+            'elseCount' => 1,
         ]);
+
         $metrics2 = new CognitiveMetrics([
             'class' => 'TestClass2',
             'method' => 'testMethod2',
-            'line_count' => 15,
-            'arg_count' => 3,
-            'return_count' => 1,
-            'variable_count' => 5,
-            'property_call_count' => 3,
-            'if_count' => 4,
-            'if_nesting_level' => 2,
-            'else_count' => 1,
+            'lineCount' => 15,
+            'argCount' => 3,
+            'returnCount' => 1,
+            'variableCount' => 5,
+            'propertyCallCount' => 3,
+            'ifCount' => 4,
+            'ifNestingLevel' => 2,
+            'elseCount' => 1,
         ]);
 
         $metricsCollection->add($metrics1);
@@ -62,11 +63,11 @@ class JsonExporterTest extends TestCase
         $decodedData = json_decode($jsonData, true);
 
         $expected = [
-             [
-                'class' => 'TestClass1',
+            'TestClass1' => [
                 'methods' => [
                     'testMethod1' => [
-                        'name' => 'testMethod1',
+                        'class' => 'TestClass1',
+                        'method' => 'testMethod1',
                         'lineCount' => 10,
                         'lineCountWeight' => 0,
                         'argCount' => 2,
@@ -83,15 +84,15 @@ class JsonExporterTest extends TestCase
                         'ifNestingLevelWeight' => 0,
                         'elseCount' => 1,
                         'elseCountWeight' => 0,
-                        'score' => 0
+                        'score' => 0,
                     ]
                 ]
-             ],
-             [
-                'class' => 'TestClass2',
+            ],
+            'TestClass2' => [
                 'methods' => [
                     'testMethod2' => [
-                        'name' => 'testMethod2',
+                        'class' => 'TestClass2',
+                        'method' => 'testMethod2',
                         'lineCount' => 15,
                         'lineCountWeight' => 0,
                         'argCount' => 3,
@@ -108,10 +109,10 @@ class JsonExporterTest extends TestCase
                         'ifNestingLevelWeight' => 0,
                         'elseCount' => 1,
                         'elseCountWeight' => 0,
-                        'score' => 0
+                        'score' => 0,
                     ]
                 ]
-             ]
+            ]
         ];
 
         $this->assertSame($expected, $decodedData);

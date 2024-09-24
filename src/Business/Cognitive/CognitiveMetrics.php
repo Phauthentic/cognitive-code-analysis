@@ -12,8 +12,23 @@ use JsonSerializable;
  */
 class CognitiveMetrics implements JsonSerializable
 {
-    private string $class = '';
-    private string $method = '';
+    /**
+     * @var array<int, string>
+     */
+    private array $metrics = [
+        'lineCount',
+        'argCount',
+        'returnCount',
+        'variableCount',
+        'propertyCallCount',
+        'ifCount',
+        'ifNestingLevel',
+        'elseCount'
+    ];
+
+    private string $class;
+    private string $method;
+
     private int $lineCount = 0;
     private int $argCount = 0;
     private int $returnCount = 0;
@@ -33,6 +48,15 @@ class CognitiveMetrics implements JsonSerializable
     private float $elseCountWeight = 0.0;
     private float $score = 0.0;
 
+    private ?Delta $lineCountWeightDelta = null;
+    private ?Delta $argCountWeightDelta = null;
+    private ?Delta $returnCountWeightDelta = null;
+    private ?Delta $variableCountWeightDelta = null;
+    private ?Delta $propertyCallCountWeightDelta = null;
+    private ?Delta $ifCountWeightDelta = null;
+    private ?Delta $ifNestingLevelWeightDelta = null;
+    private ?Delta $elseCountWeightDelta = null;
+
     /**
      * @param array<string, mixed> $metrics
      */
@@ -40,25 +64,70 @@ class CognitiveMetrics implements JsonSerializable
     {
         $this->assertArrayKeyIsPresent($metrics, 'class');
         $this->assertArrayKeyIsPresent($metrics, 'method');
-        $this->assertArrayKeyIsPresent($metrics, 'line_count');
-        $this->assertArrayKeyIsPresent($metrics, 'arg_count');
-        $this->assertArrayKeyIsPresent($metrics, 'return_count');
-        $this->assertArrayKeyIsPresent($metrics, 'variable_count');
-        $this->assertArrayKeyIsPresent($metrics, 'property_call_count');
-        $this->assertArrayKeyIsPresent($metrics, 'if_count');
-        $this->assertArrayKeyIsPresent($metrics, 'if_nesting_level');
-        $this->assertArrayKeyIsPresent($metrics, 'else_count');
-
-        $this->class = $metrics['class'];
         $this->method = $metrics['method'];
-        $this->lineCount = $metrics['line_count'];
-        $this->argCount = $metrics['arg_count'];
-        $this->returnCount = $metrics['return_count'];
-        $this->variableCount = $metrics['variable_count'];
-        $this->propertyCallCount = $metrics['property_call_count'];
-        $this->ifCount = $metrics['if_count'];
-        $this->ifNestingLevel = $metrics['if_nesting_level'];
-        $this->elseCount = $metrics['else_count'];
+        $this->class = $metrics['class'];
+
+        $this->setRequiredMetricProperties($metrics);
+        $this->setOptionalMetricProperties($metrics);
+    }
+
+    /**
+     * @param array<string, mixed> $metrics
+     * @return void
+     */
+    private function setRequiredMetricProperties(array $metrics): void
+    {
+        foreach ($this->metrics as $metricName) {
+            $this->assertArrayKeyIsPresent($metrics, $metricName);
+            $this->$metricName = $metrics[$metricName];
+        }
+    }
+
+    /**
+     * @param array<string, mixed> $metrics
+     * @return void
+     */
+    private function setOptionalMetricProperties(array $metrics): void
+    {
+        foreach ($this->metrics as $metricName) {
+            $property = $metricName . 'Weight';
+            if (array_key_exists($property, $metrics)) {
+                $this->$property = $metrics[$property];
+            }
+        }
+    }
+
+    private function assertSame(self $other): void
+    {
+        if ($this->equals($other)) {
+            return;
+        }
+
+        throw new InvalidArgumentException(sprintf(
+            'Cannot calculate deltas for different methods: %s::%s and %s::%s',
+            $this->getClass(),
+            $this->getMethod(),
+            $other->getClass(),
+            $other->getMethod(
+            )
+        ));
+    }
+
+    /**
+     * Calculate delta between current instance and another instance of CognitiveMetrics.
+     */
+    public function calculateDeltas(self $other): void
+    {
+        $this->assertSame($other);
+
+        $this->lineCountWeightDelta = new Delta($other->getLineCountWeight(), $this->lineCountWeight);
+        $this->argCountWeightDelta = new Delta($other->getArgCountWeight(), $this->argCountWeight);
+        $this->returnCountWeightDelta = new Delta($other->getReturnCountWeight(), $this->returnCountWeight);
+        $this->variableCountWeightDelta = new Delta($other->getVariableCountWeight(), $this->variableCountWeight);
+        $this->propertyCallCountWeightDelta = new Delta($other->getPropertyCallCountWeight(), $this->propertyCallCountWeight);
+        $this->ifCountWeightDelta = new Delta($other->getIfCountWeight(), $this->ifCountWeight);
+        $this->ifNestingLevelWeightDelta = new Delta($other->getIfNestingLevelWeight(), $this->ifNestingLevelWeight);
+        $this->elseCountWeightDelta = new Delta($other->getElseCountWeight(), $this->elseCountWeight);
     }
 
     /**
@@ -133,7 +202,6 @@ class CognitiveMetrics implements JsonSerializable
         return $this->elseCount;
     }
 
-    // Getters and setters for weight attributes
     public function getLineCountWeight(): float
     {
         return $this->lineCountWeight;
@@ -224,6 +292,46 @@ class CognitiveMetrics implements JsonSerializable
         return $this->score;
     }
 
+    public function getLineCountWeightDelta(): ?Delta
+    {
+        return $this->lineCountWeightDelta;
+    }
+
+    public function getArgCountWeightDelta(): ?Delta
+    {
+        return $this->argCountWeightDelta;
+    }
+
+    public function getReturnCountWeightDelta(): ?Delta
+    {
+        return $this->returnCountWeightDelta;
+    }
+
+    public function getVariableCountWeightDelta(): ?Delta
+    {
+        return $this->variableCountWeightDelta;
+    }
+
+    public function getPropertyCallCountWeightDelta(): ?Delta
+    {
+        return $this->propertyCallCountWeightDelta;
+    }
+
+    public function getIfCountWeightDelta(): ?Delta
+    {
+        return $this->ifCountWeightDelta;
+    }
+
+    public function getIfNestingLevelWeightDelta(): ?Delta
+    {
+        return $this->ifNestingLevelWeightDelta;
+    }
+
+    public function getElseCountWeightDelta(): ?Delta
+    {
+        return $this->elseCountWeightDelta;
+    }
+
     public function equals(self $metrics): bool
     {
         return $metrics->getClass() === $this->class
@@ -238,22 +346,30 @@ class CognitiveMetrics implements JsonSerializable
         return [
             'class' => $this->class,
             'method' => $this->method,
-            'line_count' => $this->lineCount,
-            'arg_count' => $this->argCount,
-            'return_count' => $this->returnCount,
-            'variable_count' => $this->variableCount,
-            'property_call_count' => $this->propertyCallCount,
-            'if_count' => $this->ifCount,
-            'if_nesting_level' => $this->ifNestingLevel,
-            'else_count' => $this->elseCount,
-            'line_count_weight' => $this->lineCountWeight,
-            'arg_count_weight' => $this->argCountWeight,
-            'return_count_weight' => $this->returnCountWeight,
-            'variable_count_weight' => $this->variableCountWeight,
-            'property_call_count_weight' => $this->propertyCallCountWeight,
-            'if_count_weight' => $this->ifCountWeight,
-            'if_nesting_level_weight' => $this->ifNestingLevelWeight,
-            'else_count_weight' => $this->elseCountWeight,
+            'lineCount' => $this->lineCount,
+            'argCount' => $this->argCount,
+            'returnCount' => $this->returnCount,
+            'variableCount' => $this->variableCount,
+            'propertyCallCount' => $this->propertyCallCount,
+            'ifCount' => $this->ifCount,
+            'ifNestingLevel' => $this->ifNestingLevel,
+            'elseCount' => $this->elseCount,
+            'lineCountWeight' => $this->lineCountWeight,
+            'argCountWeight' => $this->argCountWeight,
+            'returnCountWeight' => $this->returnCountWeight,
+            'variableCountWeight' => $this->variableCountWeight,
+            'propertyCallCountWeight' => $this->propertyCallCountWeight,
+            'ifCountWeight' => $this->ifCountWeight,
+            'ifNestingLevelWeight' => $this->ifNestingLevelWeight,
+            'elseCountWeight' => $this->elseCountWeight,
+            'lineCountWeightDelta' => $this->lineCountWeightDelta,
+            'argCountWeightDelta' => $this->argCountWeightDelta,
+            'returnCountWeightDelta' => $this->returnCountWeightDelta,
+            'variableCountWeightDelta' => $this->variableCountWeightDelta,
+            'propertyCallCountWeightDelta' => $this->propertyCallCountWeightDelta,
+            'ifCountWeightDelta' => $this->ifCountWeightDelta,
+            'ifNestingLevelWeightDelta' => $this->ifNestingLevelWeightDelta,
+            'elseCountWeightDelta' => $this->elseCountWeightDelta,
         ];
     }
 

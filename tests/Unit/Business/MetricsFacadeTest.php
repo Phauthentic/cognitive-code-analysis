@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace Phauthentic\CodeQualityMetrics\Tests\Unit\Business;
 
+use Phauthentic\CodeQualityMetrics\Application;
+use Phauthentic\CodeQualityMetrics\Business\Cognitive\ScoreCalculator;
+use Phauthentic\CodeQualityMetrics\Business\Halstead\HalsteadMetricsCollector;
+use Phauthentic\CodeQualityMetrics\Config\ConfigService;
+use PHP_CodeSniffer\Config;
 use PHPUnit\Framework\TestCase;
 use Phauthentic\CodeQualityMetrics\Business\MetricsFacade;
 use Symfony\Component\Yaml\Exception\ParseException;
@@ -13,13 +18,19 @@ use Symfony\Component\Yaml\Exception\ParseException;
  */
 class MetricsFacadeTest extends TestCase
 {
-    private $testCodePath = './tests/TestCode';
+    private string $testCodePath = './tests/TestCode';
+
+    private MetricsFacade $metricsFacade;
+
+    public function setUp(): void
+    {
+        parent::setUp();
+        $this->metricsFacade = (new Application())->get(MetricsFacade::class);
+    }
 
     public function testGetHalsteadMetrics(): void
     {
-        $facade = new MetricsFacade();
-
-        $halsteadMetrics = $facade->getHalsteadMetrics($this->testCodePath);
+        $halsteadMetrics = $this->metricsFacade->getHalsteadMetrics($this->testCodePath);
 
         $this->assertNotEmpty($halsteadMetrics);
         $this->assertCount(4, $halsteadMetrics);
@@ -27,9 +38,7 @@ class MetricsFacadeTest extends TestCase
 
     public function testGetCognitiveMetrics(): void
     {
-        $facade = new MetricsFacade();
-
-        $cognitiveMetrics = $facade->getCognitiveMetrics($this->testCodePath);
+        $cognitiveMetrics = $this->metricsFacade->getCognitiveMetrics($this->testCodePath);
 
         $this->assertNotEmpty($cognitiveMetrics);
         $this->assertCount(23, $cognitiveMetrics);
@@ -37,10 +46,8 @@ class MetricsFacadeTest extends TestCase
 
     public function testLoadConfig(): void
     {
-        $facade = new MetricsFacade();
-
         // Load a valid configuration file
-        $facade->loadConfig('./tests/Fixtures/config-with-one-metric.yml');
+        $this->metricsFacade->loadConfig('./tests/Fixtures/config-with-one-metric.yml');
 
         // Assuming the loadConfig method in ConfigService is correctly tested,
         // here we're just ensuring that it doesn't throw exceptions
@@ -49,10 +56,8 @@ class MetricsFacadeTest extends TestCase
 
     public function testLoadConfigWithInvalidConfigFile(): void
     {
-        $facade = new MetricsFacade();
-
         $this->expectException(ParseException::class);
 
-        $facade->loadConfig('./does-not-exist.yml');
+        $this->metricsFacade->loadConfig('./does-not-exist.yml');
     }
 }

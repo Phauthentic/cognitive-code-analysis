@@ -19,21 +19,15 @@ use Phauthentic\CodeQualityMetrics\Config\ConfigService;
  */
 class MetricsFacade
 {
-    private HalsteadMetricsCollector $halsteadMetricsCollector;
-    private CognitiveMetricsCollector $cognitiveMetricsCollector;
-    private ScoreCalculator $scoreCalculator;
-    private ConfigService $configService;
-
     /**
      * Constructor initializes the metrics collectors, score calculator, and config service.
      */
-    public function __construct()
-    {
-        $this->halsteadMetricsCollector = new HalsteadMetricsCollector();
-        $this->cognitiveMetricsCollector = new CognitiveMetricsCollector();
-        $this->scoreCalculator = new ScoreCalculator();
-        $this->configService = new ConfigService();
-
+    public function __construct(
+        private readonly HalsteadMetricsCollector $halsteadMetricsCollector,
+        private readonly CognitiveMetricsCollector $cognitiveMetricsCollector,
+        private readonly ScoreCalculator $scoreCalculator,
+        private readonly ConfigService $configService
+    ) {
         $this->loadConfig(__DIR__ . '/../../config.yml');
     }
 

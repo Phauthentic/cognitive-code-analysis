@@ -97,14 +97,14 @@ class CognitiveMetricsVisitor extends NodeVisitorAbstract
     private function recordMethodMetrics(Node\Stmt\ClassMethod $node): void
     {
         $this->methodMetrics["{$this->currentClassName}::{$this->currentMethod}"] = [
-            'line_count' => $this->calculateLineCount($node),
-            'arg_count' => $this->countMethodArguments($node),
-            'return_count' => 0,
-            'variable_count' => 0,
-            'property_call_count' => 0,
-            'if_nesting_level' => 0,
-            'else_count' => 0,
-            'if_count' => 0,
+            'lineCount' => $this->calculateLineCount($node),
+            'argCount' => $this->countMethodArguments($node),
+            'returnCount' => 0,
+            'variableCount' => 0,
+            'propertyCallCount' => 0,
+            'ifNestingLevel' => 0,
+            'elseCount' => 0,
+            'ifCount' => 0,
         ];
     }
 
@@ -258,14 +258,14 @@ class CognitiveMetricsVisitor extends NodeVisitorAbstract
     {
         if ($node instanceof Node\Stmt\ClassMethod) {
             $method = "{$this->currentClassName}::{$this->currentMethod}";
-            $this->methodMetrics[$method]['return_count'] = $this->currentReturnCount;
-            $this->methodMetrics[$method]['variable_count'] = count($this->currentVariables);
-            $this->methodMetrics[$method]['property_call_count'] = $this->propertyCalls;
-            $this->methodMetrics[$method]['if_count'] = $this->ifCount;
-            $this->methodMetrics[$method]['if_nesting_level'] = $this->maxIfNestingLevel;
-            $this->methodMetrics[$method]['else_count'] = $this->elseCount;
-            $this->methodMetrics[$method]['line_count'] = $node->getEndLine() - $node->getStartLine() + 1;
-            $this->methodMetrics[$method]['arg_count'] = count($node->getParams());
+            $this->methodMetrics[$method]['returnCount'] = $this->currentReturnCount;
+            $this->methodMetrics[$method]['variableCount'] = count($this->currentVariables);
+            $this->methodMetrics[$method]['propertyCallCount'] = $this->propertyCalls;
+            $this->methodMetrics[$method]['ifCount'] = $this->ifCount;
+            $this->methodMetrics[$method]['ifNestingLevel'] = $this->maxIfNestingLevel;
+            $this->methodMetrics[$method]['elseCount'] = $this->elseCount;
+            $this->methodMetrics[$method]['lineCount'] = $node->getEndLine() - $node->getStartLine() + 1;
+            $this->methodMetrics[$method]['argCount'] = count($node->getParams());
             $this->currentMethod = '';
         }
     }

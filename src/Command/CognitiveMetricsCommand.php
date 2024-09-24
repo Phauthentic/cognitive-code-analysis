@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phauthentic\CodeQualityMetrics\Command;
 
 use Exception;
+use Phauthentic\CodeQualityMetrics\Business\Cognitive\BaselineService;
 use Phauthentic\CodeQualityMetrics\Business\Cognitive\CognitiveMetricsCollection;
 use Phauthentic\CodeQualityMetrics\Business\MetricsFacade;
 use Phauthentic\CodeQualityMetrics\Command\Presentation\CognitiveMetricTextRenderer;
@@ -32,17 +33,15 @@ class CognitiveMetricsCommand extends Command
     // Argument name for the path to the PHP files or directories.
     private const ARGUMENT_PATH = 'path';
 
-    private MetricsFacade $metricsFacade;
-    private CognitiveMetricTextRenderer $metricTextRenderer;
-
     /**
      * Constructor to initialize dependencies.
      */
-    public function __construct()
-    {
+    public function __construct(
+        private MetricsFacade $metricsFacade,
+        private CognitiveMetricTextRenderer $metricTextRenderer,
+        private BaselineService $baselineService
+    ) {
         parent::__construct();
-        $this->metricsFacade = new MetricsFacade();
-        $this->metricTextRenderer = new CognitiveMetricTextRenderer();
     }
 
     /**
@@ -76,11 +75,11 @@ class CognitiveMetricsCommand extends Command
             return Command::FAILURE;
         }
 
-        // Load baseline if the option is provided.
-        $baseline = $this->handleBaseLine($input);
-
         // Generate metrics for the provided path.
         $metricsCollection = $this->metricsFacade->getCognitiveMetrics($path);
+
+        // Load baseline if the option is provided.
+        $this->handleBaseLine($input, $metricsCollection);
 
         // Handle different export options.
         if (!$this->handleExportOptions($input, $output, $metricsCollection)) {
@@ -88,7 +87,7 @@ class CognitiveMetricsCommand extends Command
         }
 
         // Render the metrics to the console.
-        $this->metricTextRenderer->render($metricsCollection, $baseline, $output);
+        $this->metricTextRenderer->render($metricsCollection, [], $output);
 
         return Command::SUCCESS;
     }
@@ -97,39 +96,16 @@ class CognitiveMetricsCommand extends Command
      * Handles the baseline option and loads the baseline file if provided.
      *
      * @param InputInterface $input
-     * @return array<int, array<string, mixed>>
+     * @param CognitiveMetricsCollection $metricsCollection
      * @throws Exception
      */
-    private function handleBaseLine(InputInterface $input): array
+    private function handleBaseLine(InputInterface $input, CognitiveMetricsCollection $metricsCollection): void
     {
-        $baseline = [];
         $baselineFile = $input->getOption(self::OPTION_BASELINE);
         if ($baselineFile) {
-            $baseline = $this->loadBaseline($baselineFile);
+            $baseline = $this->baselineService->loadBaseline($baselineFile);
+            $this->baselineService->calculateDeltas($metricsCollection, $baseline);
         }
-
-        return $baseline;
-    }
-
-    /**
-     * Loads the baseline file and returns the data as an array.
-     *
-     * @param string $baselineFile
-     * @return array<int, array<string, mixed>> $baseline
-     * @throws \JsonException
-     */
-    private function loadBaseline(string $baselineFile): array
-    {
-        if (!file_exists($baselineFile)) {
-            throw new Exception('Baseline file does not exist.');
-        }
-
-        $baseline = file_get_contents($baselineFile);
-        if ($baseline === false) {
-            throw new Exception('Failed to read baseline file.');
-        }
-
-        return json_decode($baseline, true, 512, JSON_THROW_ON_ERROR);
     }
 
     /**
