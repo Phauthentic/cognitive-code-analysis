@@ -84,6 +84,17 @@ class CognitiveMetricsCollection implements IteratorAggregate, Countable, JsonSe
         return false;
     }
 
+    public function getClassWithMethod(string $class, string $method): ?CognitiveMetrics
+    {
+        foreach ($this->metrics as $metric) {
+            if ($metric->getClass() === $class && $metric->getMethod() === $method) {
+                return $metric;
+            }
+        }
+
+        return null;
+    }
+
     public function filterByClassName(string $className): CognitiveMetricsCollection
     {
         return $this->filter(function (CognitiveMetrics $metric) use ($className) {

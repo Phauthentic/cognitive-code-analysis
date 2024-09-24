@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phauthentic\CodeQualityMetrics\Tests\Unit\Business\Cognitive;
 
 use Phauthentic\CodeQualityMetrics\Business\Cognitive\CognitiveMetrics;
+use Phauthentic\CodeQualityMetrics\Business\Cognitive\Delta;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -21,20 +22,20 @@ class CognitiveMetricsTest extends TestCase
         $this->testMetricsData = [
             'class' => 'TestClass',
             'method' => 'testMethod',
-            'line_count' => 10,
-            'arg_count' => 2,
-            'return_count' => 1,
-            'variable_count' => 5,
-            'property_call_count' => 3,
-            'if_count' => 4,
-            'if_nesting_level' => 2,
-            'else_count' => 1,
+            'lineCount' => 10,
+            'argCount' => 2,
+            'returnCount' => 1,
+            'variableCount' => 5,
+            'propertyCallCount' => 3,
+            'ifCount' => 4,
+            'ifNestingLevel' => 2,
+            'elseCount' => 1,
         ];
     }
 
     public function testConstructor(): void
     {
-        $metrics = new \Phauthentic\CodeQualityMetrics\Business\Cognitive\CognitiveMetrics($this->testMetricsData);
+        $metrics = new CognitiveMetrics($this->testMetricsData);
 
         $this->assertSame('TestClass', $metrics->getClass());
         $this->assertSame('testMethod', $metrics->getMethod());
@@ -82,27 +83,35 @@ class CognitiveMetricsTest extends TestCase
 
     public function testToArray(): void
     {
-        $metrics = new \Phauthentic\CodeQualityMetrics\Business\Cognitive\CognitiveMetrics($this->testMetricsData);
+        $metrics = new CognitiveMetrics($this->testMetricsData);
 
         $expectedArray = [
             'class' => 'TestClass',
             'method' => 'testMethod',
-            'line_count' => 10,
-            'arg_count' => 2,
-            'return_count' => 1,
-            'variable_count' => 5,
-            'property_call_count' => 3,
-            'if_count' => 4,
-            'if_nesting_level' => 2,
-            'else_count' => 1,
-            'line_count_weight' => 0.0,
-            'arg_count_weight' => 0.0,
-            'return_count_weight' => 0.0,
-            'variable_count_weight' => 0.0,
-            'property_call_count_weight' => 0.0,
-            'if_count_weight' => 0.0,
-            'if_nesting_level_weight' => 0.0,
-            'else_count_weight' => 0.0,
+            'lineCount' => 10,
+            'argCount' => 2,
+            'returnCount' => 1,
+            'variableCount' => 5,
+            'propertyCallCount' => 3,
+            'ifCount' => 4,
+            'ifNestingLevel' => 2,
+            'elseCount' => 1,
+            'lineCountWeight' => 0.0,
+            'argCountWeight' => 0.0,
+            'returnCountWeight' => 0.0,
+            'variableCountWeight' => 0.0,
+            'propertyCallCountWeight' => 0.0,
+            'ifCountWeight' => 0.0,
+            'ifNestingLevelWeight' => 0.0,
+            'elseCountWeight' => 0.0,
+            'lineCountWeightDelta' => null,
+            'argCountWeightDelta' => null,
+            'returnCountWeightDelta' => null,
+            'variableCountWeightDelta' => null,
+            'propertyCallCountWeightDelta' => null,
+            'ifCountWeightDelta' => null,
+            'ifNestingLevelWeightDelta' => null,
+            'elseCountWeightDelta' => null,
         ];
 
         $this->assertSame($expectedArray, $metrics->toArray());
@@ -110,29 +119,116 @@ class CognitiveMetricsTest extends TestCase
 
     public function testJsonSerialize(): void
     {
-        $metrics = new \Phauthentic\CodeQualityMetrics\Business\Cognitive\CognitiveMetrics($this->testMetricsData);
+        $metrics = new CognitiveMetrics($this->testMetricsData);
 
         $expectedArray = [
             'class' => 'TestClass',
             'method' => 'testMethod',
-            'line_count' => 10,
-            'arg_count' => 2,
-            'return_count' => 1,
-            'variable_count' => 5,
-            'property_call_count' => 3,
-            'if_count' => 4,
-            'if_nesting_level' => 2,
-            'else_count' => 1,
-            'line_count_weight' => 0.0,
-            'arg_count_weight' => 0.0,
-            'return_count_weight' => 0.0,
-            'variable_count_weight' => 0.0,
-            'property_call_count_weight' => 0.0,
-            'if_count_weight' => 0.0,
-            'if_nesting_level_weight' => 0.0,
-            'else_count_weight' => 0.0,
+            'lineCount' => 10,
+            'argCount' => 2,
+            'returnCount' => 1,
+            'variableCount' => 5,
+            'propertyCallCount' => 3,
+            'ifCount' => 4,
+            'ifNestingLevel' => 2,
+            'elseCount' => 1,
+            'lineCountWeight' => 0.0,
+            'argCountWeight' => 0.0,
+            'returnCountWeight' => 0.0,
+            'variableCountWeight' => 0.0,
+            'propertyCallCountWeight' => 0.0,
+            'ifCountWeight' => 0.0,
+            'ifNestingLevelWeight' => 0.0,
+            'elseCountWeight' => 0.0,
+            'lineCountWeightDelta' => null,
+            'argCountWeightDelta' => null,
+            'returnCountWeightDelta' => null,
+            'variableCountWeightDelta' => null,
+            'propertyCallCountWeightDelta' => null,
+            'ifCountWeightDelta' => null,
+            'ifNestingLevelWeightDelta' => null,
+            'elseCountWeightDelta' => null,
         ];
 
         $this->assertSame($expectedArray, $metrics->jsonSerialize());
+    }
+
+    public function testCalculateDeltas(): void
+    {
+        // Create first set of metrics
+        $presentMetrics = new CognitiveMetrics([
+            'class' => 'TestClass',
+            'method' => 'testMethod',
+            'lineCount' => 10,
+            'argCount' => 2,
+            'returnCount' => 1,
+            'variableCount' => 5,
+            'propertyCallCount' => 3,
+            'ifCount' => 4,
+            'ifNestingLevel' => 2,
+            'elseCount' => 1,
+        ]);
+
+        // Set weights for metrics1
+        $presentMetrics->setLineCountWeight(1.5);
+        $presentMetrics->setArgCountWeight(0.5);
+        $presentMetrics->setReturnCountWeight(2.0);
+        $presentMetrics->setVariableCountWeight(1.0);
+        $presentMetrics->setPropertyCallCountWeight(1.5);
+        $presentMetrics->setIfCountWeight(0.0);
+        $presentMetrics->setIfNestingLevelWeight(1.0);
+        $presentMetrics->setElseCountWeight(0.5);
+
+        // Create second set of metrics with different weights
+        $beforeMetrics = new CognitiveMetrics([
+            'class' => 'TestClass',
+            'method' => 'testMethod',
+            'lineCount' => 10,
+            'argCount' => 2,
+            'returnCount' => 1,
+            'variableCount' => 5,
+            'propertyCallCount' => 3,
+            'ifCount' => 4,
+            'ifNestingLevel' => 2,
+            'elseCount' => 1,
+        ]);
+
+        // Set weights for metrics2
+        $beforeMetrics->setLineCountWeight(1.0);
+        $beforeMetrics->setArgCountWeight(1.0);
+        $beforeMetrics->setReturnCountWeight(2.5);
+        $beforeMetrics->setVariableCountWeight(1.0);
+        $beforeMetrics->setPropertyCallCountWeight(2.0);
+        $beforeMetrics->setIfCountWeight(0.0);
+        $beforeMetrics->setIfNestingLevelWeight(2.0);
+        $beforeMetrics->setElseCountWeight(0.5);
+
+        // Calculate deltas
+        $presentMetrics->calculateDeltas($beforeMetrics);
+
+        // Check deltas for each weight
+        $this->assertInstanceOf(Delta::class, $presentMetrics->getLineCountWeightDelta());
+        $this->assertEquals(0.5, $presentMetrics->getLineCountWeightDelta()->getValue());
+
+        $this->assertInstanceOf(Delta::class, $presentMetrics->getArgCountWeightDelta());
+        $this->assertEquals(-0.5, $presentMetrics->getArgCountWeightDelta()->getValue());
+
+        $this->assertInstanceOf(Delta::class, $presentMetrics->getReturnCountWeightDelta());
+        $this->assertEquals(-0.5, $presentMetrics->getReturnCountWeightDelta()->getValue());
+
+        $this->assertInstanceOf(Delta::class, $presentMetrics->getVariableCountWeightDelta());
+        $this->assertEquals(0.0, $presentMetrics->getVariableCountWeightDelta()->getValue());
+
+        $this->assertInstanceOf(Delta::class, $presentMetrics->getPropertyCallCountWeightDelta());
+        $this->assertEquals(-0.5, $presentMetrics->getPropertyCallCountWeightDelta()->getValue());
+
+        $this->assertInstanceOf(Delta::class, $presentMetrics->getIfCountWeightDelta());
+        $this->assertEquals(0.0, $presentMetrics->getIfCountWeightDelta()->getValue());
+
+        $this->assertInstanceOf(Delta::class, $presentMetrics->getIfNestingLevelWeightDelta());
+        $this->assertEquals(-1.0, $presentMetrics->getIfNestingLevelWeightDelta()->getValue());
+
+        $this->assertInstanceOf(Delta::class, $presentMetrics->getElseCountWeightDelta());
+        $this->assertEquals(0.0, $presentMetrics->getElseCountWeightDelta()->getValue());
     }
 }

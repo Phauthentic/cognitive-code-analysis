@@ -16,14 +16,11 @@ class ConfigService
      * @var array<string, mixed>
      */
     private array $config;
-    private readonly Processor $processor;
-    private readonly ConfigLoader $configuration;
 
-    public function __construct()
-    {
-        $this->processor = new Processor();
-        $this->configuration = new ConfigLoader();
-
+    public function __construct(
+        private readonly Processor $processor,
+        private readonly ConfigLoader $configuration
+    ) {
         $this->config = $this->processor->processConfiguration($this->configuration, [
             Yaml::parseFile(__DIR__ . '/../../config.yml'),
         ]);

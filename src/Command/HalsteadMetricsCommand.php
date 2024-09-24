@@ -34,17 +34,14 @@ class HalsteadMetricsCommand extends Command
     // Argument name for the path to the PHP files or directories.
     private const ARGUMENT_PATH = 'path';
 
-    private MetricsFacade $metricsFacade;
-    private HalsteadMetricTextRenderer $metricTextRenderer;
-
     /**
      * Constructor to initialize dependencies.
      */
-    public function __construct()
-    {
+    public function __construct(
+        private MetricsFacade $metricsFacade,
+        private HalsteadMetricTextRenderer $metricTextRenderer
+    ) {
         parent::__construct();
-        $this->metricsFacade = new MetricsFacade();
-        $this->metricTextRenderer = new HalsteadMetricTextRenderer();
     }
 
     /**

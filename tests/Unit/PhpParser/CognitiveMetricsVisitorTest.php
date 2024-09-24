@@ -55,13 +55,13 @@ class CognitiveMetricsVisitorTest extends TestCase
         $this->assertArrayHasKey('MyNamespace\\MyClass::myMethod', $methodMetrics);
 
         $metrics = $methodMetrics['MyNamespace\\MyClass::myMethod'];
-        $this->assertEquals(12, $metrics['line_count']);
-        $this->assertEquals(2, $metrics['arg_count']);
-        $this->assertEquals(3, $metrics['return_count']);
-        $this->assertEquals(2, $metrics['variable_count']);
-        $this->assertEquals(0, $metrics['property_call_count']);
-        $this->assertEquals(1, $metrics['if_count']);
-        $this->assertEquals(1, $metrics['if_nesting_level']);
-        $this->assertEquals(2, $metrics['else_count']);
+        $this->assertEquals(12, $metrics['lineCount']);
+        $this->assertEquals(2, $metrics['argCount']);
+        $this->assertEquals(3, $metrics['returnCount']);
+        $this->assertEquals(2, $metrics['variableCount']);
+        $this->assertEquals(0, $metrics['propertyCallCount']);
+        $this->assertEquals(1, $metrics['ifCount']);
+        $this->assertEquals(1, $metrics['ifNestingLevel']);
+        $this->assertEquals(2, $metrics['elseCount']);
     }
 }
