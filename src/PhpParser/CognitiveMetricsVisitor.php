@@ -258,14 +258,14 @@ class CognitiveMetricsVisitor extends NodeVisitorAbstract
     {
         if ($node instanceof Node\Stmt\ClassMethod) {
             $method = "{$this->currentClassName}::{$this->currentMethod}";
-            $this->methodMetrics[$method]['return_count'] = $this->currentReturnCount;
-            $this->methodMetrics[$method]['variable_count'] = count($this->currentVariables);
-            $this->methodMetrics[$method]['property_call_count'] = $this->propertyCalls;
-            $this->methodMetrics[$method]['if_count'] = $this->ifCount;
-            $this->methodMetrics[$method]['if_nesting_level'] = $this->maxIfNestingLevel;
-            $this->methodMetrics[$method]['else_count'] = $this->elseCount;
-            $this->methodMetrics[$method]['line_count'] = $node->getEndLine() - $node->getStartLine() + 1;
-            $this->methodMetrics[$method]['arg_count'] = count($node->getParams());
+            $this->methodMetrics[$method]['returnCount'] = $this->currentReturnCount;
+            $this->methodMetrics[$method]['variableCount'] = count($this->currentVariables);
+            $this->methodMetrics[$method]['propertyCallCount'] = $this->propertyCalls;
+            $this->methodMetrics[$method]['ifCount'] = $this->ifCount;
+            $this->methodMetrics[$method]['ifNestingLevel'] = $this->maxIfNestingLevel;
+            $this->methodMetrics[$method]['elseCount'] = $this->elseCount;
+            $this->methodMetrics[$method]['lineCount'] = $node->getEndLine() - $node->getStartLine() + 1;
+            $this->methodMetrics[$method]['argCount'] = count($node->getParams());
             $this->currentMethod = '';
         }
     }

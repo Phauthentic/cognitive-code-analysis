@@ -56,4 +56,22 @@ class CognitiveMetricsCollectorTest extends TestCase
         $this->expectException(RuntimeException::class);
         $this->metricsCollector->collect($path);
     }
+
+    /**
+     * Test the collected metrics to match the expected findings.
+     */
+    public function testCollectedMetrics(): void
+    {
+        $metricsCollection = $this->metricsCollector->collect('./tests/TestCode2');
+        $metrics = $metricsCollection->getClassWithMethod('\TestClassForCounts', 'test');
+
+        $this->assertNotNull($metrics);
+        $this->assertSame(5, $metrics->getArgCount());
+        $this->assertSame(3, $metrics->getIfCount());
+        $this->assertSame(2, $metrics->getIfNestingLevel());
+        $this->assertSame(3, $metrics->getReturnCount());
+        $this->assertSame(1, $metrics->getElseCount());
+        $this->assertSame(3, $metrics->getVariableCount());
+        $this->assertSame(2, $metrics->getPropertyCallCount());
+    }
 }
