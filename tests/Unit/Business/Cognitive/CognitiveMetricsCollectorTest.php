@@ -7,6 +7,9 @@ namespace Phauthentic\CodeQualityMetrics\Tests\Unit\Business\Cognitive;
 use Phauthentic\CodeQualityMetrics\Business\AbstractMetricCollector;
 use Phauthentic\CodeQualityMetrics\Business\Cognitive\CognitiveMetricsCollection;
 use Phauthentic\CodeQualityMetrics\Business\Cognitive\CognitiveMetricsCollector;
+use Phauthentic\CodeQualityMetrics\Business\DirectoryScanner;
+use PhpParser\NodeTraverser;
+use PhpParser\ParserFactory;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
@@ -20,7 +23,11 @@ class CognitiveMetricsCollectorTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->metricsCollector = new CognitiveMetricsCollector();
+        $this->metricsCollector = new CognitiveMetricsCollector(
+            new ParserFactory(),
+            new NodeTraverser(),
+            new DirectoryScanner()
+        );
     }
 
     public function testCollectWithValidDirectoryPath(): void

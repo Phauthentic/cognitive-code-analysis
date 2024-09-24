@@ -6,7 +6,6 @@ namespace Phauthentic\CodeQualityMetrics\Business;
 
 use Generator;
 use PhpParser\Error;
-use PhpParser\NodeTraverser;
 use PhpParser\NodeTraverserInterface;
 use PhpParser\Parser;
 use PhpParser\ParserFactory;
@@ -19,8 +18,6 @@ use SplFileInfo;
 abstract class AbstractMetricCollector
 {
     protected Parser $parser;
-    protected NodeTraverserInterface $traverser;
-    protected DirectoryScanner $directoryScanner;
 
     /**
      * @param array<string, mixed> $config
@@ -35,11 +32,12 @@ abstract class AbstractMetricCollector
         return [];
     }
 
-    public function __construct()
-    {
-        $this->parser = (new ParserFactory())->createForHostVersion();
-        $this->traverser = new NodeTraverser();
-        $this->directoryScanner = new DirectoryScanner();
+    public function __construct(
+        protected readonly ParserFactory          $parserFactory,
+        protected readonly NodeTraverserInterface $traverser,
+        protected readonly DirectoryScanner       $directoryScanner
+    ) {
+        $this->parser = $this->parserFactory->createForHostVersion();
     }
 
     /**

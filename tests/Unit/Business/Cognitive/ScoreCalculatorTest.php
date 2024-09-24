@@ -38,7 +38,10 @@ class ScoreCalculatorTest extends TestCase
 
     public function testCalculate(): void
     {
-        $config = (new ConfigService())->getConfig();
+        $config = (new ConfigService(
+            new Processor(),
+            new ConfigLoader()
+        ))->getConfig();
 
         $this->scoreCalculator->calculate($this->metrics, $config['cognitive']);
 

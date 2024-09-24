@@ -33,19 +33,16 @@ class CognitiveMetricsCommand extends Command
     // Argument name for the path to the PHP files or directories.
     private const ARGUMENT_PATH = 'path';
 
-    private MetricsFacade $metricsFacade;
-    private CognitiveMetricTextRenderer $metricTextRenderer;
-    private BaselineService $baselineService;
-
     /**
      * Constructor to initialize dependencies.
      */
-    public function __construct()
+    public function __construct(
+        private MetricsFacade $metricsFacade,
+        private CognitiveMetricTextRenderer $metricTextRenderer,
+        private BaselineService $baselineService
+    )
     {
         parent::__construct();
-        $this->metricsFacade = new MetricsFacade();
-        $this->metricTextRenderer = new CognitiveMetricTextRenderer();
-        $this->baselineService = new BaselineService();
     }
 
     /**
