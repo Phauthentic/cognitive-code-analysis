@@ -25,8 +25,6 @@ class ConfigLoaderTest extends TestCase
 
         $config = [
             'cognitive' => [
-                'excludedClasses' => ['Class1', 'Class2'],
-                'excludedMethods' => ['method1', 'method2'],
                 'metrics' => [
                     'lineCount' => [
                         'threshold' => 60.0,

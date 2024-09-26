@@ -8,17 +8,20 @@ use Phauthentic\CodeQualityMetrics\Business\AbstractMetricCollector;
 use Phauthentic\CodeQualityMetrics\Business\Cognitive\CognitiveMetricsCollection;
 use Phauthentic\CodeQualityMetrics\Business\Cognitive\CognitiveMetricsCollector;
 use Phauthentic\CodeQualityMetrics\Business\DirectoryScanner;
+use Phauthentic\CodeQualityMetrics\Config\ConfigLoader;
+use Phauthentic\CodeQualityMetrics\Config\ConfigService;
 use PhpParser\NodeTraverser;
 use PhpParser\ParserFactory;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
+use Symfony\Component\Config\Definition\Processor;
 
 /**
  *
  */
 class CognitiveMetricsCollectorTest extends TestCase
 {
-    private AbstractMetricCollector $metricsCollector;
+    private CognitiveMetricsCollector $metricsCollector;
 
     protected function setUp(): void
     {
@@ -26,7 +29,11 @@ class CognitiveMetricsCollectorTest extends TestCase
         $this->metricsCollector = new CognitiveMetricsCollector(
             new ParserFactory(),
             new NodeTraverser(),
-            new DirectoryScanner()
+            new DirectoryScanner(),
+            new ConfigService(
+                new Processor(),
+                new ConfigLoader(),
+            )
         );
     }
 

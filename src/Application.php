@@ -111,9 +111,10 @@ class Application
                 new Reference(ParserFactory::class),
                 new Reference(NodeTraverserInterface::class),
                 new Reference(DirectoryScanner::class),
+                new Reference(ConfigService::class),
                 [
                     $this->containerBuilder->get(CognitiveCollectorShellOutputPlugin::class)
-                ]
+                ],
             ])
             ->setPublic(true);
 
@@ -122,6 +123,10 @@ class Application
                 new Reference(ParserFactory::class),
                 new Reference(NodeTraverserInterface::class),
                 new Reference(DirectoryScanner::class),
+                new Reference(ConfigService::class),
+                [
+                    $this->containerBuilder->get(CognitiveCollectorShellOutputPlugin::class)
+                ],
             ])
             ->setPublic(true);
     }
