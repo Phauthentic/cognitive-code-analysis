@@ -28,7 +28,7 @@ class CognitiveMetricsCollection implements IteratorAggregate, Countable, JsonSe
      */
     public function add(CognitiveMetrics $metric): void
     {
-        $this->metrics[] = $metric;
+        $this->metrics[$metric->getClass() . '::' . $metric->getMethod()] = $metric;
     }
 
     /**
@@ -75,21 +75,13 @@ class CognitiveMetricsCollection implements IteratorAggregate, Countable, JsonSe
 
     public function contains(CognitiveMetrics $otherMetric): bool
     {
-        foreach ($this->metrics as $metric) {
-            if ($otherMetric->equals($metric)) {
-                return true;
-            }
-        }
-
-        return false;
+        return isset($this->metrics[$otherMetric->getClass() . '::' .  $otherMetric->getMethod()]);
     }
 
     public function getClassWithMethod(string $class, string $method): ?CognitiveMetrics
     {
-        foreach ($this->metrics as $metric) {
-            if ($metric->getClass() === $class && $metric->getMethod() === $method) {
-                return $metric;
-            }
+        if (isset($this->metrics[$class . '::' . $method])) {
+            return $this->metrics[$class . '::' . $method];
         }
 
         return null;

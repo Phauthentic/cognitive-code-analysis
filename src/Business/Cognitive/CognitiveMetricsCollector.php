@@ -39,7 +39,15 @@ class CognitiveMetricsCollector extends AbstractMetricCollector
         $metricsCollection = new CognitiveMetricsCollection();
         $visitor = new CognitiveMetricsVisitor();
 
+        foreach ($this->findMetricsPlugins as $plugin) {
+            $plugin->beforeIteration($files);
+        }
+
         foreach ($files as $file) {
+            foreach ($this->findMetricsPlugins as $plugin) {
+                $plugin->beforeFindMetrics($file);
+            }
+
             $code = file_get_contents($file->getRealPath());
 
             if ($code === false) {
@@ -53,6 +61,14 @@ class CognitiveMetricsCollector extends AbstractMetricCollector
             $this->traverser->removeVisitor($visitor);
 
             $this->processMethodMetrics($methodMetrics, $metricsCollection);
+
+            foreach ($this->findMetricsPlugins as $plugin) {
+                $plugin->afterFindMetrics($file);
+            }
+        }
+
+        foreach ($this->findMetricsPlugins as $plugin) {
+            $plugin->afterIteration($metricsCollection);
         }
 
         return $metricsCollection;
@@ -76,7 +92,7 @@ class CognitiveMetricsCollector extends AbstractMetricCollector
                 'method' => $method
             ]);
 
-            $metric = CognitiveMetrics::fromArray($metricsArray);
+            $metric = new CognitiveMetrics($metricsArray);
 
             if (!$metricsCollection->contains($metric)) {
                 $metricsCollection->add($metric);

@@ -13,17 +13,17 @@ use JsonSerializable;
 class CognitiveMetrics implements JsonSerializable
 {
     /**
-     * @var array<int, string>
+     * @var array<string, string>
      */
     private array $metrics = [
-        'lineCount',
-        'argCount',
-        'returnCount',
-        'variableCount',
-        'propertyCallCount',
-        'ifCount',
-        'ifNestingLevel',
-        'elseCount'
+        'lineCount' => 'lineCount',
+        'argCount' => 'argCount',
+        'returnCount' => 'returnCount',
+        'variableCount' => 'variableCount',
+        'propertyCallCount' => 'propertyCallCount',
+        'ifCount' => 'ifCount',
+        'ifNestingLevel' => 'ifNestingLevel',
+        'elseCount' => 'elseCount'
     ];
 
     private string $class;
@@ -64,6 +64,7 @@ class CognitiveMetrics implements JsonSerializable
     {
         $this->assertArrayKeyIsPresent($metrics, 'class');
         $this->assertArrayKeyIsPresent($metrics, 'method');
+
         $this->method = $metrics['method'];
         $this->class = $metrics['class'];
 
@@ -77,10 +78,20 @@ class CognitiveMetrics implements JsonSerializable
      */
     private function setRequiredMetricProperties(array $metrics): void
     {
-        foreach ($this->metrics as $metricName) {
-            $this->assertArrayKeyIsPresent($metrics, $metricName);
-            $this->$metricName = $metrics[$metricName];
+        $missingKeys = array_diff_key($this->metrics, $metrics);
+        if (!empty($missingKeys)) {
+            throw new InvalidArgumentException('Missing required keys');
         }
+
+        // Not pretty to set each but more efficient than using a loop and $this->metrics
+        $this->lineCount = $metrics['lineCount'];
+        $this->argCount = $metrics['argCount'];
+        $this->returnCount = $metrics['returnCount'];
+        $this->variableCount = $metrics['variableCount'];
+        $this->propertyCallCount = $metrics['propertyCallCount'];
+        $this->ifCount = $metrics['ifCount'];
+        $this->ifNestingLevel = $metrics['ifNestingLevel'];
+        $this->elseCount = $metrics['elseCount'];
     }
 
     /**
@@ -89,12 +100,15 @@ class CognitiveMetrics implements JsonSerializable
      */
     private function setOptionalMetricProperties(array $metrics): void
     {
-        foreach ($this->metrics as $metricName) {
-            $property = $metricName . 'Weight';
-            if (array_key_exists($property, $metrics)) {
-                $this->$property = $metrics[$property];
-            }
-        }
+        // Not pretty to set each but more efficient than using a loop and $this->metrics
+        $this->lineCountWeight = $metrics['lineCountWeight'] ?? 0.0;
+        $this->argCountWeight = $metrics['argCountWeight'] ?? 0.0;
+        $this->returnCountWeight = $metrics['returnCountWeight'] ?? 0.0;
+        $this->variableCountWeight = $metrics['variableCountWeight'] ?? 0.0;
+        $this->propertyCallCountWeight = $metrics['propertyCallCountWeight'] ?? 0.0;
+        $this->ifCountWeight = $metrics['ifCountWeight'] ?? 0.0;
+        $this->ifNestingLevelWeight = $metrics['ifNestingLevelWeight'] ?? 0.0;
+        $this->elseCountWeight = $metrics['elseCountWeight'] ?? 0.0;
     }
 
     private function assertSame(self $other): void
@@ -108,8 +122,7 @@ class CognitiveMetrics implements JsonSerializable
             $this->getClass(),
             $this->getMethod(),
             $other->getClass(),
-            $other->getMethod(
-            )
+            $other->getMethod()
         ));
     }
 
@@ -146,12 +159,11 @@ class CognitiveMetrics implements JsonSerializable
      */
     private function assertArrayKeyIsPresent(array $array, string $key): void
     {
-        if (!array_key_exists($key, $array)) {
+        if (!isset($array[$key])) {
             throw new InvalidArgumentException("Missing required key: $key");
         }
     }
 
-    // Getters for read-only attributes
     public function getClass(): string
     {
         return $this->class;
