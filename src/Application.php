@@ -6,9 +6,11 @@ namespace Phauthentic\CodeQualityMetrics;
 
 use Phauthentic\CodeQualityMetrics\Business\Cognitive\BaselineService;
 use Phauthentic\CodeQualityMetrics\Business\Cognitive\CognitiveMetricsCollector;
+use Phauthentic\CodeQualityMetrics\Business\Cognitive\FindMetricsPluginInterface;
 use Phauthentic\CodeQualityMetrics\Business\Cognitive\ScoreCalculator;
 use Phauthentic\CodeQualityMetrics\Business\DirectoryScanner;
 use Phauthentic\CodeQualityMetrics\Business\Halstead\HalsteadMetricsCollector;
+use Phauthentic\CodeQualityMetrics\Command\Cognitive\CognitiveCollectorShellOutputPlugin;
 use Phauthentic\CodeQualityMetrics\Command\CognitiveMetricsCommand;
 use Phauthentic\CodeQualityMetrics\Command\HalsteadMetricsCommand;
 use Phauthentic\CodeQualityMetrics\Business\MetricsFacade;
@@ -21,6 +23,10 @@ use PhpParser\NodeTraverserInterface;
 use PhpParser\ParserFactory;
 use Symfony\Component\Config\Definition\Processor;
 use Symfony\Component\Console\Application as SymfonyApplication;
+use Symfony\Component\Console\Input\ArgvInput;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\ConsoleOutput;
+use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
 
@@ -74,6 +80,22 @@ class Application
 
         $this->containerBuilder->register(NodeTraverserInterface::class, NodeTraverser::class)
             ->setPublic(true);
+
+        $this->containerBuilder->register(NodeTraverserInterface::class, NodeTraverser::class)
+            ->setPublic(true);
+
+        $this->containerBuilder->register(OutputInterface::class, ConsoleOutput::class)
+            ->setPublic(true);
+
+        $this->containerBuilder->register(InputInterface::class, ArgvInput::class)
+            ->setPublic(true);
+
+        $this->containerBuilder->register(CognitiveCollectorShellOutputPlugin::class, CognitiveCollectorShellOutputPlugin::class)
+            ->setArguments([
+                new Reference(InputInterface::class),
+                new Reference(OutputInterface::class)
+            ])
+            ->setPublic(true);
     }
 
     private function bootstrap(): void
@@ -93,6 +115,10 @@ class Application
                 new Reference(ParserFactory::class),
                 new Reference(NodeTraverserInterface::class),
                 new Reference(DirectoryScanner::class),
+                new Reference(ConfigService::class),
+                [
+                    $this->containerBuilder->get(CognitiveCollectorShellOutputPlugin::class),
+                ]
             ])
             ->setPublic(true);
 
@@ -157,7 +183,10 @@ class Application
     {
         $application = $this->containerBuilder->get(SymfonyApplication::class);
         // @phpstan-ignore-next-line
-        $application->run();
+        $application->run(
+            $this->containerBuilder->get(InputInterface::class),
+            $this->containerBuilder->get(OutputInterface::class)
+        );
     }
 
     public function get(string $id): mixed
