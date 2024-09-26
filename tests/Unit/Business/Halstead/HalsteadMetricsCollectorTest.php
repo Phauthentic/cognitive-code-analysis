@@ -20,7 +20,7 @@ class HalsteadMetricsCollectorTest extends TestCase
         $collector = new HalsteadMetricsCollector(
             new ParserFactory(),
             new NodeTraverser(),
-            new DirectoryScanner()
+            new DirectoryScanner(),
         );
         $collection = $collector->collect('./tests/TestCode');
 

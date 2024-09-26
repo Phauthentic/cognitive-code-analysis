@@ -6,6 +6,7 @@ namespace Phauthentic\CodeQualityMetrics;
 
 use Phauthentic\CodeQualityMetrics\Business\Cognitive\BaselineService;
 use Phauthentic\CodeQualityMetrics\Business\Cognitive\CognitiveMetricsCollector;
+use Phauthentic\CodeQualityMetrics\Business\Cognitive\FindMetricsPluginInterface;
 use Phauthentic\CodeQualityMetrics\Business\Cognitive\ScoreCalculator;
 use Phauthentic\CodeQualityMetrics\Business\DirectoryScanner;
 use Phauthentic\CodeQualityMetrics\Business\Halstead\HalsteadMetricsCollector;
@@ -80,6 +81,9 @@ class Application
         $this->containerBuilder->register(NodeTraverserInterface::class, NodeTraverser::class)
             ->setPublic(true);
 
+        $this->containerBuilder->register(NodeTraverserInterface::class, NodeTraverser::class)
+            ->setPublic(true);
+
         $this->containerBuilder->register(OutputInterface::class, ConsoleOutput::class)
             ->setPublic(true);
 
@@ -111,8 +115,9 @@ class Application
                 new Reference(ParserFactory::class),
                 new Reference(NodeTraverserInterface::class),
                 new Reference(DirectoryScanner::class),
+                new Reference(ConfigService::class),
                 [
-                    $this->containerBuilder->get(CognitiveCollectorShellOutputPlugin::class)
+                    $this->containerBuilder->get(CognitiveCollectorShellOutputPlugin::class),
                 ]
             ])
             ->setPublic(true);

@@ -1,8 +1,5 @@
 cognitive:
-  excludedClasses: []
-  excludedMethods:
-    - '*.test'
-  excludePatterns: []
+  excludePatterns:
   metrics:
     lineCount:
       threshold: 1000

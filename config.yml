@@ -1,7 +1,5 @@
 cognitive:
-  excludedClasses: [],
-  excludedMethods: [],
-  excludePatterns: [],
+  excludePatterns:
   metrics:
     lineCount:
       threshold: 60
@@ -29,9 +27,6 @@ cognitive:
       scale: 1.0
 
 halstead:
-  excludedClasses: [],
-  excludedMethods: [],
-  excludePatterns: [],
   threshold:
     difficulty: 0.0
     effort: 0.0

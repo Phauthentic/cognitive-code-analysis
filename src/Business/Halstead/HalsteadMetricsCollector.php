@@ -4,16 +4,70 @@ declare(strict_types=1);
 
 namespace Phauthentic\CodeQualityMetrics\Business\Halstead;
 
-use Phauthentic\CodeQualityMetrics\Business\AbstractMetricCollector;
+use Phauthentic\CodeQualityMetrics\Business\DirectoryScanner;
 use Phauthentic\CodeQualityMetrics\PhpParser\HalsteadMetricsVisitor;
+use PhpParser\Error;
+use PhpParser\NodeTraverserInterface;
+use PhpParser\Parser;
+use PhpParser\ParserFactory;
 use RuntimeException;
 use SplFileInfo;
 
 /**
  * HalsteadMetricsCollector class that collects Halstead metrics from source files.
  */
-class HalsteadMetricsCollector extends AbstractMetricCollector
+class HalsteadMetricsCollector
 {
+    protected Parser $parser;
+
+    public function __construct(
+        protected readonly ParserFactory $parserFactory,
+        protected readonly NodeTraverserInterface $traverser,
+        protected readonly DirectoryScanner $directoryScanner,
+    ) {
+        $this->parser = $parserFactory->createForHostVersion();
+    }
+
+    /**
+     * @param array<string, mixed> $config
+     * @return array<int, string>
+     */
+    protected function getExcludePatternsFromConfig(array $config): array
+    {
+        if (isset($config['excludePatterns'])) {
+            return $config['excludePatterns'];
+        }
+
+        return [];
+    }
+
+    /**
+     * Find source files using DirectoryScanner
+     *
+     * @param string $path Path to the directory or file to scan
+     * @param array<int, string> $exclude List of regx to exclude
+     * @return iterable<mixed, SplFileInfo> An iterable of SplFileInfo objects
+     */
+    protected function findSourceFiles(string $path, array $exclude = []): iterable
+    {
+        return $this->directoryScanner->scan([$path], ['^(?!.*\.php$).+'] + $exclude); // Exclude non-PHP files
+    }
+
+    protected function traverseAbstractSyntaxTree(string $code): void
+    {
+        try {
+            $ast = $this->parser->parse($code);
+        } catch (Error $e) {
+            throw new RuntimeException("Parse error: {$e->getMessage()}", 0, $e);
+        }
+
+        if ($ast === null) {
+            throw new RuntimeException("Could not parse the code.");
+        }
+
+        $this->traverser->traverse($ast);
+    }
+
     /**
      * Collect Halstead metrics from the given path.
      *

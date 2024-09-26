@@ -5,10 +5,6 @@ declare(strict_types=1);
 namespace Phauthentic\CodeQualityMetrics\Tests\Unit\Business;
 
 use Phauthentic\CodeQualityMetrics\Application;
-use Phauthentic\CodeQualityMetrics\Business\Cognitive\ScoreCalculator;
-use Phauthentic\CodeQualityMetrics\Business\Halstead\HalsteadMetricsCollector;
-use Phauthentic\CodeQualityMetrics\Config\ConfigService;
-use PHP_CodeSniffer\Config;
 use PHPUnit\Framework\TestCase;
 use Phauthentic\CodeQualityMetrics\Business\MetricsFacade;
 use Symfony\Component\Yaml\Exception\ParseException;
