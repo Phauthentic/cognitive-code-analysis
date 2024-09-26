@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phauthentic\CodeQualityMetrics\Business;
 
 use Generator;
+use Phauthentic\CodeQualityMetrics\Business\Cognitive\FindMetricsPluginInterface;
 use PhpParser\Error;
 use PhpParser\NodeTraverserInterface;
 use PhpParser\Parser;
@@ -32,10 +33,14 @@ abstract class AbstractMetricCollector
         return [];
     }
 
+    /**
+     * @param array<int, FindMetricsPluginInterface> $findMetricsPlugins
+     */
     public function __construct(
         protected readonly ParserFactory $parserFactory,
         protected readonly NodeTraverserInterface $traverser,
-        protected readonly DirectoryScanner $directoryScanner
+        protected readonly DirectoryScanner $directoryScanner,
+        protected readonly array $findMetricsPlugins = []
     ) {
         $this->parser = $this->parserFactory->createForHostVersion();
     }

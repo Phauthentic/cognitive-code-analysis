@@ -13,6 +13,7 @@ use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
@@ -25,10 +26,11 @@ use Symfony\Component\Console\Output\OutputInterface;
 class CognitiveMetricsCommand extends Command
 {
     // Option names for exporting metrics in different formats and loading a configuration file.
-    private const OPTION_CONFIG_FILE = 'config';
-    private const OPTION_BASELINE = 'baseline';
-    private const OPTION_REPORT_TYPE = 'report-type';
-    private const OPTION_REPORT_FILE = 'report-file';
+    public const OPTION_CONFIG_FILE = 'config';
+    public const OPTION_BASELINE = 'baseline';
+    public const OPTION_REPORT_TYPE = 'report-type';
+    public const OPTION_REPORT_FILE = 'report-file';
+    public const OPTION_DEBUG = 'debug';
 
     // Argument name for the path to the PHP files or directories.
     private const ARGUMENT_PATH = 'path';
@@ -54,7 +56,8 @@ class CognitiveMetricsCommand extends Command
             ->addOption(self::OPTION_CONFIG_FILE, 'c', InputArgument::OPTIONAL, 'Path to a configuration file', null)
             ->addOption(self::OPTION_BASELINE, 'b', InputArgument::OPTIONAL, 'Baseline file to get the delta.', null)
             ->addOption(self::OPTION_REPORT_TYPE, 'r', InputArgument::OPTIONAL, 'Type of report to generate (json, csv, html).', null, ['json', 'csv', 'html'])
-            ->addOption(self::OPTION_REPORT_FILE, 'f', InputArgument::OPTIONAL, 'File to write the report to.');
+            ->addOption(self::OPTION_REPORT_FILE, 'f', InputArgument::OPTIONAL, 'File to write the report to.')
+            ->addOption(self::OPTION_DEBUG, null, InputArgument::OPTIONAL, 'Enables debug output', false);
     }
 
     /**
