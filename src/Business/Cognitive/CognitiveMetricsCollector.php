@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace Phauthentic\CodeQualityMetrics\Business\Cognitive;
 
 use Phauthentic\CodeQualityMetrics\Business\DirectoryScanner;
+use Phauthentic\CodeQualityMetrics\CognitiveAnalysisException;
 use Phauthentic\CodeQualityMetrics\Config\ConfigService;
 use Phauthentic\CodeQualityMetrics\PhpParser\CognitiveMetricsVisitor;
 use PhpParser\Error;
 use PhpParser\NodeTraverserInterface;
 use PhpParser\Parser;
 use PhpParser\ParserFactory;
-use RuntimeException;
 use SplFileInfo;
 
 /**
@@ -84,7 +84,7 @@ class CognitiveMetricsCollector
             $code = file_get_contents($file->getRealPath());
 
             if ($code === false) {
-                throw new RuntimeException("Could not read file: {$file->getRealPath()}");
+                throw new CognitiveAnalysisException("Could not read file: {$file->getRealPath()}");
             }
 
             $this->traverser->addVisitor($visitor);
@@ -162,16 +162,19 @@ class CognitiveMetricsCollector
         return $this->directoryScanner->scan([$path], ['^(?!.*\.php$).+'] + $exclude); // Exclude non-PHP files
     }
 
+    /**
+     * @throws CognitiveAnalysisException
+     */
     protected function traverseAbstractSyntaxTree(string $code): void
     {
         try {
             $ast = $this->parser->parse($code);
         } catch (Error $e) {
-            throw new RuntimeException("Parse error: {$e->getMessage()}", 0, $e);
+            throw new CognitiveAnalysisException("Parse error: {$e->getMessage()}", 0, $e);
         }
 
         if ($ast === null) {
-            throw new RuntimeException("Could not parse the code.");
+            throw new CognitiveAnalysisException("Could not parse the code.");
         }
 
         $this->traverser->traverse($ast);

@@ -1,6 +1,5 @@
 cognitive:
   excludePatterns:
-      - '*.test'
   metrics:
     lineCount:
       threshold: 1000

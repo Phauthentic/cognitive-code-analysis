@@ -47,6 +47,31 @@ class CognitiveMetricsCollectorTest extends TestCase
         $this->assertCount(23, $metricsCollection);
     }
 
+    public function testCollectWithExcludedClasses(): void
+    {
+        $configService = new ConfigService(
+            new Processor(),
+            new ConfigLoader(),
+        );
+
+        // It will exclude just the constructor methods
+        $configService->loadConfig(__DIR__ . '/../../../Fixtures/config-with-exclude-patterns.yml');
+
+        $metricsCollector = new CognitiveMetricsCollector(
+            new ParserFactory(),
+            new NodeTraverser(),
+            new DirectoryScanner(),
+            $configService,
+        );
+
+        $path = './tests/TestCode';
+
+        $metricsCollection = $metricsCollector->collect($path);
+
+        $this->assertInstanceOf(CognitiveMetricsCollection::class, $metricsCollection);
+        $this->assertCount(22, $metricsCollection);
+    }
+
     public function testCollectWithValidFilePath(): void
     {
         $path = './tests/TestCode/Paginator.php';
