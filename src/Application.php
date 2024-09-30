@@ -6,7 +6,6 @@ namespace Phauthentic\CodeQualityMetrics;
 
 use Phauthentic\CodeQualityMetrics\Business\Cognitive\BaselineService;
 use Phauthentic\CodeQualityMetrics\Business\Cognitive\CognitiveMetricsCollector;
-use Phauthentic\CodeQualityMetrics\Business\Cognitive\FindMetricsPluginInterface;
 use Phauthentic\CodeQualityMetrics\Business\Cognitive\ScoreCalculator;
 use Phauthentic\CodeQualityMetrics\Business\DirectoryScanner;
 use Phauthentic\CodeQualityMetrics\Business\Halstead\HalsteadMetricsCollector;
@@ -101,14 +100,14 @@ class Application
     private function bootstrap(): void
     {
         $this->registerServices();
-        $this->bootstrapMetricsCollectors();
-        $this->configureConfigService();
+        $this->registerMetricsCollectors();
+        $this->registerConfigService();
         $this->registerMetricsFacade();
         $this->registerCommands();
-        $this->configureApplication();
+        $this->registerApplication();
     }
 
-    private function bootstrapMetricsCollectors(): void
+    private function registerMetricsCollectors(): void
     {
         $this->containerBuilder->register(CognitiveMetricsCollector::class, CognitiveMetricsCollector::class)
             ->setArguments([
@@ -131,7 +130,7 @@ class Application
             ->setPublic(true);
     }
 
-    private function configureConfigService(): void
+    private function registerConfigService(): void
     {
         $this->containerBuilder->register(ConfigService::class, ConfigService::class)
             ->setArguments([
@@ -171,7 +170,7 @@ class Application
             ->setPublic(true);
     }
 
-    private function configureApplication(): void
+    private function registerApplication(): void
     {
         $this->containerBuilder->register(SymfonyApplication::class, SymfonyApplication::class)
             ->setPublic(true)

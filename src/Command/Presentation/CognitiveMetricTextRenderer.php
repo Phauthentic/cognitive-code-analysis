@@ -17,10 +17,9 @@ class CognitiveMetricTextRenderer
 {
     /**
      * @param CognitiveMetricsCollection $metricsCollection
-     * @param array<string, array<string, mixed>> $baseline
      * @param OutputInterface $output
      */
-    public function render(CognitiveMetricsCollection $metricsCollection, array $baseline, OutputInterface $output): void
+    public function render(CognitiveMetricsCollection $metricsCollection, OutputInterface $output): void
     {
         $groupedByClass = $metricsCollection->groupBy('class');
 

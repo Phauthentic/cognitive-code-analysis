@@ -57,3 +57,13 @@ cognitive:
 ```
 
 It is recommended to play with the values until you get weights that you are comfortable with. The default values are a good starting point.
+
+## Excluding Files
+
+Regular expression patterns can be defined to exclude files from the analysis.
+
+```yaml
+cognitive:
+  excludeFilePatterns:
+    - '(.*)Test.php'
+```

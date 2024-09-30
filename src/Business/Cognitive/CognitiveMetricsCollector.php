@@ -35,28 +35,16 @@ class CognitiveMetricsCollector
     }
 
     /**
-     * @param array<string, mixed> $config
-     * @return array<int, string>
-     */
-    protected function getExcludePatternsFromConfig(array $config): array
-    {
-        if (isset($config['excludePatterns'])) {
-            return $config['excludePatterns'];
-        }
-
-        return [];
-    }
-
-    /**
      * Collect cognitive metrics from the given path
      *
      * @param string $path
      * @param array<string, mixed> $config
      * @return CognitiveMetricsCollection
+     * @throws CognitiveAnalysisException
      */
     public function collect(string $path, array $config = []): CognitiveMetricsCollection
     {
-        $files = $this->findSourceFiles($path, $this->getExcludePatternsFromConfig($config));
+        $files = $this->findSourceFiles($path);
 
         return $this->findMetrics($files);
     }
@@ -66,6 +54,7 @@ class CognitiveMetricsCollector
      *
      * @param iterable<SplFileInfo> $files
      * @return CognitiveMetricsCollection
+     * @throws CognitiveAnalysisException
      */
     protected function findMetrics(iterable $files): CognitiveMetricsCollection
     {
@@ -154,12 +143,14 @@ class CognitiveMetricsCollector
      * Find source files using DirectoryScanner
      *
      * @param string $path Path to the directory or file to scan
-     * @param array<int, string> $exclude List of regx to exclude
      * @return iterable<mixed, SplFileInfo> An iterable of SplFileInfo objects
      */
-    protected function findSourceFiles(string $path, array $exclude = []): iterable
+    protected function findSourceFiles(string $path): iterable
     {
-        return $this->directoryScanner->scan([$path], ['^(?!.*\.php$).+'] + $exclude); // Exclude non-PHP files
+        return $this->directoryScanner->scan(
+            [$path],
+            ['^(?!.*\.php$).+'] + $this->configService->getConfig()['cognitive']['excludeFilePatterns']
+        );
     }
 
     /**

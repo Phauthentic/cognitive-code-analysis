@@ -29,7 +29,7 @@ coverage-html:
 	docker compose run php composer test-coverage-html
 
 all:
-	@echo "Running CS-Fixer, CS-Checker, Static Analyser and Tests"
+	@echo "Running CS-Checker, Static Analyser and Tests"
 	docker compose run php composer all
 
 shell:
