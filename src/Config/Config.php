@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Phauthentic\CodeQualityMetrics\Config;
 
+/**
+ *
+ */
 class Config
 {
     public CognitiveConfig $cognitive;

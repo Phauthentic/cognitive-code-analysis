@@ -9,10 +9,11 @@ namespace Phauthentic\CodeQualityMetrics\Config;
  */
 class HalsteadConfig
 {
-    public array $threshold;
-
-    public function __construct(array $threshold)
-    {
-        $this->threshold = $threshold;
+    /**
+     * @param array<string, float> $threshold
+     */
+    public function __construct(
+        public readonly array $threshold
+    ) {
     }
 }

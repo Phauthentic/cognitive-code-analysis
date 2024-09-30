@@ -9,7 +9,6 @@ use Phauthentic\CodeQualityMetrics\Config\ConfigLoader;
 use Phauthentic\CodeQualityMetrics\Config\ConfigService;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Config\Definition\Processor;
-use Symfony\Component\Yaml\Yaml;
 
 /**
  *
@@ -23,6 +22,10 @@ class ConfigFactoryTest extends TestCase
         $config = $service->getConfig();
 
         $factory = new ConfigFactory();
-        $factory->fromArray($config);
+        $config = $factory->fromArray($config);
+
+        $this->assertSame($config->cognitive->excludeFilePatterns, []);
+        $this->assertIsArray($config->cognitive->metrics);
+        $this->assertNotEmpty($config->cognitive->metrics);
     }
 }
