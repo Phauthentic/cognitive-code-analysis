@@ -16,3 +16,9 @@ RUN echo "xdebug.start_with_request=yes" >> /usr/local/etc/php/conf.d/docker-php
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 RUN git config --global --add safe.directory /app
+
+# Create a new user
+RUN useradd -m php
+
+# Set the new user as the default user for the container
+USER php
