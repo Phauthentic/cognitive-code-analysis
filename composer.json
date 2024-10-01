@@ -75,7 +75,6 @@
             "bin/phpbench run tests/Benchmark/ --report=aggregate"
         ],
         "all": [
-            "@csfix",
             "@cscheck",
             "@analyze",
             "@test"

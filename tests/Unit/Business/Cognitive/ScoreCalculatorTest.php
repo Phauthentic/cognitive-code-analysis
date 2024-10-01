@@ -43,7 +43,7 @@ class ScoreCalculatorTest extends TestCase
             new ConfigLoader()
         ))->getConfig();
 
-        $this->scoreCalculator->calculate($this->metrics, $config['cognitive']);
+        $this->scoreCalculator->calculate($this->metrics, $config);
 
         // Assert the final score
         $this->assertGreaterThan(0, $this->metrics->getScore());

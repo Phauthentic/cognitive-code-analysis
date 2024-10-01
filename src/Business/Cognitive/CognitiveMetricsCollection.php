@@ -80,8 +80,9 @@ class CognitiveMetricsCollection implements IteratorAggregate, Countable, JsonSe
 
     public function getClassWithMethod(string $class, string $method): ?CognitiveMetrics
     {
-        if (isset($this->metrics[$class . '::' . $method])) {
-            return $this->metrics[$class . '::' . $method];
+        $fullMethod = $class . '::' . $method;
+        if (isset($this->metrics[$fullMethod])) {
+            return $this->metrics[$fullMethod];
         }
 
         return null;
@@ -92,6 +93,16 @@ class CognitiveMetricsCollection implements IteratorAggregate, Countable, JsonSe
         return $this->filter(function (CognitiveMetrics $metric) use ($className) {
             return $metric->getClass() === $className;
         });
+    }
+
+    private function assertMetricHasGetter(
+        CognitiveMetrics $metric,
+        string $getter,
+        string $property
+    ): void {
+        if (!method_exists($metric, $getter)) {
+            throw new InvalidArgumentException("Property '$property' does not exist in CognitiveMetrics class");
+        }
     }
 
     /**
@@ -107,12 +118,9 @@ class CognitiveMetricsCollection implements IteratorAggregate, Countable, JsonSe
 
         foreach ($this->metrics as $metric) {
             $getter = 'get' . ucfirst($property);
-            if (!method_exists($metric, $getter)) {
-                throw new InvalidArgumentException("Property '$property' does not exist in CognitiveMetrics class");
-            }
+            $this->assertMetricHasGetter($metric, $getter, $property);
 
             $key = $metric->$getter();
-
             if (!isset($grouped[$key])) {
                 $grouped[$key] = new self();
             }

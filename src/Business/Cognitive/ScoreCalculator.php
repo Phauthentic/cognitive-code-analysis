@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Business\Cognitive;
 
+use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
+
 /**
  *
  */
@@ -25,13 +27,11 @@ class ScoreCalculator
 
     /**
      * @param CognitiveMetrics $metrics
-     * @param array<string, mixed> $metricConfiguration
+     * @param CognitiveConfig $config
      * @return void
      */
-    public function calculate(CognitiveMetrics $metrics, array $metricConfiguration = []): void
+    public function calculate(CognitiveMetrics $metrics, CognitiveConfig $config): void
     {
-        $metricConfiguration = $metricConfiguration['metrics'];
-
         // List of metric types to process
         $metricTypes = [
             'LineCount' => 'lineCount',
@@ -45,7 +45,7 @@ class ScoreCalculator
         ];
 
         // Calculate and set weights for each metric type
-        $this->calculateMetricWeights($metricTypes, $metrics, $metricConfiguration);
+        $this->calculateMetricWeights($metricTypes, $metrics, $config);
 
         // Calculate the overall score
         $this->calculateScore($metrics);
@@ -65,11 +65,13 @@ class ScoreCalculator
     /**
      * @param array<string, string> $metricTypes
      * @param CognitiveMetrics $metrics
-     * @param array<string, mixed> $config
+     * @param CognitiveConfig $config
      * @return void
      */
-    private function calculateMetricWeights(array $metricTypes, CognitiveMetrics $metrics, array $config): void
+    private function calculateMetricWeights(array $metricTypes, CognitiveMetrics $metrics, CognitiveConfig $config): void
     {
+        $metricConfigs = $config->metrics;
+
         foreach ($metricTypes as $methodSuffix => $configKey) {
             $getMethod = 'get' . $methodSuffix;
             $setMethod = 'set' . $methodSuffix . 'Weight';
@@ -77,8 +79,8 @@ class ScoreCalculator
             $metrics->{$setMethod}(
                 $this->calculateLogWeight(
                     $metrics->{$getMethod}(),
-                    $config[$configKey]['threshold'],
-                    $config[$configKey]['scale']
+                    $metricConfigs[$configKey]->threshold,
+                    $metricConfigs[$configKey]->scale,
                 )
             );
         }

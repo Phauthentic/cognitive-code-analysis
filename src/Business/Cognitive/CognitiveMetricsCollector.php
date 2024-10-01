@@ -6,6 +6,7 @@ namespace Phauthentic\CognitiveCodeAnalysis\Business\Cognitive;
 
 use Phauthentic\CognitiveCodeAnalysis\Business\DirectoryScanner;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
+use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
 use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
 use Phauthentic\CognitiveCodeAnalysis\PhpParser\CognitiveMetricsVisitor;
 use PhpParser\Error;
@@ -35,30 +36,29 @@ class CognitiveMetricsCollector
     }
 
     /**
-     * @param array<string, mixed> $config
-     * @return array<int, string>
-     */
-    private function getExcludePatternsFromConfig(array $config): array
-    {
-        if (isset($config['excludePatterns'])) {
-            return $config['excludePatterns'];
-        }
-
-        return [];
-    }
-
-    /**
      * Collect cognitive metrics from the given path
      *
      * @param string $path
-     * @param array<string, mixed> $config
+     * @param CognitiveConfig $config
      * @return CognitiveMetricsCollection
+     * @throws CognitiveAnalysisException
      */
-    public function collect(string $path, array $config = []): CognitiveMetricsCollection
+    public function collect(string $path, CognitiveConfig $config): CognitiveMetricsCollection
     {
-        $files = $this->findSourceFiles($path, $this->getExcludePatternsFromConfig($config));
+        $files = $this->findSourceFiles($path, $config->excludeFilePatterns);
 
         return $this->findMetrics($files);
+    }
+
+    private function getCodeFromFile(SplFileInfo $file): string
+    {
+        $code = file_get_contents($file->getRealPath());
+
+        if ($code === false) {
+            throw new CognitiveAnalysisException("Could not read file: {$file->getRealPath()}");
+        }
+
+        return $code;
     }
 
     /**
@@ -66,6 +66,7 @@ class CognitiveMetricsCollector
      *
      * @param iterable<SplFileInfo> $files
      * @return CognitiveMetricsCollection
+     * @throws CognitiveAnalysisException
      */
     private function findMetrics(iterable $files): CognitiveMetricsCollection
     {
@@ -81,11 +82,7 @@ class CognitiveMetricsCollector
                 $plugin->beforeFindMetrics($file);
             }
 
-            $code = file_get_contents($file->getRealPath());
-
-            if ($code === false) {
-                throw new CognitiveAnalysisException("Could not read file: {$file->getRealPath()}");
-            }
+            $code = $this->getCodeFromFile($file);
 
             $this->traverser->addVisitor($visitor);
             $this->traverseAbstractSyntaxTree($code);
@@ -139,7 +136,7 @@ class CognitiveMetricsCollector
 
     private function isExcluded(string $classAndMethod): bool
     {
-        $regexes = $this->configService->getConfig()['cognitive']['excludePatterns'];
+        $regexes = $this->configService->getConfig()->excludePatterns;
 
         foreach ($regexes as $regex) {
             if (preg_match('/' . $regex . '/', $classAndMethod, $matches)) {

@@ -34,11 +34,8 @@ class ConfigService
         ]);
     }
 
-    /**
-     * @return array<string, mixed>
-     */
-    public function getConfig(): array
+    public function getConfig(): CognitiveConfig
     {
-        return $this->config;
+        return (new ConfigFactory())->fromArray($this->config);
     }
 }

@@ -1,35 +1,38 @@
 cognitive:
+  excludeFilePatterns:
   excludePatterns:
+  scoreThreshold: 0.5
+  showOnlyMethodsExceedingThreshold: false
   metrics:
     lineCount:
       threshold: 60
       scale: 25.0
+      enabled: true
     argCount:
       threshold: 4
       scale: 1.0
+      enabled: true
     returnCount:
       threshold: 2
       scale: 5.0
+      enabled: true
     variableCount:
       threshold: 2
       scale: 5.0
+      enabled: true
     propertyCallCount:
       threshold: 2
       scale: 15.0
+      enabled: true
     ifCount:
       threshold: 3
       scale: 1.0
+      enabled: true
     ifNestingLevel:
       threshold: 1
       scale: 1.0
+      enabled: true
     elseCount:
       threshold: 1
       scale: 1.0
-
-halstead:
-  threshold:
-    difficulty: 0.0
-    effort: 0.0
-    time: 0.0
-    bugs: 0.0
-    volume: 0.0
+      enabled: true

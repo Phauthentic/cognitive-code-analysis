@@ -90,7 +90,7 @@ class CognitiveMetricsCommand extends Command
         }
 
         // Render the metrics to the console.
-        $this->metricTextRenderer->render($metricsCollection, [], $output);
+        $this->metricTextRenderer->render($metricsCollection, $this->metricsFacade->getConfig());
 
         return Command::SUCCESS;
     }
@@ -142,32 +142,54 @@ class CognitiveMetricsCommand extends Command
         $reportType = $input->getOption(self::OPTION_REPORT_TYPE);
         $reportFile = $input->getOption(self::OPTION_REPORT_FILE);
 
-        // If both options are missing, return success
-        if ($reportType === null && $reportFile === null) {
+        if ($this->areBothReportOptionsMissing($reportType, $reportFile)) {
             return true;
         }
 
-        // If one of the options is provided but the other is missing, return false
-        if (($reportType !== null && $reportFile === null) || ($reportType === null && $reportFile !== null)) {
-            $output->writeln('<error>Both report type and file must be provided.</error>');
+        if ($this->isOneReportOptionMissing($reportType, $reportFile, $output)) {
             return false;
         }
 
-        // Validate the report type option
+        if (!$this->isValidReportType($reportType, $output)) {
+            return false;
+        }
+
+        $this->exportMetrics($reportType, $metricsCollection, $reportFile);
+
+        return true;
+    }
+
+    private function areBothReportOptionsMissing(?string $reportType, ?string $reportFile): bool
+    {
+        return $reportType === null && $reportFile === null;
+    }
+
+    private function isOneReportOptionMissing(?string $reportType, ?string $reportFile, OutputInterface $output): bool
+    {
+        if (($reportType !== null && $reportFile === null) || ($reportType === null && $reportFile !== null)) {
+            $output->writeln('<error>Both report type and file must be provided.</error>');
+            return true;
+        }
+        return false;
+    }
+
+    private function isValidReportType(?string $reportType, OutputInterface $output): bool
+    {
         if (!in_array($reportType, ['json', 'csv', 'html'])) {
             $message = sprintf('Invalid report type `%s` provided. Only `json`, `csv`, and `html` are accepted.', $reportType);
             $output->writeln('<error>' . $message . '</error>');
             return false;
         }
+        return true;
+    }
 
-        // Proceed with export based on the report type
+    private function exportMetrics(string $reportType, CognitiveMetricsCollection $metricsCollection, string $reportFile): void
+    {
         match ($reportType) {
             'json' => $this->metricsFacade->metricsCollectionToJson($metricsCollection, $reportFile),
             'csv'  => $this->metricsFacade->metricsCollectionToCsv($metricsCollection, $reportFile),
             'html' => $this->metricsFacade->metricsCollectionToHtml($metricsCollection, $reportFile),
             default => null,
         };
-
-        return true;
     }
 }

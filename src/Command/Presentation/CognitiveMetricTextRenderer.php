@@ -6,6 +6,7 @@ namespace Phauthentic\CognitiveCodeAnalysis\Command\Presentation;
 
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetrics;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
+use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
 use RuntimeException;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -15,32 +16,53 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class CognitiveMetricTextRenderer
 {
+    public function __construct(
+        private readonly OutputInterface $output
+    ) {
+    }
+
     /**
      * @param CognitiveMetricsCollection $metricsCollection
-     * @param array<string, array<string, mixed>> $baseline
-     * @param OutputInterface $output
      */
-    public function render(CognitiveMetricsCollection $metricsCollection, array $baseline, OutputInterface $output): void
+    public function render(CognitiveMetricsCollection $metricsCollection, CognitiveConfig $config): void
     {
         $groupedByClass = $metricsCollection->groupBy('class');
 
         foreach ($groupedByClass as $className => $metrics) {
-            $output->writeln("<info>Class: $className</info>");
-
-            $table = new Table($output);
-            $table->setStyle('box');
-            $table->setHeaders($this->getTableHeaders());
-
             $rows = [];
             foreach ($metrics as $metric) {
+                if (
+                    $config->showOnlyMethodsExceedingThreshold &&
+                    $metric->getScore() <= $config->scoreThreshold
+                ) {
+                    continue;
+                }
+
                 $row = $this->prepareTableRow($metric);
                 $rows[] = $row;
             }
 
-            $table->setRows($rows);
-            $table->render();
-            $output->writeln("");
+            if (empty($rows)) {
+                continue;
+            }
+
+            $this->renderTable((string)$className, $rows);
         }
+    }
+
+    /**
+     * @param string $className
+     * @param array<int, mixed> $rows
+     */
+    private function renderTable(string $className, array $rows): void
+    {
+        $table = new Table($this->output);
+        $table->setStyle('box');
+        $table->setHeaders($this->getTableHeaders());
+        $this->output->writeln("<info>Class: $className</info>");
+        $table->setRows($rows);
+        $table->render();
+        $this->output->writeln("");
     }
 
     /**

@@ -9,3 +9,4 @@ services:
     command: "tail -f /dev/null"
     ports:
       - 9003:9003
+    user: php
