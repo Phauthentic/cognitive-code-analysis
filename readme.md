@@ -26,12 +26,6 @@ You can also pass a baseline file to compare the results to. The JSON report is 
 bin/cognitive-analysis metrics:cognitive <path-to-folder> --baseline cognitive.json
 ```
 
-Halstead Complexity Analysis
-
-```bash
-bin/cognitive-analysis metrics:halstead <path-to-folder>
-```
-
 ## Documentation
 
 * [Cognitive Complexity Analysis](./docs/Cognitive-Complexity-Analysis.md#cognitive-complexity-analysis)
@@ -45,7 +39,6 @@ bin/cognitive-analysis metrics:halstead <path-to-folder>
   * [Examples](#examples)
     * [Wordpress WP_Debug_Data](#wordpress-wp_debug_data)
     * [Doctrine Paginator](#doctrine-paginator)
-* [Halstead Complexity Analysis](./docs/Halstead-Complexity-Analysis.md)
 
 ## Resources
 

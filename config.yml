@@ -28,11 +28,3 @@ cognitive:
     elseCount:
       threshold: 1
       scale: 1.0
-
-halstead:
-  threshold:
-    difficulty: 0.0
-    effort: 0.0
-    time: 0.0
-    bugs: 0.0
-    volume: 0.0

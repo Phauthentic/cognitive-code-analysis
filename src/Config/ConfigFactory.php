@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CodeQualityMetrics\Config;
+namespace Phauthentic\CognitiveCodeAnalysis\Config;
 
 /**
  *
@@ -30,10 +30,6 @@ class ConfigFactory
             $metrics
         );
 
-        $halstead = new HalsteadConfig([
-            'threshold' => $config['halstead']['threshold'],
-        ]);
-
-        return new Config($cognitive, $halstead);
+        return new Config($cognitive);
     }
 }

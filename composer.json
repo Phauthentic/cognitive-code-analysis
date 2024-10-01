@@ -12,12 +12,12 @@
     },
     "autoload": {
         "psr-4": {
-            "Phauthentic\\CodeQualityMetrics\\": "src/"
+            "Phauthentic\\CognitiveCodeAnalysis\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Phauthentic\\CodeQualityMetrics\\Tests\\": "tests/"
+            "Phauthentic\\CognitiveCodeAnalysis\\Tests\\": "tests/"
         }
     },
     "authors": [

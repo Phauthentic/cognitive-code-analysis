@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CodeQualityMetrics\Config;
+namespace Phauthentic\CognitiveCodeAnalysis\Config;
 
 use Symfony\Component\Yaml\Yaml;
 use Symfony\Component\Config\Definition\Processor;

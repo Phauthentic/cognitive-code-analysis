@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CodeQualityMetrics\Business\Cognitive\Exporter;
+namespace Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter;
 
-use Phauthentic\CodeQualityMetrics\Business\Cognitive\CognitiveMetricsCollection;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
 
 /**
  *

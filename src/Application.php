@@ -2,21 +2,18 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CodeQualityMetrics;
+namespace Phauthentic\CognitiveCodeAnalysis;
 
-use Phauthentic\CodeQualityMetrics\Business\Cognitive\BaselineService;
-use Phauthentic\CodeQualityMetrics\Business\Cognitive\CognitiveMetricsCollector;
-use Phauthentic\CodeQualityMetrics\Business\Cognitive\ScoreCalculator;
-use Phauthentic\CodeQualityMetrics\Business\DirectoryScanner;
-use Phauthentic\CodeQualityMetrics\Business\Halstead\HalsteadMetricsCollector;
-use Phauthentic\CodeQualityMetrics\Command\Cognitive\CognitiveCollectorShellOutputPlugin;
-use Phauthentic\CodeQualityMetrics\Command\CognitiveMetricsCommand;
-use Phauthentic\CodeQualityMetrics\Command\HalsteadMetricsCommand;
-use Phauthentic\CodeQualityMetrics\Business\MetricsFacade;
-use Phauthentic\CodeQualityMetrics\Command\Presentation\CognitiveMetricTextRenderer;
-use Phauthentic\CodeQualityMetrics\Command\Presentation\HalsteadMetricTextRenderer;
-use Phauthentic\CodeQualityMetrics\Config\ConfigLoader;
-use Phauthentic\CodeQualityMetrics\Config\ConfigService;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\BaselineService;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollector;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\ScoreCalculator;
+use Phauthentic\CognitiveCodeAnalysis\Business\DirectoryScanner;
+use Phauthentic\CognitiveCodeAnalysis\Command\Cognitive\CognitiveCollectorShellOutputPlugin;
+use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsCommand;
+use Phauthentic\CognitiveCodeAnalysis\Business\MetricsFacade;
+use Phauthentic\CognitiveCodeAnalysis\Command\Presentation\CognitiveMetricTextRenderer;
+use Phauthentic\CognitiveCodeAnalysis\Config\ConfigLoader;
+use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
 use PhpParser\NodeTraverser;
 use PhpParser\NodeTraverserInterface;
 use PhpParser\ParserFactory;
@@ -44,9 +41,6 @@ class Application
 
     private function registerServices(): void
     {
-        $this->containerBuilder->register(HalsteadMetricsCollector::class, HalsteadMetricsCollector::class)
-            ->setPublic(true);
-
         $this->containerBuilder->register(CognitiveMetricsCollector::class, CognitiveMetricsCollector::class)
             ->setPublic(true);
 
@@ -54,9 +48,6 @@ class Application
             ->setPublic(true);
 
         $this->containerBuilder->register(ConfigService::class, ConfigService::class)
-            ->setPublic(true);
-
-        $this->containerBuilder->register(HalsteadMetricTextRenderer::class, HalsteadMetricTextRenderer::class)
             ->setPublic(true);
 
         $this->containerBuilder->register(CognitiveMetricTextRenderer::class, CognitiveMetricTextRenderer::class)
@@ -100,14 +91,14 @@ class Application
     private function bootstrap(): void
     {
         $this->registerServices();
-        $this->registerMetricsCollectors();
-        $this->registerConfigService();
+        $this->bootstrapMetricsCollectors();
+        $this->configureConfigService();
         $this->registerMetricsFacade();
         $this->registerCommands();
-        $this->registerApplication();
+        $this->configureApplication();
     }
 
-    private function registerMetricsCollectors(): void
+    private function bootstrapMetricsCollectors(): void
     {
         $this->containerBuilder->register(CognitiveMetricsCollector::class, CognitiveMetricsCollector::class)
             ->setArguments([
@@ -120,17 +111,9 @@ class Application
                 ]
             ])
             ->setPublic(true);
-
-        $this->containerBuilder->register(HalsteadMetricsCollector::class, HalsteadMetricsCollector::class)
-            ->setArguments([
-                new Reference(ParserFactory::class),
-                new Reference(NodeTraverserInterface::class),
-                new Reference(DirectoryScanner::class),
-            ])
-            ->setPublic(true);
     }
 
-    private function registerConfigService(): void
+    private function configureConfigService(): void
     {
         $this->containerBuilder->register(ConfigService::class, ConfigService::class)
             ->setArguments([
@@ -144,7 +127,6 @@ class Application
     {
         $this->containerBuilder->register(MetricsFacade::class, MetricsFacade::class)
             ->setArguments([
-                new Reference(HalsteadMetricsCollector::class),
                 new Reference(CognitiveMetricsCollector::class),
                 new Reference(ScoreCalculator::class),
                 new Reference(ConfigService::class),
@@ -161,21 +143,13 @@ class Application
                 new Reference(BaselineService::class),
             ])
             ->setPublic(true);
-
-        $this->containerBuilder->register(HalsteadMetricsCommand::class, HalsteadMetricsCommand::class)
-            ->setArguments([
-                new Reference(MetricsFacade::class),
-                new Reference(HalsteadMetricTextRenderer::class),
-            ])
-            ->setPublic(true);
     }
 
-    private function registerApplication(): void
+    private function configureApplication(): void
     {
         $this->containerBuilder->register(SymfonyApplication::class, SymfonyApplication::class)
             ->setPublic(true)
-            ->addMethodCall('add', [new Reference(CognitiveMetricsCommand::class)])
-            ->addMethodCall('add', [new Reference(HalsteadMetricsCommand::class)]);
+            ->addMethodCall('add', [new Reference(CognitiveMetricsCommand::class)]);
     }
 
     public function run(): void

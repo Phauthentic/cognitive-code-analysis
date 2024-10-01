@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CodeQualityMetrics\Business\Cognitive;
+namespace Phauthentic\CognitiveCodeAnalysis\Business\Cognitive;
 
 use InvalidArgumentException;
 use JsonSerializable;

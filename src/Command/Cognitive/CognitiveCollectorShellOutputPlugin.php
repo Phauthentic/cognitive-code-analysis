@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CodeQualityMetrics\Command\Cognitive;
+namespace Phauthentic\CognitiveCodeAnalysis\Command\Cognitive;
 
-use Phauthentic\CodeQualityMetrics\Business\Cognitive\CognitiveMetricsCollection;
-use Phauthentic\CodeQualityMetrics\Business\Cognitive\FindMetricsPluginInterface;
-use Phauthentic\CodeQualityMetrics\Command\CognitiveMetricsCommand;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\FindMetricsPluginInterface;
+use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsCommand;
 use SplFileInfo;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;

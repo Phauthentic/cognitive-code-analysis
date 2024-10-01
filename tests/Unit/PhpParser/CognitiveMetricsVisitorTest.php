@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CodeQualityMetrics\Tests\Unit\PhpParser;
+namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\PhpParser;
 
 use PhpParser\ParserFactory;
 use PhpParser\NodeTraverser;
-use Phauthentic\CodeQualityMetrics\PhpParser\CognitiveMetricsVisitor;
+use Phauthentic\CognitiveCodeAnalysis\PhpParser\CognitiveMetricsVisitor;
 use PHPUnit\Framework\TestCase;
 
 /**

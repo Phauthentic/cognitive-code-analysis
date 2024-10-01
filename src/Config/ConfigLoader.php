@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CodeQualityMetrics\Config;
+namespace Phauthentic\CognitiveCodeAnalysis\Config;
 
-use Phauthentic\CodeQualityMetrics\Business\Cognitive\MetricNames;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\MetricNames;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 
@@ -115,19 +115,6 @@ class ConfigLoader implements ConfigurationInterface
                                 ->then(function ($mapping) {
                                     return $mapping + $this->getCognitiveMetricDefaults();
                                 })
-                            ->end()
-                        ->end()
-                    ->end()
-                ->end()
-                ->arrayNode('halstead')
-                    ->children()
-                        ->arrayNode('threshold')
-                            ->children()
-                                ->floatNode('difficulty')->end()
-                                ->floatNode('effort')->end()
-                                ->floatNode('time')->end()
-                                ->floatNode('bugs')->end()
-                                ->floatNode('volume')->end()
                             ->end()
                         ->end()
                     ->end()

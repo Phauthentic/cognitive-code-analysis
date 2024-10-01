@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Phauthentic\CodeQualityMetrics\Tests\Unit\Config;
 
-use Phauthentic\CodeQualityMetrics\Config\ConfigFactory;
-use Phauthentic\CodeQualityMetrics\Config\ConfigLoader;
-use Phauthentic\CodeQualityMetrics\Config\ConfigService;
+use Phauthentic\CognitiveCodeAnalysis\Config\ConfigFactory;
+use Phauthentic\CognitiveCodeAnalysis\Config\ConfigLoader;
+use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Config\Definition\Processor;
 
