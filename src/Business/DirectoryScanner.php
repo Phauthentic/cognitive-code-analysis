@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CodeQualityMetrics\Business;
+namespace Phauthentic\CognitiveCodeAnalysis\Business;
 
 use FilesystemIterator;
 use Generator;

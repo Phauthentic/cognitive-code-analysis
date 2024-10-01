@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CodeQualityMetrics\Tests\Unit\Business\Cognitive\Exporter;
+namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Cognitive\Exporter;
 
-use Phauthentic\CodeQualityMetrics\Business\Cognitive\CognitiveMetrics;
-use Phauthentic\CodeQualityMetrics\Business\Cognitive\CognitiveMetricsCollection;
-use Phauthentic\CodeQualityMetrics\Business\Cognitive\Exporter\CsvExporter;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetrics;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter\CsvExporter;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 

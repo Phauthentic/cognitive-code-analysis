@@ -2,17 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CodeQualityMetrics\Business;
+namespace Phauthentic\CognitiveCodeAnalysis\Business;
 
-use Phauthentic\CodeQualityMetrics\Business\Cognitive\CognitiveMetricsCollection;
-use Phauthentic\CodeQualityMetrics\Business\Cognitive\CognitiveMetricsCollector;
-use Phauthentic\CodeQualityMetrics\Business\Cognitive\Exporter\CsvExporter;
-use Phauthentic\CodeQualityMetrics\Business\Cognitive\Exporter\HtmlExporter;
-use Phauthentic\CodeQualityMetrics\Business\Cognitive\Exporter\JsonExporter;
-use Phauthentic\CodeQualityMetrics\Business\Cognitive\ScoreCalculator;
-use Phauthentic\CodeQualityMetrics\Business\Halstead\HalsteadMetricsCollection;
-use Phauthentic\CodeQualityMetrics\Business\Halstead\HalsteadMetricsCollector;
-use Phauthentic\CodeQualityMetrics\Config\ConfigService;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollector;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter\CsvExporter;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter\HtmlExporter;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter\JsonExporter;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\ScoreCalculator;
+use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
 
 /**
  * Facade class for collecting and managing code quality metrics.
@@ -23,23 +21,11 @@ class MetricsFacade
      * Constructor initializes the metrics collectors, score calculator, and config service.
      */
     public function __construct(
-        private readonly HalsteadMetricsCollector $halsteadMetricsCollector,
         private readonly CognitiveMetricsCollector $cognitiveMetricsCollector,
         private readonly ScoreCalculator $scoreCalculator,
         private readonly ConfigService $configService
     ) {
         $this->loadConfig(__DIR__ . '/../../config.yml');
-    }
-
-    /**
-     * Collects and returns Halstead metrics for the given path.
-     *
-     * @param string $path The file or directory path to collect metrics from.
-     * @return HalsteadMetricsCollection The collected Halstead metrics.
-     */
-    public function getHalsteadMetrics(string $path): HalsteadMetricsCollection
-    {
-        return $this->halsteadMetricsCollector->collect($path);
     }
 
     /**

@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CodeQualityMetrics\Tests\Unit\Business\Cognitive;
+namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Cognitive;
 
-use Phauthentic\CodeQualityMetrics\Business\Cognitive\CognitiveMetrics;
-use Phauthentic\CodeQualityMetrics\Business\Cognitive\ScoreCalculator;
-use Phauthentic\CodeQualityMetrics\Config\ConfigLoader;
-use Phauthentic\CodeQualityMetrics\Config\ConfigService;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetrics;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\ScoreCalculator;
+use Phauthentic\CognitiveCodeAnalysis\Config\ConfigLoader;
+use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Config\Definition\Processor;
 

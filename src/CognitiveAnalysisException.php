@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CodeQualityMetrics;
+namespace Phauthentic\CognitiveCodeAnalysis;
 
 use Exception;
 

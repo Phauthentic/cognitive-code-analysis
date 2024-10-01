@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CodeQualityMetrics\Config;
+namespace Phauthentic\CognitiveCodeAnalysis\Config;
 
-use Phauthentic\CodeQualityMetrics\Business\Cognitive\MetricNames;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\MetricNames;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 
