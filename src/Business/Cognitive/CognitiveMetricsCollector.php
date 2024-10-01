@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CodeQualityMetrics\Business\Cognitive;
+namespace Phauthentic\CognitiveCodeAnalysis\Business\Cognitive;
 
-use Phauthentic\CodeQualityMetrics\Business\DirectoryScanner;
-use Phauthentic\CodeQualityMetrics\CognitiveAnalysisException;
-use Phauthentic\CodeQualityMetrics\Config\ConfigService;
-use Phauthentic\CodeQualityMetrics\PhpParser\CognitiveMetricsVisitor;
+use Phauthentic\CognitiveCodeAnalysis\Business\DirectoryScanner;
+use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
+use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
+use Phauthentic\CognitiveCodeAnalysis\PhpParser\CognitiveMetricsVisitor;
 use PhpParser\Error;
 use PhpParser\NodeTraverserInterface;
 use PhpParser\Parser;
@@ -38,7 +38,7 @@ class CognitiveMetricsCollector
      * @param array<string, mixed> $config
      * @return array<int, string>
      */
-    protected function getExcludePatternsFromConfig(array $config): array
+    private function getExcludePatternsFromConfig(array $config): array
     {
         if (isset($config['excludePatterns'])) {
             return $config['excludePatterns'];
@@ -67,7 +67,7 @@ class CognitiveMetricsCollector
      * @param iterable<SplFileInfo> $files
      * @return CognitiveMetricsCollection
      */
-    protected function findMetrics(iterable $files): CognitiveMetricsCollection
+    private function findMetrics(iterable $files): CognitiveMetricsCollection
     {
         $metricsCollection = new CognitiveMetricsCollection();
         $visitor = new CognitiveMetricsVisitor();
@@ -137,7 +137,7 @@ class CognitiveMetricsCollector
         }
     }
 
-    public function isExcluded(string $classAndMethod): bool
+    private function isExcluded(string $classAndMethod): bool
     {
         $regexes = $this->configService->getConfig()['cognitive']['excludePatterns'];
 
@@ -157,7 +157,7 @@ class CognitiveMetricsCollector
      * @param array<int, string> $exclude List of regx to exclude
      * @return iterable<mixed, SplFileInfo> An iterable of SplFileInfo objects
      */
-    protected function findSourceFiles(string $path, array $exclude = []): iterable
+    private function findSourceFiles(string $path, array $exclude = []): iterable
     {
         return $this->directoryScanner->scan([$path], ['^(?!.*\.php$).+'] + $exclude); // Exclude non-PHP files
     }
@@ -165,7 +165,7 @@ class CognitiveMetricsCollector
     /**
      * @throws CognitiveAnalysisException
      */
-    protected function traverseAbstractSyntaxTree(string $code): void
+    private function traverseAbstractSyntaxTree(string $code): void
     {
         try {
             $ast = $this->parser->parse($code);

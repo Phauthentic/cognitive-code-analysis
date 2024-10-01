@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CodeQualityMetrics\Tests\Unit\Business\Cognitive;
+namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Cognitive;
 
-use Phauthentic\CodeQualityMetrics\Business\Cognitive\CognitiveMetrics;
-use Phauthentic\CodeQualityMetrics\Business\Cognitive\Delta;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetrics;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Delta;
 use PHPUnit\Framework\TestCase;
 
 /**

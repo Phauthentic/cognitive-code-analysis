@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CodeQualityMetrics\Business\Cognitive;
+namespace Phauthentic\CognitiveCodeAnalysis\Business\Cognitive;
 
+use JsonException;
 use RuntimeException;
 
 /**
@@ -30,13 +31,12 @@ class BaselineService
         }
     }
 
-
     /**
      * Loads the baseline file and returns the data as an array.
      *
      * @param string $baselineFile
      * @return array<string, array<string, mixed>> $baseline
-     * @throws \JsonException
+     * @throws JsonException
      */
     public function loadBaseline(string $baselineFile): array
     {

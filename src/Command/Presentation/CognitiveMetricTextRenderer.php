@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CodeQualityMetrics\Command\Presentation;
+namespace Phauthentic\CognitiveCodeAnalysis\Command\Presentation;
 
-use Phauthentic\CodeQualityMetrics\Business\Cognitive\CognitiveMetrics;
-use Phauthentic\CodeQualityMetrics\Business\Cognitive\CognitiveMetricsCollection;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetrics;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
 use RuntimeException;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Output\OutputInterface;

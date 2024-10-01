@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CodeQualityMetrics\Tests\Unit\Config;
+namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Config;
 
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\Definition\Processor;
-use Phauthentic\CodeQualityMetrics\Config\ConfigLoader;
+use Phauthentic\CognitiveCodeAnalysis\Config\ConfigLoader;
 
 /**
  * Class ConfigLoaderTest

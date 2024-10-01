@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CodeQualityMetrics\Command;
+namespace Phauthentic\CognitiveCodeAnalysis\Command;
 
 use Exception;
-use Phauthentic\CodeQualityMetrics\Business\Cognitive\BaselineService;
-use Phauthentic\CodeQualityMetrics\Business\Cognitive\CognitiveMetricsCollection;
-use Phauthentic\CodeQualityMetrics\Business\MetricsFacade;
-use Phauthentic\CodeQualityMetrics\Command\Presentation\CognitiveMetricTextRenderer;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\BaselineService;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
+use Phauthentic\CognitiveCodeAnalysis\Business\MetricsFacade;
+use Phauthentic\CognitiveCodeAnalysis\Command\Presentation\CognitiveMetricTextRenderer;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;

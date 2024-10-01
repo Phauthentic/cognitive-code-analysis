@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CodeQualityMetrics\PhpParser;
+namespace Phauthentic\CognitiveCodeAnalysis\PhpParser;
 
 use PhpParser\Node;
 use PhpParser\NodeVisitorAbstract;

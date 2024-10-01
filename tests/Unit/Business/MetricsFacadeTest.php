@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CodeQualityMetrics\Tests\Unit\Business;
+namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business;
 
-use Phauthentic\CodeQualityMetrics\Application;
+use Phauthentic\CognitiveCodeAnalysis\Application;
 use PHPUnit\Framework\TestCase;
-use Phauthentic\CodeQualityMetrics\Business\MetricsFacade;
+use Phauthentic\CognitiveCodeAnalysis\Business\MetricsFacade;
 use Symfony\Component\Yaml\Exception\ParseException;
 
 /**
@@ -22,14 +22,6 @@ class MetricsFacadeTest extends TestCase
     {
         parent::setUp();
         $this->metricsFacade = (new Application())->get(MetricsFacade::class);
-    }
-
-    public function testGetHalsteadMetrics(): void
-    {
-        $halsteadMetrics = $this->metricsFacade->getHalsteadMetrics($this->testCodePath);
-
-        $this->assertNotEmpty($halsteadMetrics);
-        $this->assertCount(4, $halsteadMetrics);
     }
 
     public function testGetCognitiveMetrics(): void

@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CodeQualityMetrics\Tests\Unit\Business\Cognitive;
+namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Cognitive;
 
-use Phauthentic\CodeQualityMetrics\Business\AbstractMetricCollector;
-use Phauthentic\CodeQualityMetrics\Business\Cognitive\CognitiveMetricsCollection;
-use Phauthentic\CodeQualityMetrics\Business\Cognitive\CognitiveMetricsCollector;
-use Phauthentic\CodeQualityMetrics\Business\DirectoryScanner;
-use Phauthentic\CodeQualityMetrics\Config\ConfigLoader;
-use Phauthentic\CodeQualityMetrics\Config\ConfigService;
+use Phauthentic\CognitiveCodeAnalysis\Business\AbstractMetricCollector;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollector;
+use Phauthentic\CognitiveCodeAnalysis\Business\DirectoryScanner;
+use Phauthentic\CognitiveCodeAnalysis\Config\ConfigLoader;
+use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
 use PhpParser\NodeTraverser;
 use PhpParser\ParserFactory;
 use PHPUnit\Framework\TestCase;

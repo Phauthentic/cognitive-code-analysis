@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CodeQualityMetrics\Tests\Unit\Business\Halstead;
+namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Halstead;
 
 use FilesystemIterator;
-use Phauthentic\CodeQualityMetrics\Business\DirectoryScanner;
+use Phauthentic\CognitiveCodeAnalysis\Business\DirectoryScanner;
 use PHPUnit\Framework\TestCase;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
