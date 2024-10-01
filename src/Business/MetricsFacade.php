@@ -10,6 +10,7 @@ use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter\CsvExporter;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter\HtmlExporter;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter\JsonExporter;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\ScoreCalculator;
+use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
 use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
 
 /**
@@ -36,10 +37,10 @@ class MetricsFacade
      */
     public function getCognitiveMetrics(string $path): CognitiveMetricsCollection
     {
-        $metricsCollection = $this->cognitiveMetricsCollector->collect($path, $this->configService->getConfig()['cognitive']);
+        $metricsCollection = $this->cognitiveMetricsCollector->collect($path, $this->configService->getConfig());
 
         foreach ($metricsCollection as $metric) {
-            $this->scoreCalculator->calculate($metric, $this->configService->getConfig()['cognitive']);
+            $this->scoreCalculator->calculate($metric, $this->configService->getConfig());
         }
 
         return $metricsCollection;
@@ -54,6 +55,11 @@ class MetricsFacade
     public function loadConfig(string $configFilePath): void
     {
         $this->configService->loadConfig($configFilePath);
+    }
+
+    public function getConfig(): CognitiveConfig
+    {
+        return $this->configService->getConfig();
     }
 
     public function metricsCollectionToCsv(CognitiveMetricsCollection $metricsCollection, string $filename): void

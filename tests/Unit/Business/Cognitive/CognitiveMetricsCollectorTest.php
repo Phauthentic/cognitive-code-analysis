@@ -22,6 +22,7 @@ use Symfony\Component\Config\Definition\Processor;
 class CognitiveMetricsCollectorTest extends TestCase
 {
     private CognitiveMetricsCollector $metricsCollector;
+    private ConfigService $configService;
 
     protected function setUp(): void
     {
@@ -35,13 +36,18 @@ class CognitiveMetricsCollectorTest extends TestCase
                 new ConfigLoader(),
             )
         );
+
+        $this->configService = new ConfigService(
+            new Processor(),
+            new ConfigLoader(),
+        );
     }
 
     public function testCollectWithValidDirectoryPath(): void
     {
         $path = './tests/TestCode';
 
-        $metricsCollection = $this->metricsCollector->collect($path);
+        $metricsCollection = $this->metricsCollector->collect($path, $this->configService->getConfig());
 
         $this->assertInstanceOf(CognitiveMetricsCollection::class, $metricsCollection);
         $this->assertCount(23, $metricsCollection);
@@ -66,7 +72,7 @@ class CognitiveMetricsCollectorTest extends TestCase
 
         $path = './tests/TestCode';
 
-        $metricsCollection = $metricsCollector->collect($path);
+        $metricsCollection = $metricsCollector->collect($path, $this->configService->getConfig());
 
         $this->assertInstanceOf(CognitiveMetricsCollection::class, $metricsCollection);
         $this->assertCount(22, $metricsCollection);
@@ -76,7 +82,7 @@ class CognitiveMetricsCollectorTest extends TestCase
     {
         $path = './tests/TestCode/Paginator.php';
 
-        $metricsCollection = $this->metricsCollector->collect($path);
+        $metricsCollection = $this->metricsCollector->collect($path, $this->configService->getConfig());
 
         $this->assertInstanceOf(CognitiveMetricsCollection::class, $metricsCollection);
         $this->assertGreaterThan(0, $metricsCollection->count(), 'CognitiveMetrics collection should not be empty');
@@ -85,7 +91,7 @@ class CognitiveMetricsCollectorTest extends TestCase
     public function testCollectWithInvalidPath(): void
     {
         $this->expectException(RuntimeException::class);
-        $this->metricsCollector->collect('/invalid/path');
+        $this->metricsCollector->collect('/invalid/path', $this->configService->getConfig());
     }
 
     public function testCollectWithUnreadableFile(): void
@@ -93,7 +99,7 @@ class CognitiveMetricsCollectorTest extends TestCase
         $path = './tests/TestCode/UnreadableFile.php';
 
         $this->expectException(RuntimeException::class);
-        $this->metricsCollector->collect($path);
+        $this->metricsCollector->collect($path, $this->configService->getConfig());
     }
 
     /**
@@ -101,7 +107,7 @@ class CognitiveMetricsCollectorTest extends TestCase
      */
     public function testCollectedMetrics(): void
     {
-        $metricsCollection = $this->metricsCollector->collect('./tests/TestCode2');
+        $metricsCollection = $this->metricsCollector->collect('./tests/TestCode2', $this->configService->getConfig());
         $metrics = $metricsCollection->getClassWithMethod('\TestClassForCounts', 'test');
 
         $this->assertNotNull($metrics);

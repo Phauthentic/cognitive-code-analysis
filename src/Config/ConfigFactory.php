@@ -11,9 +11,9 @@ class ConfigFactory
 {
     /**
      * @param array<string, mixed> $config
-     * @return Config
+     * @return CognitiveConfig
      */
-    public function fromArray(array $config): Config
+    public function fromArray(array $config): CognitiveConfig
     {
         $metrics = [];
         foreach ($config['cognitive']['metrics'] as $name => $metric) {
@@ -24,12 +24,12 @@ class ConfigFactory
             );
         }
 
-        $cognitive = new CognitiveConfig(
+        return new CognitiveConfig(
             $config['cognitive']['excludeFilePatterns'],
             $config['cognitive']['excludePatterns'],
-            $metrics
+            $metrics,
+            $config['cognitive']['showOnlyMethodsExceedingThreshold'],
+            $config['cognitive']['scoreThreshold']
         );
-
-        return new Config($cognitive);
     }
 }

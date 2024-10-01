@@ -90,7 +90,7 @@ class CognitiveMetricsCommand extends Command
         }
 
         // Render the metrics to the console.
-        $this->metricTextRenderer->render($metricsCollection, $output);
+        $this->metricTextRenderer->render($metricsCollection, $this->metricsFacade->getConfig());
 
         return Command::SUCCESS;
     }

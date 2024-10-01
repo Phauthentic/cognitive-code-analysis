@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Config;
 
+use InvalidArgumentException;
+
 /**
  *
  */
@@ -17,7 +19,9 @@ class CognitiveConfig
     public function __construct(
         public readonly array $excludeFilePatterns,
         public readonly array $excludePatterns,
-        public readonly array $metrics
+        public readonly array $metrics,
+        public readonly bool $showOnlyMethodsExceedingThreshold,
+        public readonly float $scoreThreshold
     ) {
     }
 }
