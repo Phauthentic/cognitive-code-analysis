@@ -7,6 +7,7 @@ namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Cognitive;
 use Phauthentic\CognitiveCodeAnalysis\Business\AbstractMetricCollector;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollector;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Parser;
 use Phauthentic\CognitiveCodeAnalysis\Business\DirectoryScanner;
 use Phauthentic\CognitiveCodeAnalysis\Config\ConfigLoader;
 use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
@@ -15,6 +16,7 @@ use PhpParser\ParserFactory;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use Symfony\Component\Config\Definition\Processor;
+use Symfony\Component\Messenger\MessageBus;
 
 /**
  *
@@ -28,13 +30,16 @@ class CognitiveMetricsCollectorTest extends TestCase
     {
         parent::setUp();
         $this->metricsCollector = new CognitiveMetricsCollector(
-            new ParserFactory(),
-            new NodeTraverser(),
+            new Parser(
+                new ParserFactory(),
+                new NodeTraverser(),
+            ),
             new DirectoryScanner(),
             new ConfigService(
                 new Processor(),
                 new ConfigLoader(),
-            )
+            ),
+            new MessageBus(),
         );
 
         $this->configService = new ConfigService(
@@ -64,10 +69,13 @@ class CognitiveMetricsCollectorTest extends TestCase
         $configService->loadConfig(__DIR__ . '/../../../Fixtures/config-with-exclude-patterns.yml');
 
         $metricsCollector = new CognitiveMetricsCollector(
-            new ParserFactory(),
-            new NodeTraverser(),
+            new Parser(
+                new ParserFactory(),
+                new NodeTraverser(),
+            ),
             new DirectoryScanner(),
             $configService,
+            new MessageBus(),
         );
 
         $path = './tests/TestCode';

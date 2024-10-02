@@ -2,22 +2,20 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CognitiveCodeAnalysis\Command\Cognitive;
+namespace Phauthentic\CognitiveCodeAnalysis\Command\EventHandler;
 
-use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
-use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\FindMetricsPluginInterface;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Events\FileProcessed;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Events\SourceFilesFound;
 use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsCommand;
-use SplFileInfo;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
  *
  */
-class CognitiveCollectorShellOutputPlugin implements FindMetricsPluginInterface
+class VerboseHandler
 {
-    private float $startTime;
-    private int $count = 1;
+    private float $startTime = 0.0;
 
     public function __construct(
         private readonly InputInterface $input,
@@ -25,12 +23,7 @@ class CognitiveCollectorShellOutputPlugin implements FindMetricsPluginInterface
     ) {
     }
 
-    public function beforeFindMetrics(SplFileInfo $fileInfo): void
-    {
-        $this->startTime = microtime(true);
-    }
-
-    public function afterFindMetrics(SplFileInfo $fileInfo): void
+    public function __invoke(SourceFilesFound|FileProcessed $event): void
     {
         if (
             $this->input->hasOption(CognitiveMetricsCommand::OPTION_DEBUG)
@@ -39,20 +32,16 @@ class CognitiveCollectorShellOutputPlugin implements FindMetricsPluginInterface
             return;
         }
 
-        $runtime = microtime(true) - $this->startTime;
+        if ($event instanceof SourceFilesFound) {
+            $this->startTime = microtime(true);
+        }
 
-        $this->output->writeln('Processed ' . $fileInfo->getRealPath());
-        $this->output->writeln('Number: ' . $this->count . ' Memory: ' . $this->formatBytes(memory_get_usage(true)) . ' -- Runtime: ' . round($runtime, 4) . 's');
+        if ($event instanceof FileProcessed) {
+            $runtime = (microtime(true) - $this->startTime);
 
-        $this->count++;
-    }
-
-    public function beforeIteration(iterable $files): void
-    {
-    }
-
-    public function afterIteration(CognitiveMetricsCollection $metricsCollection): void
-    {
+            $this->output->writeln('Processed ' . $event->file->getRealPath());
+            $this->output->writeln(' Memory: ' . $this->formatBytes(memory_get_usage(true)) . ' || Total Time: ' . round($runtime, 4) . 's');
+        }
     }
 
     /**
