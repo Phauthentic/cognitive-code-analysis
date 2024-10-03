@@ -17,6 +17,9 @@ class ConfigService
      */
     private array $config;
 
+    /**
+     * @SuppressWarnings(PHPMD.StaticAccess)
+     */
     public function __construct(
         private readonly Processor $processor,
         private readonly ConfigLoader $configuration
@@ -26,6 +29,9 @@ class ConfigService
         ]);
     }
 
+    /**
+     * @SuppressWarnings(PHPMD.StaticAccess)
+     */
     public function loadConfig(string $configFilePath): void
     {
         $this->config = $this->processor->processConfiguration($this->configuration, [

@@ -53,13 +53,13 @@ class VerboseHandler
     private function formatBytes(int $size): string
     {
         $units = ['B', 'KB', 'MB', 'GB', 'TB'];
-        $i = 0;
+        $index = 0;
 
-        while ($size >= 1024 && $i < count($units) - 1) {
+        while ($size >= 1024 && $index < count($units) - 1) {
             $size /= 1024;
-            $i++;
+            $index++;
         }
 
-        return round($size, 2) . ' ' . $units[$i];
+        return round($size, 2) . ' ' . $units[$index];
     }
 }

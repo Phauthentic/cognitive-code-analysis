@@ -25,7 +25,7 @@ class BaselineService
                     continue;
                 }
 
-                $previousMetrics = CognitiveMetrics::fromArray($methodData);
+                $previousMetrics = new CognitiveMetrics($methodData);
                 $metrics->calculateDeltas($previousMetrics);
             }
         }

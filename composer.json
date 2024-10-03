@@ -70,7 +70,7 @@
             "phpstan analyse src/"
         ],
         "phpmd": [
-            "bin/phpmd ./src text cleancode,codesize,controversial,design"
+            "bin/phpmd ./src/ text phpmd.xml"
         ],
         "benchmark": [
             "bin/phpbench run tests/Benchmark/ --report=aggregate"
@@ -78,6 +78,7 @@
         "all": [
             "@cscheck",
             "@analyze",
+            "@phpmd",
             "@test"
         ],
         "build-phar": [

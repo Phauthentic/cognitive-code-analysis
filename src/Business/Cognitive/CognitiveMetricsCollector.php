@@ -125,7 +125,7 @@ class CognitiveMetricsCollector
         $regexes = $this->configService->getConfig()->excludePatterns;
 
         foreach ($regexes as $regex) {
-            if (preg_match('/' . $regex . '/', $classAndMethod, $matches)) {
+            if (preg_match('/' . $regex . '/', $classAndMethod)) {
                 return true;
             }
         }

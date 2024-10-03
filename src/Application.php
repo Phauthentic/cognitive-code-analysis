@@ -86,13 +86,9 @@ class Application
         $this->containerBuilder->register(NodeTraverserInterface::class, NodeTraverser::class)
             ->setPublic(true);
 
-        if (getenv('APP_ENV') === 'test') {
-            $this->containerBuilder->register(OutputInterface::class, NullOutput::class)
-                ->setPublic(true);
-        } else {
-            $this->containerBuilder->register(OutputInterface::class, ConsoleOutput::class)
-                ->setPublic(true);
-        }
+        $outputClass = getenv('APP_ENV') === 'test' ? NullOutput::class : ConsoleOutput::class;
+        $this->containerBuilder->register(OutputInterface::class, $outputClass)
+            ->setPublic(true);
 
         $this->containerBuilder->register(InputInterface::class, ArgvInput::class)
             ->setPublic(true);
@@ -207,9 +203,9 @@ class Application
         );
     }
 
-    public function get(string $id): mixed
+    public function get(string $identifier): mixed
     {
-        return $this->containerBuilder->get($id);
+        return $this->containerBuilder->get($identifier);
     }
 
     public function getContainer(): ContainerBuilder

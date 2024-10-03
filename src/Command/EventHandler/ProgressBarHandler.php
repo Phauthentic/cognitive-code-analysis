@@ -26,10 +26,7 @@ class ProgressBarHandler
     public function __invoke(SourceFilesFound|FileProcessed $event): void
     {
         if ($event instanceof SourceFilesFound) {
-            foreach ($event->files as $file) {
-                $this->totalFiles++;
-            }
-
+            $this->totalFiles = count($event->files);
             $this->output->writeln('Found ' . $this->totalFiles . ' files. Starting analysis.');
             $this->progressBar = new ProgressBar($this->output, $this->totalFiles);
         }
