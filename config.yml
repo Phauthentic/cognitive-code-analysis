@@ -17,11 +17,11 @@ cognitive:
       scale: 5.0
       enabled: true
     variableCount:
-      threshold: 2
+      threshold: 4
       scale: 5.0
       enabled: true
     propertyCallCount:
-      threshold: 2
+      threshold: 4
       scale: 15.0
       enabled: true
     ifCount:

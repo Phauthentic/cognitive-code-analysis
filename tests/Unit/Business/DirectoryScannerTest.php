@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Halstead;
+namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business;
 
 use FilesystemIterator;
 use Phauthentic\CognitiveCodeAnalysis\Business\DirectoryScanner;

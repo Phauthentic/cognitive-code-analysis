@@ -26,6 +26,7 @@ use Symfony\Component\Console\Application as SymfonyApplication;
 use Symfony\Component\Console\Input\ArgvInput;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\ConsoleOutput;
+use Symfony\Component\Console\Output\NullOutput;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
@@ -85,8 +86,13 @@ class Application
         $this->containerBuilder->register(NodeTraverserInterface::class, NodeTraverser::class)
             ->setPublic(true);
 
-        $this->containerBuilder->register(OutputInterface::class, ConsoleOutput::class)
-            ->setPublic(true);
+        if (getenv('APP_ENV') === 'test') {
+            $this->containerBuilder->register(OutputInterface::class, NullOutput::class)
+                ->setPublic(true);
+        } else {
+            $this->containerBuilder->register(OutputInterface::class, ConsoleOutput::class)
+                ->setPublic(true);
+        }
 
         $this->containerBuilder->register(InputInterface::class, ArgvInput::class)
             ->setPublic(true);
@@ -204,5 +210,10 @@ class Application
     public function get(string $id): mixed
     {
         return $this->containerBuilder->get($id);
+    }
+
+    public function getContainer(): ContainerBuilder
+    {
+        return $this->containerBuilder;
     }
 }

@@ -4,19 +4,25 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Cognitive;
 
-use Phauthentic\CognitiveCodeAnalysis\Business\AbstractMetricCollector;
+use Phauthentic\CognitiveCodeAnalysis\Application;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollector;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Parser;
 use Phauthentic\CognitiveCodeAnalysis\Business\DirectoryScanner;
 use Phauthentic\CognitiveCodeAnalysis\Config\ConfigLoader;
 use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
+use PHPMD\Console\OutputInterface;
 use PhpParser\NodeTraverser;
 use PhpParser\ParserFactory;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use Symfony\Component\Config\Definition\Processor;
+use Symfony\Component\Console\Output\NullOutput;
+use Symfony\Component\Messenger\Envelope;
+use Symfony\Component\Messenger\Handler\HandlersLocator;
 use Symfony\Component\Messenger\MessageBus;
+use Symfony\Component\Messenger\MessageBusInterface;
+use Symfony\Component\Messenger\Middleware\HandleMessageMiddleware;
 
 /**
  *
@@ -25,10 +31,22 @@ class CognitiveMetricsCollectorTest extends TestCase
 {
     private CognitiveMetricsCollector $metricsCollector;
     private ConfigService $configService;
+    private MessageBusInterface $messageBus;
 
     protected function setUp(): void
     {
         parent::setUp();
+
+        $bus = $this->getMockBuilder(MessageBusInterface::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $bus->expects($this->any())
+            ->method('dispatch')
+            ->willReturn(new Envelope(new \stdClass()));
+
+        $this->messageBus = $bus;
+
         $this->metricsCollector = new CognitiveMetricsCollector(
             new Parser(
                 new ParserFactory(),
@@ -39,7 +57,7 @@ class CognitiveMetricsCollectorTest extends TestCase
                 new Processor(),
                 new ConfigLoader(),
             ),
-            new MessageBus(),
+            $bus
         );
 
         $this->configService = new ConfigService(
@@ -75,7 +93,7 @@ class CognitiveMetricsCollectorTest extends TestCase
             ),
             new DirectoryScanner(),
             $configService,
-            new MessageBus(),
+            $this->messageBus
         );
 
         $path = './tests/TestCode';
