@@ -8,7 +8,7 @@ use InvalidArgumentException;
 use JsonSerializable;
 
 /**
- *
+ * @SuppressWarnings(PHPMD)
  */
 class CognitiveMetrics implements JsonSerializable
 {

@@ -4,35 +4,27 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Business\Cognitive;
 
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Events\FileProcessed;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Events\SourceFilesFound;
 use Phauthentic\CognitiveCodeAnalysis\Business\DirectoryScanner;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
 use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
-use Phauthentic\CognitiveCodeAnalysis\PhpParser\CognitiveMetricsVisitor;
-use PhpParser\Error;
-use PhpParser\NodeTraverserInterface;
-use PhpParser\Parser;
-use PhpParser\ParserFactory;
 use SplFileInfo;
+use Symfony\Component\Messenger\Exception\ExceptionInterface;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 /**
  * CognitiveMetricsCollector class that collects cognitive metrics from source files
  */
 class CognitiveMetricsCollector
 {
-    protected Parser $parser;
-
-    /**
-     * @param array<int, FindMetricsPluginInterface> $findMetricsPlugins
-     */
     public function __construct(
-        protected readonly ParserFactory $parserFactory,
-        protected readonly NodeTraverserInterface $traverser,
+        protected readonly Parser $parser,
         protected readonly DirectoryScanner $directoryScanner,
         protected readonly ConfigService $configService,
-        protected readonly array $findMetricsPlugins = []
+        protected readonly MessageBusInterface $messageBus,
     ) {
-        $this->parser = $parserFactory->createForHostVersion();
     }
 
     /**
@@ -41,13 +33,21 @@ class CognitiveMetricsCollector
      * @param string $path
      * @param CognitiveConfig $config
      * @return CognitiveMetricsCollection
-     * @throws CognitiveAnalysisException
+     * @throws CognitiveAnalysisException|ExceptionInterface
      */
     public function collect(string $path, CognitiveConfig $config): CognitiveMetricsCollection
     {
         $files = $this->findSourceFiles($path, $config->excludeFilePatterns);
 
-        return $this->findMetrics($files);
+        /** @var SplFileInfo[] $clonedFiles */
+        $clonedFiles = [];
+        foreach ($files as $file) {
+            $clonedFiles[] = clone $file;
+        }
+
+        $this->messageBus->dispatch(new SourceFilesFound($clonedFiles));
+
+        return $this->findMetrics($clonedFiles);
     }
 
     private function getCodeFromFile(SplFileInfo $file): string
@@ -66,39 +66,25 @@ class CognitiveMetricsCollector
      *
      * @param iterable<SplFileInfo> $files
      * @return CognitiveMetricsCollection
-     * @throws CognitiveAnalysisException
+     * @throws CognitiveAnalysisException|ExceptionInterface
      */
     private function findMetrics(iterable $files): CognitiveMetricsCollection
     {
         $metricsCollection = new CognitiveMetricsCollection();
-        $visitor = new CognitiveMetricsVisitor();
-
-        foreach ($this->findMetricsPlugins as $plugin) {
-            $plugin->beforeIteration($files);
-        }
 
         foreach ($files as $file) {
-            foreach ($this->findMetricsPlugins as $plugin) {
-                $plugin->beforeFindMetrics($file);
-            }
+            $metrics = $this->parser->parse(
+                $this->getCodeFromFile($file)
+            );
 
-            $code = $this->getCodeFromFile($file);
+            $this->processMethodMetrics(
+                $metrics,
+                $metricsCollection
+            );
 
-            $this->traverser->addVisitor($visitor);
-            $this->traverseAbstractSyntaxTree($code);
-
-            $methodMetrics = $visitor->getMethodMetrics();
-            $this->traverser->removeVisitor($visitor);
-
-            $this->processMethodMetrics($methodMetrics, $metricsCollection);
-
-            foreach ($this->findMetricsPlugins as $plugin) {
-                $plugin->afterFindMetrics($file);
-            }
-        }
-
-        foreach ($this->findMetricsPlugins as $plugin) {
-            $plugin->afterIteration($metricsCollection);
+            $this->messageBus->dispatch(new FileProcessed(
+                $file,
+            ));
         }
 
         return $metricsCollection;
@@ -139,7 +125,7 @@ class CognitiveMetricsCollector
         $regexes = $this->configService->getConfig()->excludePatterns;
 
         foreach ($regexes as $regex) {
-            if (preg_match('/' . $regex . '/', $classAndMethod, $matches)) {
+            if (preg_match('/' . $regex . '/', $classAndMethod)) {
                 return true;
             }
         }
@@ -157,23 +143,5 @@ class CognitiveMetricsCollector
     private function findSourceFiles(string $path, array $exclude = []): iterable
     {
         return $this->directoryScanner->scan([$path], ['^(?!.*\.php$).+'] + $exclude); // Exclude non-PHP files
-    }
-
-    /**
-     * @throws CognitiveAnalysisException
-     */
-    private function traverseAbstractSyntaxTree(string $code): void
-    {
-        try {
-            $ast = $this->parser->parse($code);
-        } catch (Error $e) {
-            throw new CognitiveAnalysisException("Parse error: {$e->getMessage()}", 0, $e);
-        }
-
-        if ($ast === null) {
-            throw new CognitiveAnalysisException("Could not parse the code.");
-        }
-
-        $this->traverser->traverse($ast);
     }
 }

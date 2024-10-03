@@ -21,6 +21,13 @@ class CognitiveMetricTextRenderer
     ) {
     }
 
+    public function metricExceedsThreshold(CognitiveMetrics $metric, CognitiveConfig $config): bool
+    {
+        return
+            $config->showOnlyMethodsExceedingThreshold &&
+            $metric->getScore() <= $config->scoreThreshold;
+    }
+
     /**
      * @param CognitiveMetricsCollection $metricsCollection
      */
@@ -31,10 +38,7 @@ class CognitiveMetricTextRenderer
         foreach ($groupedByClass as $className => $metrics) {
             $rows = [];
             foreach ($metrics as $metric) {
-                if (
-                    $config->showOnlyMethodsExceedingThreshold &&
-                    $metric->getScore() <= $config->scoreThreshold
-                ) {
+                if ($this->metricExceedsThreshold($metric, $config)) {
                     continue;
                 }
 
@@ -60,6 +64,7 @@ class CognitiveMetricTextRenderer
         $table->setStyle('box');
         $table->setHeaders($this->getTableHeaders());
         $this->output->writeln("<info>Class: $className</info>");
+
         $table->setRows($rows);
         $table->render();
         $this->output->writeln("");
@@ -68,7 +73,7 @@ class CognitiveMetricTextRenderer
     /**
      * @return string[]
      */
-    protected function getTableHeaders(): array
+    private function getTableHeaders(): array
     {
         return [
             "Method Name",
@@ -88,7 +93,7 @@ class CognitiveMetricTextRenderer
      * @param CognitiveMetrics $metrics
      * @return array<string, mixed>
      */
-    protected function prepareTableRow(CognitiveMetrics $metrics): array
+    private function prepareTableRow(CognitiveMetrics $metrics): array
     {
         $row = [
             'methodName' => $metrics->getMethod(),
