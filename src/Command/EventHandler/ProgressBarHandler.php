@@ -19,9 +19,9 @@ class ProgressBarHandler
     ) {
     }
 
-    protected ProgressBar $progressBar;
-    protected int $totalFiles = 0;
-    protected int $processedFiles = 0;
+    private ProgressBar $progressBar;
+    private int $totalFiles = 0;
+    private int $processedFiles = 0;
 
     public function __invoke(SourceFilesFound|FileProcessed $event): void
     {
