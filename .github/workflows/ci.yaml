@@ -70,5 +70,5 @@ jobs:
     - name: Run phpstan
       run: bin/phpstan -V && bin/phpstan --error-format=github
 
-    - name: Run phpstan
+    - name: Run phpmd
       run: bin/phpmd --version && composer phpmd
