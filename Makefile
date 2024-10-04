@@ -38,11 +38,7 @@ shell:
 
 self-test:
 	@echo "Running cognitive analyses self-test"
-	docker compose run php php analyse.php metrics:cognitive src
-
-self-test-halstead:
-	@echo "Running cognitive analyses self-test"
-	docker compose run php php analyse.php metrics:halstead src
+	docker compose run php bin/phpcca analyse src
 
 build-phar:
 	@echo "Building phar"

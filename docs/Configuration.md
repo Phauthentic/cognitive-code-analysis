@@ -5,27 +5,39 @@
 You can specify another configuration file by passing it to the config options:
 
 ```bash
-php analyse.php metrics:cognitive <path-to-folder> --config=<path-to-config-file>
+bin/phpcca analyse <path-to-folder> --config=<path-to-config-file>
 ```
 
 ## Excluding Classes and Methods
 
 You can exclude classes and methods via a regex in the configuration.
 
-The following configuration will exclude all constructors and all methods of classes that end with `Transformer`.
+The following configuration will exclude all constructors, `toArray` methods and all methods of classes that end with `Transformer`.
 
 ```yaml
 cognitive:
   excludePatterns:
     - '(.*)::__construct'
+    - '(.*)::toArray'
     - '(.*)Transformer::(.*)'
+```
+
+## Exclude Files
+
+You can exclude files via a regex in the configuration.
+
+```yaml
+cognitive:
+  excludeFilePatterns:
+    - '.*Cognitive.*'
+    - '(.*)Test.php'
 ```
 
 ## Tuning the calculation
 
 The configuration file can contain the following settings for the calculation of cognitive complexity.
 
-Feel free to adjust the values to your match your opinion on what makes code complex.
+Feel free to adjust the values to your match **your opinion** on what makes code complex. It is recommended to play with the values until you get weights that you are comfortable with. The default values are a good starting point.
 
 ```yaml
 cognitive:
@@ -54,16 +66,4 @@ cognitive:
       elseCount:
         threshold: 1
         scale: 1.0
-```
-
-It is recommended to play with the values until you get weights that you are comfortable with. The default values are a good starting point.
-
-## Excluding Files
-
-Regular expression patterns can be defined to exclude files from the analysis.
-
-```yaml
-cognitive:
-  excludeFilePatterns:
-    - '(.*)Test.php'
 ```

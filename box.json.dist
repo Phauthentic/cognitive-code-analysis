@@ -1,5 +1,5 @@
 {
     "main": "./analyse.php",
     "compression": "GZ",
-    "output": "cognitive-analysis.phar"
+    "output": "phpcca.phar"
 }

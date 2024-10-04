@@ -11,19 +11,19 @@ Cognitive Code Analysis is an approach to understanding and improving code by fo
 Cognitive Complexity Analysis
 
 ```bash
-bin/cognitive-analysis metrics:cognitive <path-to-folder>
+bin/phpcca analyse <path-to-folder>
 ```
 
 Generate a report, supported types are `json`, `csv`, `html`.
 
 ```bash
-bin/cognitive-analysis metrics:cognitive <path-to-folder> --report-type json --report-file cognitive.json
+bin/phpcca analyse <path-to-folder> --report-type json --report-file cognitive.json
 ```
 
 You can also pass a baseline file to compare the results to. The JSON report is used as baseline. The output will now show a delta if a value was changed.
 
 ```bash
-bin/cognitive-analysis metrics:cognitive <path-to-folder> --baseline cognitive.json
+bin/phpcca analyse <path-to-folder> --baseline cognitive.json
 ```
 
 ## Documentation

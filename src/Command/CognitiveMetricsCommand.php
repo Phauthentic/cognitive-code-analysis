@@ -19,7 +19,7 @@ use Symfony\Component\Console\Output\OutputInterface;
  * Command to parse PHP files or directories and output method metrics.
  */
 #[AsCommand(
-    name: 'metrics:cognitive',
+    name: 'analyse',
     description: 'Parse PHP files or directories and output method metrics.'
 )]
 class CognitiveMetricsCommand extends Command

@@ -2,7 +2,7 @@ cognitive:
   excludeFilePatterns:
   excludePatterns:
   scoreThreshold: 0.5
-  showOnlyMethodsExceedingThreshold: true
+  showOnlyMethodsExceedingThreshold: false
   metrics:
     lineCount:
       threshold: 60

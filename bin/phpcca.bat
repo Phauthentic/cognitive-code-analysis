@@ -9,4 +9,4 @@ if "%PHP_PEAR_PHP_BIN%" neq "" (
     set PHPBIN=%PHP_PEAR_PHP_BIN%
 ) else set PHPBIN=php
 
-"%PHPBIN%" "%~dp0\cognitive-analysis" %*
+"%PHPBIN%" "%~dp0\phpcca" %*

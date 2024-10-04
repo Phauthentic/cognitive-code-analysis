@@ -42,7 +42,7 @@
         }
     },
     "bin": [
-        "bin/cognitive-analysis"
+      "bin/phpcca"
     ],
     "scripts": {
         "test": [
