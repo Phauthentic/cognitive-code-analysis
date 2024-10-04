@@ -140,7 +140,7 @@ class CognitiveMetricTextRenderer
                 continue;
             }
 
-            $row[$key] .= PHP_EOL . '<info>Δ ' . $delta->getValue() . '</info>';
+            $row[$key] .= PHP_EOL . '<info>Δ -' . $delta->getValue() . '</info>';
         }
 
         return $row;

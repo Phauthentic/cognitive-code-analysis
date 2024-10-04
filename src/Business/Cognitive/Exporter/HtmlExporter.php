@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter;
 
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Delta;
 use RuntimeException;
 
 /**
@@ -16,7 +17,6 @@ class HtmlExporter implements DataExporterInterface
      * @var array<string>
      */
     private array $header = [
-        'Class',
         'Method',
         'Line Count',
         'Argument Count',
@@ -45,6 +45,29 @@ class HtmlExporter implements DataExporterInterface
         }
     }
 
+    public function escape(string $string): string
+    {
+        return htmlspecialchars($string, ENT_QUOTES, 'UTF-8');
+    }
+
+    public function formatNumber(float $number): string
+    {
+        return number_format($number, 3);
+    }
+
+    public function generateMetricRow(int $count, float $weight, ?Delta $delta): string
+    {
+        $metricRow = '<td>' . $count . ' (' . $this->formatNumber($weight) . ')';
+
+        if ($delta !== null && !$delta->hasNotChanged()) {
+            $badgeClass = $delta->hasIncreased() ? 'bg-danger' : 'bg-success';
+            $deltaValue = $this->formatNumber($delta->getValue());
+            $metricRow .= '<br /><span class="badge ' . $badgeClass . '">Δ ' . $deltaValue . '</span>';
+        }
+
+        return $metricRow . '</td>';
+    }
+
     /**
      * Generate HTML content using the metrics data.
      *
@@ -66,37 +89,44 @@ class HtmlExporter implements DataExporterInterface
             <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
         </head>
         <body>
-            <div class="container-fluid">
-                <h1 class="mb-4">Cognitive Metrics Report</h1>
-                <table class="table table-bordered table-striped">
+        <div class="container-fluid">
+            <h1 class="mb-4">Cognitive Metrics Report - <?php echo date('Y-m-d H:i:s') ?></h1>
+            <p>
+                This report contains the cognitive complexity metrics for the analyzed code in <?php echo count($groupedByClass); ?> classes.
+            </p>
+
+            <?php foreach ($groupedByClass as $class => $methods) : ?>
+                <table class="table table-bordered">
                     <thead>
                         <tr>
+                            <th colspan="10" class="table-primary"><?php echo $this->escape((string)$class); ?></th>
+                        </tr>
+                        <tr>
                             <?php foreach ($this->header as $column) : ?>
-                                <th><?php echo htmlspecialchars($column, ENT_QUOTES, 'UTF-8'); ?></th>
+                                <th class="table-secondary"><?php echo $this->escape($column); ?></th>
                             <?php endforeach; ?>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php foreach ($groupedByClass as $methods) : ?>
-                            <?php foreach ($methods as $data) : ?>
-                                <tr>
-                                    <td><?php echo htmlspecialchars($data->getClass(), ENT_QUOTES, 'UTF-8'); ?></td>
-                                    <td><?php echo htmlspecialchars($data->getMethod(), ENT_QUOTES, 'UTF-8'); ?></td>
-                                    <td><?php echo htmlspecialchars((string)$data->getLineCount(), ENT_QUOTES, 'UTF-8') . ' (' . number_format($data->getLineCountWeight(), 3) . ')'; ?></td>
-                                    <td><?php echo htmlspecialchars((string)$data->getArgCount(), ENT_QUOTES, 'UTF-8') . ' (' . number_format($data->getArgCountWeight(), 3) . ')'; ?></td>
-                                    <td><?php echo htmlspecialchars((string)$data->getIfCount(), ENT_QUOTES, 'UTF-8') . ' (' . number_format($data->getIfCountWeight(), 3) . ')'; ?></td>
-                                    <td><?php echo htmlspecialchars((string)$data->getIfNestingLevel(), ENT_QUOTES, 'UTF-8') . ' (' . number_format($data->getIfNestingLevelWeight(), 3) . ')'; ?></td>
-                                    <td><?php echo htmlspecialchars((string)$data->getElseCount(), ENT_QUOTES, 'UTF-8') . ' (' . number_format($data->getElseCountWeight(), 3) . ')'; ?></td>
-                                    <td><?php echo htmlspecialchars((string)$data->getReturnCount(), ENT_QUOTES, 'UTF-8') . ' (' . number_format($data->getReturnCountWeight(), 3) . ')'; ?></td>
-                                    <td><?php echo htmlspecialchars((string)$data->getVariableCount(), ENT_QUOTES, 'UTF-8') . ' (' . number_format($data->getVariableCountWeight(), 3) . ')'; ?></td>
-                                    <td><?php echo htmlspecialchars((string)$data->getPropertyCallCount(), ENT_QUOTES, 'UTF-8') . ' (' . number_format($data->getPropertyCallCountWeight(), 3) . ')'; ?></td>
-                                    <td><?php echo number_format($data->getScore(), 3); ?></td>
-                                </tr>
-                            <?php endforeach; ?>
-                        <?php endforeach; ?>
+                    <?php foreach ($methods as $data) : ?>
+                        <tr>
+                            <td><?php echo $this->escape($data->getMethod()); ?></td>
+                            <?php echo $this->generateMetricRow($data->getLineCount(), $data->getLineCountWeight(), $data->getLineCountWeightDelta()); ?>
+                            <?php echo $this->generateMetricRow($data->getArgCount(), $data->getArgCountWeight(), $data->getArgCountWeightDelta()); ?>
+                            <?php echo $this->generateMetricRow($data->getIfCount(), $data->getIfCountWeight(), $data->getIfCountWeightDelta()); ?>
+                            <?php echo $this->generateMetricRow($data->getIfNestingLevel(), $data->getIfNestingLevelWeight(), $data->getIfNestingLevelWeightDelta()); ?>
+                            <?php echo $this->generateMetricRow($data->getElseCount(), $data->getElseCountWeight(), $data->getElseCountWeightDelta()); ?>
+                            <?php echo $this->generateMetricRow($data->getReturnCount(), $data->getReturnCountWeight(), $data->getReturnCountWeightDelta()); ?>
+                            <?php echo $this->generateMetricRow($data->getVariableCount(), $data->getVariableCountWeight(), $data->getVariableCountWeightDelta()); ?>
+                            <?php echo $this->generateMetricRow($data->getPropertyCallCount(), $data->getPropertyCallCountWeight(), $data->getPropertyCallCountWeightDelta()); ?>
+                            <td><?php echo $this->formatNumber($data->getScore()); ?></td>
+                        </tr>
+                    <?php endforeach; ?>
                     </tbody>
                 </table>
-            </div>
+            <?php endforeach; ?>
+
+        </div>
         </body>
         </html>
         <?php
