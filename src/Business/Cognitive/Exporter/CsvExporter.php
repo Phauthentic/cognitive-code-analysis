@@ -19,11 +19,23 @@ class CsvExporter implements DataExporterInterface
         'Class',
         'Method',
         'Line Count',
+        'Line Count Weight',
+        'Line Count Weight Delta',
         'Argument Count',
+        'Argument Count Weight',
+        'Argument Count Weight Delta',
         'Return Count',
+        'Return Count Weight',
+        'Return Count Weight Delta',
         'Variable Count',
+        'Variable Count Weight',
+        'Variable Count Weight Delta',
         'Property Call Count',
+        'Property Call Count Weight',
+        'Property Call Count Weight Delta',
         'If Nesting Level',
+        'If Nesting Level Weight',
+        'If Nesting Level Weight Delta',
         'Else Count',
         'Combined Cognitive Complexity'
     ];
@@ -49,13 +61,35 @@ class CsvExporter implements DataExporterInterface
                 fputcsv($file, [
                     $data->getClass(),
                     $data->getMethod(),
+
                     $data->getLineCount(),
+                    $data->getLineCountWeight(),
+                    (string)$data->getLineCountWeightDelta(),
+
                     $data->getArgCount(),
+                    $data->getArgCountWeight(),
+                    (string)$data->getArgCountWeightDelta(),
+
                     $data->getReturnCount(),
+                    $data->getReturnCountWeight(),
+                    (string)$data->getReturnCountWeightDelta(),
+
                     $data->getVariableCount(),
+                    $data->getVariableCountWeight(),
+                    (string)$data->getVariableCountWeightDelta(),
+
                     $data->getPropertyCallCount(),
+                    $data->getPropertyCallCountWeight(),
+                    (string)$data->getPropertyCallCountWeightDelta(),
+
                     $data->getIfNestingLevel(),
+                    $data->getIfNestingLevelWeight(),
+                    (string)$data->getIfNestingLevelWeightDelta(),
+
                     $data->getElseCount(),
+                    $data->getElseCountWeight(),
+                    (string)$data->getElseCountWeightDelta(),
+
                     $data->getScore()
                 ]);
             }

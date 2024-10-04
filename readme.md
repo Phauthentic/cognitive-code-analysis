@@ -101,30 +101,6 @@ Class: Doctrine\ORM\Tools\Pagination\Paginator
 │ convertWhereInIdentifiersToDatabaseValues │ 11 (0) │ 1 (0)     │ 1 (0)   │ 5 (0.47)  │ 1 (0)    │ 0 (0) │ 0 (0)      │ 0 (0)     │ 0.47       │
 └───────────────────────────────────────────┴────────┴───────────┴─────────┴───────────┴──────────┴───────┴────────────┴───────────┴────────────┘
 
-```
-
-### Halstead Metrics
-
-```txt
-Class: WP_Debug_Data
-File: /home/florian/projects/cognitive-code-checker/tests/TestCode/FileWithTwoClasses.php
-┌─────────────┬─────────────┬───────────┬──────────┬─────────┬────────────┬──────────┬────────────┬───────────┬──────────┐
-│ n1 Distinct │ n2 Distinct │ Total     │ Total    │ Program │ Program    │ Volume   │ Difficulty │ Effort    │ Possible │
-│ Operators   │ Operands    │ Operators │ Operands │ Length  │ Vocabulary │          │            │           │ Bugs     │
-├─────────────┼─────────────┼───────────┼──────────┼─────────┼────────────┼──────────┼────────────┼───────────┼──────────┤
-│ 13          │ 563         │ 869       │ 2123     │ 2992    │ 576        │ 27436.42 │ 24.51      │ 672484.58 │ 9.15     │
-└─────────────┴─────────────┴───────────┴──────────┴─────────┴────────────┴──────────┴────────────┴───────────┴──────────┘
-
-Class: Doctrine\ORM\Tools\Pagination\Paginator
-File: /home/florian/projects/cognitive-code-checker/tests/TestCode/FileWithTwoClasses.php
-┌─────────────┬─────────────┬───────────┬──────────┬─────────┬────────────┬─────────┬────────────┬──────────┬──────────┐
-│ n1 Distinct │ n2 Distinct │ Total     │ Total    │ Program │ Program    │ Volume  │ Difficulty │ Effort   │ Possible │
-│ Operators   │ Operands    │ Operators │ Operands │ Length  │ Vocabulary │         │            │          │ Bugs     │
-├─────────────┼─────────────┼───────────┼──────────┼─────────┼────────────┼─────────┼────────────┼──────────┼──────────┤
-│ 7           │ 36          │ 108       │ 161      │ 269     │ 43         │ 1459.67 │ 15.65      │ 22847.82 │ 0.49     │
-└─────────────┴─────────────┴───────────┴──────────┴─────────┴────────────┴─────────┴────────────┴──────────┴──────────┘
-```
-
 ## License
 
 Copyright Florian Krämer
