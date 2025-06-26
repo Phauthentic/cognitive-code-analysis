@@ -27,6 +27,7 @@ class CognitiveMetricsCollectionTest extends TestCase
         $metrics1 = $this->createCognitiveMetrics([
             'class' => 'ClassA',
             'method' => 'methodA',
+            'file' => 'ClassA.php',
             'lineCount' => 10,
             'argCount' => 2,
             'returnCount' => 1,
@@ -40,6 +41,7 @@ class CognitiveMetricsCollectionTest extends TestCase
         $metrics2 = $this->createCognitiveMetrics([
             'class' => 'ClassB',
             'method' => 'methodB',
+            'file' => 'ClassB.php',
             'lineCount' => 20,
             'argCount' => 4,
             'returnCount' => 2,
@@ -65,6 +67,7 @@ class CognitiveMetricsCollectionTest extends TestCase
         $metrics1 = $this->createCognitiveMetrics([
             'class' => 'ClassA',
             'method' => 'methodA',
+            'file' => 'ClassA.php',
             'lineCount' => 10,
             'argCount' => 2,
             'returnCount' => 1,
@@ -78,6 +81,7 @@ class CognitiveMetricsCollectionTest extends TestCase
         $metrics2 = $this->createCognitiveMetrics([
             'class' => 'ClassB',
             'method' => 'methodB',
+            'file' => 'ClassB.php',
             'lineCount' => 20,
             'argCount' => 4,
             'returnCount' => 2,
@@ -104,6 +108,7 @@ class CognitiveMetricsCollectionTest extends TestCase
         $metrics1 = $this->createCognitiveMetrics([
             'class' => 'ClassA',
             'method' => 'methodA',
+            'file' => 'ClassA.php',
             'lineCount' => 10,
             'argCount' => 2,
             'returnCount' => 1,
@@ -119,6 +124,7 @@ class CognitiveMetricsCollectionTest extends TestCase
         $metrics2 = $this->createCognitiveMetrics([
             'class' => 'ClassB',
             'method' => 'methodB',
+            'file' => 'ClassB.php',
             'lineCount' => 20,
             'argCount' => 4,
             'returnCount' => 2,
@@ -149,6 +155,7 @@ class CognitiveMetricsCollectionTest extends TestCase
         $metrics1 = $this->createCognitiveMetrics([
             'class' => 'ClassA',
             'method' => 'methodA',
+            'file' => 'ClassA.php',
             'lineCount' => 10,
             'argCount' => 2,
             'returnCount' => 1,
@@ -162,6 +169,7 @@ class CognitiveMetricsCollectionTest extends TestCase
         $metrics2 = $this->createCognitiveMetrics([
             'class' => 'ClassB',
             'method' => 'methodB',
+            'file' => 'ClassB.php',
             'lineCount' => 20,
             'argCount' => 4,
             'returnCount' => 2,
@@ -175,6 +183,7 @@ class CognitiveMetricsCollectionTest extends TestCase
         $metrics3 = $this->createCognitiveMetrics([
             'class' => 'ClassC',
             'method' => 'methodC',
+            'file' => 'ClassC.php',
             'lineCount' => 30,
             'argCount' => 6,
             'returnCount' => 3,

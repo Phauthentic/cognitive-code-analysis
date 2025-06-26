@@ -28,6 +28,7 @@ class JsonExporterTest extends TestCase
         $metrics1 = new CognitiveMetrics([
             'class' => 'TestClass1',
             'method' => 'testMethod1',
+            'file' => 'TestClass1.php',
             'lineCount' => 10,
             'argCount' => 2,
             'returnCount' => 1,
@@ -41,6 +42,7 @@ class JsonExporterTest extends TestCase
         $metrics2 = new CognitiveMetrics([
             'class' => 'TestClass2',
             'method' => 'testMethod2',
+            'file' => 'TestClass2.php',
             'lineCount' => 15,
             'argCount' => 3,
             'returnCount' => 1,

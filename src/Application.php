@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis;
 
+use Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChurnCalculator;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\BaselineService;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollector;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Events\FileProcessed;
@@ -11,10 +12,12 @@ use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Events\SourceFilesFound
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Parser;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\ScoreCalculator;
 use Phauthentic\CognitiveCodeAnalysis\Business\DirectoryScanner;
+use Phauthentic\CognitiveCodeAnalysis\Command\ChurnCommand;
 use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsCommand;
 use Phauthentic\CognitiveCodeAnalysis\Business\MetricsFacade;
 use Phauthentic\CognitiveCodeAnalysis\Command\EventHandler\ProgressBarHandler;
 use Phauthentic\CognitiveCodeAnalysis\Command\EventHandler\VerboseHandler;
+use Phauthentic\CognitiveCodeAnalysis\Command\Presentation\ChurnTextRenderer;
 use Phauthentic\CognitiveCodeAnalysis\Command\Presentation\CognitiveMetricTextRenderer;
 use Phauthentic\CognitiveCodeAnalysis\Config\ConfigLoader;
 use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
@@ -50,6 +53,9 @@ class Application
 
     private function registerServices(): void
     {
+        $this->containerBuilder->register(ChurnCalculator::class, ChurnCalculator::class)
+            ->setPublic(true);
+
         $this->containerBuilder->register(CognitiveMetricsCollector::class, CognitiveMetricsCollector::class)
             ->setPublic(true);
 
@@ -57,6 +63,12 @@ class Application
             ->setPublic(true);
 
         $this->containerBuilder->register(ConfigService::class, ConfigService::class)
+            ->setPublic(true);
+
+        $this->containerBuilder->register(ChurnTextRenderer::class, ChurnTextRenderer::class)
+            ->setArguments([
+                new Reference(OutputInterface::class)
+            ])
             ->setPublic(true);
 
         $this->containerBuilder->register(CognitiveMetricTextRenderer::class, CognitiveMetricTextRenderer::class)
@@ -184,13 +196,22 @@ class Application
                 new Reference(BaselineService::class),
             ])
             ->setPublic(true);
+
+        $this->containerBuilder->register(ChurnCommand::class, ChurnCommand::class)
+            ->setArguments([
+                new Reference(MetricsFacade::class),
+                new Reference(ChurnCalculator::class),
+                new Reference(ChurnTextRenderer::class),
+            ])
+            ->setPublic(true);
     }
 
     private function configureApplication(): void
     {
         $this->containerBuilder->register(SymfonyApplication::class, SymfonyApplication::class)
             ->setPublic(true)
-            ->addMethodCall('add', [new Reference(CognitiveMetricsCommand::class)]);
+            ->addMethodCall('add', [new Reference(CognitiveMetricsCommand::class)])
+            ->addMethodCall('add', [new Reference(ChurnCommand::class)]);
     }
 
     public function run(): void

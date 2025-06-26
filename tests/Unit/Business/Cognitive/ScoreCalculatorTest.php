@@ -25,6 +25,7 @@ class ScoreCalculatorTest extends TestCase
         $this->metrics = new CognitiveMetrics([
             'class' => 'Test',
             'method' => 'test',
+            'file' => 'test.php',
             'lineCount' => 10,
             'argCount' => 5,
             'returnCount' => 2,
