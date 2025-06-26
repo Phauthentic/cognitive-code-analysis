@@ -34,6 +34,7 @@ bin/phpcca analyse <path-to-folder> --baseline cognitive.json
   * [How is Cognitive Complexity calculated?](./docs/Cognitive-Complexity-Analysis.md#how-is-cognitive-complexity-calculated)
   * [Metrics Collected](./docs/Cognitive-Complexity-Analysis.md#metrics-collected)
   * [Result Interpretation](./docs/Cognitive-Complexity-Analysis.md#result-interpretation)
+  * [Churn - Finding Hotspots](./docs/Churn-Finding-Hotspots.md)
   * [Configuration](./docs/Configuration.md#configuration)
     * [Tuning the calculation](./docs/Configuration.md#tuning-the-calculation) 
   * [Examples](#examples)
