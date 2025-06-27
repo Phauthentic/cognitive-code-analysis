@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChangeCounter;
 
+use InvalidArgumentException;
+
 /**
  *
  */
@@ -17,7 +19,7 @@ class ChangeCounterFactory
     {
         return match ($type) {
             'git' => new GitChangeCounter(),
-            default => throw new \InvalidArgumentException("Unknown change counter type: $type"),
+            default => throw new InvalidArgumentException("Unknown change counter type: $type"),
         };
     }
 }
