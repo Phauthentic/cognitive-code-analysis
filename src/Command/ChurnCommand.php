@@ -25,7 +25,7 @@ class ChurnCommand extends Command
 
     public const OPTION_CONFIG_FILE = 'config';
 
-    public const OPTION_VCS = 'git';
+    public const OPTION_VCS = 'vcs';
 
     public const OPTION_DEBUG = 'debug';
 

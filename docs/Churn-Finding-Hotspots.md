@@ -10,16 +10,18 @@ bin/phpcca churn <path-to-folder> [--config=<file>] [--git=<vcs>] [--debug]
 
 - `<path-to-folder>`: **Required.** Path to the PHP file or directory to analyze.
 - `--config, -c`: Path to a configuration file (optional).
-- `--git, -s`: Version control system to use for change detection (default: `git`).
+- `--vcs, -s`: Version control system to use for change detection (default: `git`).
 - `--debug`: Enables debug output.
 
 ## What it does
 
 1. **Collects cognitive metrics** for each class in the given path.
 2. **Counts how many times each file/class has changed** using your VCS (default: Git).
-3. **Calculates a churn score**:  
+3. **Calculates a churn score**:
    `churn = timesChanged * score`
 4. **Ranks classes by churn score** so you can focus on the most critical hotspots.
+
+⚠️ **For the time being only Git is supported as the VCS backend!** ⚠️
 
 ## Example Output
 
@@ -43,4 +45,3 @@ bin/phpcca churn <path-to-folder> [--config=<file>] [--git=<vcs>] [--debug]
 - Only classes with a valid class name are included in the results.
 - The command supports extensible VCS backends (default is Git).
   - For now only Git is supported.
-

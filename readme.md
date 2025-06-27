@@ -6,6 +6,12 @@ Cognitive Code Analysis is an approach to understanding and improving code by fo
 
 [Source: Human Cognitive Limitations. Broad, Consistent, Clinical Application of Physiological Principles Will Require Decision Support](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5822395/)
 
+## Installation
+
+```bash
+composer require --dev phauthentic/cognitive-code-analysis
+```
+
 ## Running it
 
 Cognitive Complexity Analysis
@@ -28,7 +34,9 @@ bin/phpcca analyse <path-to-folder> --baseline cognitive.json
 
 ### Finding Hotspots
 
-Churn is a measure of how much code has changed over time. It helps to find the most changed and complex areas in your codebase, which are often the most error-prone and difficult to maintain.
+Churn is a measure of how much code has changed over time. It helps to find the most changed and complex areas in your codebase, which are often the most error-prone and difficult to maintain. Read the [Churn - Finding Hotspots](./docs/Churn-Finding-Hotspots.md) documentation for more details.
+
+Note that this requires a version control system (VCS) to be set up, such as Git.
 
 ```bash
 bin/phpcca churn <path-to-folder>
