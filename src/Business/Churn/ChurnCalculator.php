@@ -39,8 +39,8 @@ class ChurnCalculator
      */
     public function sortClassesByChurnDescending(array $classes): array
     {
-        uasort($classes, function ($a, $b) {
-            return $b['churn'] <=> $a['churn'];
+        uasort($classes, function ($classA, $classB) {
+            return $classB['churn'] <=> $classA['churn'];
         });
 
         return $classes;

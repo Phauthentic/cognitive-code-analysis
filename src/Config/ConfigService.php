@@ -18,7 +18,7 @@ class ConfigService
     private array $config;
 
     /**
-     * @SuppressWarnings(PHPMD.StaticAccess)
+     * @SuppressWarnings(PHPMD)
      */
     public function __construct(
         private readonly Processor $processor,
@@ -30,7 +30,7 @@ class ConfigService
     }
 
     /**
-     * @SuppressWarnings(PHPMD.StaticAccess)
+     * @SuppressWarnings(PHPMD)
      */
     public function loadConfig(string $configFilePath): void
     {

@@ -55,16 +55,15 @@ class ChurnCommand extends Command
     /**
      * Executes the command.
      *
+     * @SuppressWarnings("UnusedFormalParameter")
      * @param InputInterface $input
      * @param OutputInterface $output
      * @return int Command status code.
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        // Get the path to the files or directories to analyze.
         $path = $input->getArgument(self::ARGUMENT_PATH);
 
-        // Generate metrics for the provided path.
         $metricsCollection = $this->metricsFacade->getCognitiveMetrics($path);
 
         $classes = $this->churnCalculator->calculate($metricsCollection);
