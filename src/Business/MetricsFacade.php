@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Business;
 
+use Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChangeCounter\ChangeCounterFactory;
+use Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChurnCalculator;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollector;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter\CsvExporter;
@@ -24,7 +26,9 @@ class MetricsFacade
     public function __construct(
         private readonly CognitiveMetricsCollector $cognitiveMetricsCollector,
         private readonly ScoreCalculator $scoreCalculator,
-        private readonly ConfigService $configService
+        private readonly ConfigService $configService,
+        private readonly ChurnCalculator $churnCalculator,
+        private readonly ChangeCounterFactory $changeCounterFactory
     ) {
         $this->loadConfig(__DIR__ . '/../../config.yml');
     }
@@ -44,6 +48,21 @@ class MetricsFacade
         }
 
         return $metricsCollection;
+    }
+
+    /**
+     * @return array<string, array<string, mixed>>
+     */
+    public function calculateChurn(string $path, string $vcsType = 'git'): array
+    {
+        $metricsCollection = $this->getCognitiveMetrics($path);
+
+        $counter = $this->changeCounterFactory->create($vcsType);
+        foreach ($metricsCollection as $metric) {
+            $metric->setTimesChanged($counter->getNumberOfChangesForFile($metric->getFilename()));
+        }
+
+        return $this->churnCalculator->calculate($metricsCollection);
     }
 
     /**

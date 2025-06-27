@@ -42,7 +42,7 @@ class CognitiveMetricsCollector
         /** @var SplFileInfo[] $clonedFiles */
         $clonedFiles = [];
         foreach ($files as $file) {
-            $clonedFiles[] = clone $file;
+            $clonedFiles[] = $file;
         }
 
         $this->messageBus->dispatch(new SourceFilesFound($clonedFiles));
@@ -50,6 +50,9 @@ class CognitiveMetricsCollector
         return $this->findMetrics($clonedFiles);
     }
 
+    /**
+     * @throws CognitiveAnalysisException
+     */
     private function getCodeFromFile(SplFileInfo $file): string
     {
         $code = file_get_contents($file->getRealPath());
@@ -77,9 +80,10 @@ class CognitiveMetricsCollector
                 $this->getCodeFromFile($file)
             );
 
-            $this->processMethodMetrics(
+            $metricsCollection = $this->processMethodMetrics(
                 $metrics,
-                $metricsCollection
+                $metricsCollection,
+                $file->getRealPath()
             );
 
             $this->messageBus->dispatch(new FileProcessed(
@@ -91,15 +95,16 @@ class CognitiveMetricsCollector
     }
 
     /**
-     * Process method metrics and add them to the collection
-     *
      * @param array<string, mixed> $methodMetrics
      * @param CognitiveMetricsCollection $metricsCollection
+     * @param string $file
+     * @return CognitiveMetricsCollection
      */
     private function processMethodMetrics(
         array $methodMetrics,
-        CognitiveMetricsCollection $metricsCollection
-    ): void {
+        CognitiveMetricsCollection $metricsCollection,
+        string $file
+    ): CognitiveMetricsCollection {
         foreach ($methodMetrics as $classAndMethod => $metrics) {
             if ($this->isExcluded($classAndMethod)) {
                 continue;
@@ -109,7 +114,8 @@ class CognitiveMetricsCollector
 
             $metricsArray = array_merge($metrics, [
                 'class' => $class,
-                'method' => $method
+                'method' => $method,
+                'file' => $file
             ]);
 
             $metric = new CognitiveMetrics($metricsArray);
@@ -118,6 +124,8 @@ class CognitiveMetricsCollector
                 $metricsCollection->add($metric);
             }
         }
+
+        return $metricsCollection;
     }
 
     private function isExcluded(string $classAndMethod): bool
@@ -142,6 +150,6 @@ class CognitiveMetricsCollector
      */
     private function findSourceFiles(string $path, array $exclude = []): iterable
     {
-        return $this->directoryScanner->scan([$path], ['^(?!.*\.php$).+'] + $exclude); // Exclude non-PHP files
+        return $this->directoryScanner->scan([$path], ['^(?!.*\.php$).+'] + $exclude);
     }
 }

@@ -23,11 +23,14 @@ class CognitiveMetrics implements JsonSerializable
         'propertyCallCount' => 'propertyCallCount',
         'ifCount' => 'ifCount',
         'ifNestingLevel' => 'ifNestingLevel',
-        'elseCount' => 'elseCount'
+        'elseCount' => 'elseCount',
+        //'timesChanged' => 'timesChanged',
     ];
 
     private string $class;
     private string $method;
+    private string $file;
+    private ?int $timesChanged = null;
 
     private int $lineCount = 0;
     private int $argCount = 0;
@@ -67,6 +70,7 @@ class CognitiveMetrics implements JsonSerializable
 
         $this->method = $metrics['method'];
         $this->class = $metrics['class'];
+        $this->file = $metrics['file'] ?? null;
 
         $this->setRequiredMetricProperties($metrics);
         $this->setOptionalMetricProperties($metrics);
@@ -109,6 +113,11 @@ class CognitiveMetrics implements JsonSerializable
         $this->ifCountWeight = $metrics['ifCountWeight'] ?? 0.0;
         $this->ifNestingLevelWeight = $metrics['ifNestingLevelWeight'] ?? 0.0;
         $this->elseCountWeight = $metrics['elseCountWeight'] ?? 0.0;
+    }
+
+    public function setTimesChanged(int $timesChanged): void
+    {
+        $this->timesChanged = $timesChanged;
     }
 
     private function assertSame(self $other): void
@@ -344,6 +353,16 @@ class CognitiveMetrics implements JsonSerializable
         return $this->elseCountWeightDelta;
     }
 
+    public function getTimesChanged(): int
+    {
+        return $this->timesChanged ?? 0;
+    }
+
+    public function getFileName(): string
+    {
+        return $this->file;
+    }
+
     public function equals(self $metrics): bool
     {
         return $metrics->getClass() === $this->class
@@ -358,6 +377,7 @@ class CognitiveMetrics implements JsonSerializable
         return [
             'class' => $this->class,
             'method' => $this->method,
+            'file' => $this->file,
             'lineCount' => $this->lineCount,
             'argCount' => $this->argCount,
             'returnCount' => $this->returnCount,

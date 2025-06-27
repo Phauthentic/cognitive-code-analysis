@@ -5,12 +5,12 @@ on: [push, pull_request]
 jobs:
   testsuite:
     name: Unittests
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
 
     strategy:
       fail-fast: false
       matrix:
-        php-version: ['8.2', '8.3']
+        php-version: ['8.2', '8.3', '8.4']
 
     steps:
     - uses: actions/checkout@v4
@@ -35,18 +35,18 @@ jobs:
 
     - name: Run PHPUnit
       run: |
-        if [[ ${{ matrix.php-version }} == '8.2' ]]; then
+        if [[ ${{ matrix.php-version }} == '8.4' ]]; then
           bin/phpunit --coverage-clover=coverage.xml
         else
           bin/phpunit
         fi
     - name: Code Coverage Report
-      if: success() && matrix.php-version == '8.2'
+      if: success() && matrix.php-version == '8.4'
       uses: codecov/codecov-action@v4
 
   code-analysis:
     name: Coding Standard & Static Analysis
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
 
     steps:
     - uses: actions/checkout@v4

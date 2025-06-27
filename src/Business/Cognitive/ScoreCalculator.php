@@ -26,28 +26,27 @@ class ScoreCalculator
     ];
 
     /**
+     * @var array<string, string>
+     */
+    private array $metricTypes = [
+        'LineCount' => 'lineCount',
+        'ArgCount' => 'argCount',
+        'ReturnCount' => 'returnCount',
+        'VariableCount' => 'variableCount',
+        'IfCount' => 'ifCount',
+        'IfNestingLevel' => 'ifNestingLevel',
+        'PropertyCallCount' => 'propertyCallCount',
+        'ElseCount' => 'elseCount',
+    ];
+
+    /**
      * @param CognitiveMetrics $metrics
      * @param CognitiveConfig $config
      * @return void
      */
     public function calculate(CognitiveMetrics $metrics, CognitiveConfig $config): void
     {
-        // List of metric types to process
-        $metricTypes = [
-            'LineCount' => 'lineCount',
-            'ArgCount' => 'argCount',
-            'ReturnCount' => 'returnCount',
-            'VariableCount' => 'variableCount',
-            'IfCount' => 'ifCount',
-            'IfNestingLevel' => 'ifNestingLevel',
-            'PropertyCallCount' => 'propertyCallCount',
-            'ElseCount' => 'elseCount',
-        ];
-
-        // Calculate and set weights for each metric type
-        $this->calculateMetricWeights($metricTypes, $metrics, $config);
-
-        // Calculate the overall score
+        $this->calculateMetricWeights($this->metricTypes, $metrics, $config);
         $this->calculateScore($metrics);
     }
 

@@ -26,6 +26,14 @@ You can also pass a baseline file to compare the results to. The JSON report is 
 bin/phpcca analyse <path-to-folder> --baseline cognitive.json
 ```
 
+### Finding Hotspots
+
+Churn is a measure of how much code has changed over time. It helps to find the most changed and complex areas in your codebase, which are often the most error-prone and difficult to maintain.
+
+```bash
+bin/phpcca churn <path-to-folder>
+```
+
 ## Documentation
 
 * [Cognitive Complexity Analysis](./docs/Cognitive-Complexity-Analysis.md#cognitive-complexity-analysis)
@@ -34,6 +42,7 @@ bin/phpcca analyse <path-to-folder> --baseline cognitive.json
   * [How is Cognitive Complexity calculated?](./docs/Cognitive-Complexity-Analysis.md#how-is-cognitive-complexity-calculated)
   * [Metrics Collected](./docs/Cognitive-Complexity-Analysis.md#metrics-collected)
   * [Result Interpretation](./docs/Cognitive-Complexity-Analysis.md#result-interpretation)
+  * [Churn - Finding Hotspots](./docs/Churn-Finding-Hotspots.md)
   * [Configuration](./docs/Configuration.md#configuration)
     * [Tuning the calculation](./docs/Configuration.md#tuning-the-calculation) 
   * [Examples](#examples)

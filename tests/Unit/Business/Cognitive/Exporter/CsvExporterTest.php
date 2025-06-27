@@ -39,6 +39,7 @@ class CsvExporterTest extends TestCase
         $metrics = new CognitiveMetrics([
             'class' => 'TestClass',
             'method' => 'testMethod',
+            'file' => 'TestClass.php',
             'lineCount' => 10,
             'argCount' => 2,
             'returnCount' => 1,

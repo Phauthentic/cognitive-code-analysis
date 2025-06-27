@@ -22,6 +22,7 @@ class CognitiveMetricsTest extends TestCase
         $this->testMetricsData = [
             'class' => 'TestClass',
             'method' => 'testMethod',
+            'file' => 'TestClass.php',
             'lineCount' => 10,
             'argCount' => 2,
             'returnCount' => 1,
@@ -88,6 +89,7 @@ class CognitiveMetricsTest extends TestCase
         $expectedArray = [
             'class' => 'TestClass',
             'method' => 'testMethod',
+            'file' => 'TestClass.php',
             'lineCount' => 10,
             'argCount' => 2,
             'returnCount' => 1,
@@ -124,6 +126,7 @@ class CognitiveMetricsTest extends TestCase
         $expectedArray = [
             'class' => 'TestClass',
             'method' => 'testMethod',
+            'file' => 'TestClass.php',
             'lineCount' => 10,
             'argCount' => 2,
             'returnCount' => 1,
@@ -159,6 +162,7 @@ class CognitiveMetricsTest extends TestCase
         $presentMetrics = new CognitiveMetrics([
             'class' => 'TestClass',
             'method' => 'testMethod',
+            'file' => 'TestClass.php',
             'lineCount' => 10,
             'argCount' => 2,
             'returnCount' => 1,
@@ -183,6 +187,7 @@ class CognitiveMetricsTest extends TestCase
         $beforeMetrics = new CognitiveMetrics([
             'class' => 'TestClass',
             'method' => 'testMethod',
+            'file' => 'TestClass.php',
             'lineCount' => 10,
             'argCount' => 2,
             'returnCount' => 1,
