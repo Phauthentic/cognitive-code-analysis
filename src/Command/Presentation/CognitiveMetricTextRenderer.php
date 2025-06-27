@@ -37,7 +37,13 @@ class CognitiveMetricTextRenderer
         $groupedByClass = $metricsCollection->groupBy('class');
 
         foreach ($groupedByClass as $className => $metrics) {
+            if (count($metrics) === 0) {
+                continue;
+            }
+
             $rows = [];
+            $filename = '';
+
             foreach ($metrics as $metric) {
                 if ($this->metricExceedsThreshold($metric, $config)) {
                     continue;
@@ -65,11 +71,13 @@ class CognitiveMetricTextRenderer
         $table = new Table($this->output);
         $table->setStyle('box');
         $table->setHeaders($this->getTableHeaders());
+
         $this->output->writeln("<info>Class: $className</info>");
         $this->output->writeln("<info>File: $filename</info>");
 
         $table->setRows($rows);
         $table->render();
+
         $this->output->writeln("");
     }
 
@@ -147,7 +155,7 @@ class CognitiveMetricTextRenderer
 
     /**
      * @param CognitiveMetrics $metrics
-     * @return array
+     * @return array<string, mixed>
      */
     private function metricsToArray(CognitiveMetrics $metrics): array
     {

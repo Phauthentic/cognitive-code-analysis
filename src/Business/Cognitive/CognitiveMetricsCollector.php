@@ -118,8 +118,6 @@ class CognitiveMetricsCollector
 
             $metric = new CognitiveMetrics($metricsArray);
 
-            $metric = $this->getNumberChangedFromGit($file, $metric);
-
             if (!$metricsCollection->contains($metric)) {
                 $metricsCollection->add($metric);
             }
@@ -151,28 +149,5 @@ class CognitiveMetricsCollector
     private function findSourceFiles(string $path, array $exclude = []): iterable
     {
         return $this->directoryScanner->scan([$path], ['^(?!.*\.php$).+'] + $exclude); // Exclude non-PHP files
-    }
-
-    /**
-     * @param string $file
-     * @param CognitiveMetrics $metric
-     * @return CognitiveMetrics
-     */
-    public function getNumberChangedFromGit(string $file, CognitiveMetrics $metric): CognitiveMetrics
-    {
-        $command = sprintf(
-            'git -C %s rev-list --since=%s --no-merges --count HEAD -- %s',
-            escapeshellarg(\dirname($file)),
-            escapeshellarg('2020-01-01'), // Example date, replace with actual logic if needed
-            escapeshellarg($file)
-        );
-
-        $output = [];
-        $returnVar = 0;
-        exec($command, $output, $returnVar);
-
-        $metric->setTimesChanged((int)$output[0]);
-
-        return $metric;
     }
 }

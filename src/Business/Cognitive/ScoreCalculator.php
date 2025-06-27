@@ -25,6 +25,9 @@ class ScoreCalculator
         'elseCount',
     ];
 
+    /**
+     * @var array<string, string>
+     */
     private array $metricTypes = [
         'LineCount' => 'lineCount',
         'ArgCount' => 'argCount',

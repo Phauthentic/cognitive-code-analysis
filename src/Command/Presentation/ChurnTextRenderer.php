@@ -12,7 +12,10 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class ChurnTextRenderer
 {
-    private $churnTableHeader = [
+    /**
+     * @var array<string>
+     */
+    private array $churnTableHeader = [
         'Class',
         'Score',
         'Churn',
@@ -24,6 +27,10 @@ class ChurnTextRenderer
     ) {
     }
 
+    /**
+     * @param array<string, mixed> $classes An associative array where keys are class names and values are arrays
+     * containing 'score', 'churn', and 'timesChanged'.
+     */
     public function renderChurnTable(array $classes): void
     {
         $table = new Table($this->output);

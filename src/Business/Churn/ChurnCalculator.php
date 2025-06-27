@@ -4,15 +4,28 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Business\Churn;
 
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetrics;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
+
+use function dirname;
 
 /**
  *
  */
 class ChurnCalculator
 {
+    /**
+     * Calculate the churn for each class based on the metrics collection.
+     *
+     * @param CognitiveMetricsCollection $metricsCollection
+     * @return array<string, array<string, mixed>>
+     */
     public function calculate(CognitiveMetricsCollection $metricsCollection): array
     {
+        foreach ($metricsCollection as $metric) {
+            $this->getNumberChangedFromGit($metric);
+        }
+
         $classes = [];
         $classes = $this->groupByClasses($metricsCollection, $classes);
         $classes = $this->calculateChurn($classes);
@@ -21,8 +34,8 @@ class ChurnCalculator
     }
 
     /**
-     * @param array $classes
-     * @return array
+     * @param array<string, array<string, mixed>> $classes
+     * @return array<string, array<string, mixed>>
      */
     public function sortClassesByChurnDescending(array $classes): array
     {
@@ -34,8 +47,8 @@ class ChurnCalculator
     }
 
     /**
-     * @param array $classes
-     * @return array
+     * @param array<string, array<string, mixed>> $classes
+     * @return array<string, array<string, mixed>>
      */
     public function calculateChurn(array $classes): array
     {
@@ -48,13 +61,13 @@ class ChurnCalculator
 
     /**
      * @param CognitiveMetricsCollection $metricsCollection
-     * @param array $classes
-     * @return array
+     * @param array<string, array<string, mixed>> $classes
+     * @return array<string, array<string, mixed>>
      */
     public function groupByClasses(CognitiveMetricsCollection $metricsCollection, array $classes): array
     {
         foreach ($metricsCollection as $metric) {
-            if (empty($metric->getClass())){
+            if (empty($metric->getClass())) {
                 continue;
             }
 
@@ -69,5 +82,27 @@ class ChurnCalculator
             $classes[$metric->getClass()]['score'] += $metric->getScore();
         }
         return $classes;
+    }
+
+    /**
+     * @param CognitiveMetrics $metric
+     * @return CognitiveMetrics
+     */
+    public function getNumberChangedFromGit(CognitiveMetrics $metric): CognitiveMetrics
+    {
+        $command = sprintf(
+            'git -C %s rev-list --since=%s --no-merges --count HEAD -- %s',
+            escapeshellarg(dirname($metric->getFileName())),
+            escapeshellarg('1900-01-01'),
+            escapeshellarg($metric->getFileName())
+        );
+
+        $output = [];
+        $returnVar = 0;
+        exec($command, $output, $returnVar);
+
+        $metric->setTimesChanged((int)$output[0]);
+
+        return $metric;
     }
 }
