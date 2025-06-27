@@ -42,7 +42,7 @@ class CognitiveMetricsCollector
         /** @var SplFileInfo[] $clonedFiles */
         $clonedFiles = [];
         foreach ($files as $file) {
-            $clonedFiles[] = clone $file;
+            $clonedFiles[] = $file;
         }
 
         $this->messageBus->dispatch(new SourceFilesFound($clonedFiles));
@@ -50,6 +50,9 @@ class CognitiveMetricsCollector
         return $this->findMetrics($clonedFiles);
     }
 
+    /**
+     * @throws CognitiveAnalysisException
+     */
     private function getCodeFromFile(SplFileInfo $file): string
     {
         $code = file_get_contents($file->getRealPath());
@@ -92,10 +95,9 @@ class CognitiveMetricsCollector
     }
 
     /**
-     * Process method metrics and add them to the collection
-     *
      * @param array<string, mixed> $methodMetrics
      * @param CognitiveMetricsCollection $metricsCollection
+     * @param string $file
      * @return CognitiveMetricsCollection
      */
     private function processMethodMetrics(
@@ -148,6 +150,6 @@ class CognitiveMetricsCollector
      */
     private function findSourceFiles(string $path, array $exclude = []): iterable
     {
-        return $this->directoryScanner->scan([$path], ['^(?!.*\.php$).+'] + $exclude); // Exclude non-PHP files
+        return $this->directoryScanner->scan([$path], ['^(?!.*\.php$).+'] + $exclude);
     }
 }

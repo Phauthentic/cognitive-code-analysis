@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis;
 
+use Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChangeCounter\ChangeCounterFactory;
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChurnCalculator;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\BaselineService;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollector;
@@ -53,6 +54,9 @@ class Application
 
     private function registerServices(): void
     {
+        $this->containerBuilder->register(ChangeCounterFactory::class, ChangeCounterFactory::class)
+            ->setPublic(true);
+
         $this->containerBuilder->register(ChurnCalculator::class, ChurnCalculator::class)
             ->setPublic(true);
 
@@ -183,6 +187,8 @@ class Application
                 new Reference(CognitiveMetricsCollector::class),
                 new Reference(ScoreCalculator::class),
                 new Reference(ConfigService::class),
+                new Reference(ChurnCalculator::class),
+                new Reference(ChangeCounterFactory::class),
             ])
             ->setPublic(true);
     }
@@ -200,7 +206,6 @@ class Application
         $this->containerBuilder->register(ChurnCommand::class, ChurnCommand::class)
             ->setArguments([
                 new Reference(MetricsFacade::class),
-                new Reference(ChurnCalculator::class),
                 new Reference(ChurnTextRenderer::class),
             ])
             ->setPublic(true);

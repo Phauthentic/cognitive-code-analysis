@@ -37,7 +37,7 @@ class ChurnTextRenderer
         $table->setHeaders($this->churnTableHeader);
 
         foreach ($classes as $className => $data) {
-            if ($data['score'] == 0) {
+            if ($data['score'] == 0 || $data['churn'] == 0) {
                 continue;
             }
 

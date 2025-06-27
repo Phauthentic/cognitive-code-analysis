@@ -4,10 +4,7 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Business\Churn;
 
-use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetrics;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
-
-use function dirname;
 
 /**
  *
@@ -22,10 +19,6 @@ class ChurnCalculator
      */
     public function calculate(CognitiveMetricsCollection $metricsCollection): array
     {
-        foreach ($metricsCollection as $metric) {
-            $this->getNumberChangedFromGit($metric);
-        }
-
         $classes = [];
         $classes = $this->groupByClasses($metricsCollection, $classes);
         $classes = $this->calculateChurn($classes);
@@ -82,27 +75,5 @@ class ChurnCalculator
             $classes[$metric->getClass()]['score'] += $metric->getScore();
         }
         return $classes;
-    }
-
-    /**
-     * @param CognitiveMetrics $metric
-     * @return CognitiveMetrics
-     */
-    public function getNumberChangedFromGit(CognitiveMetrics $metric): CognitiveMetrics
-    {
-        $command = sprintf(
-            'git -C %s rev-list --since=%s --no-merges --count HEAD -- %s',
-            escapeshellarg(dirname($metric->getFileName())),
-            escapeshellarg('1900-01-01'),
-            escapeshellarg($metric->getFileName())
-        );
-
-        $output = [];
-        $returnVar = 0;
-        exec($command, $output, $returnVar);
-
-        $metric->setTimesChanged((int)$output[0]);
-
-        return $metric;
     }
 }

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Command;
 
-use Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChurnCalculator;
 use Phauthentic\CognitiveCodeAnalysis\Business\MetricsFacade;
 use Phauthentic\CognitiveCodeAnalysis\Command\Presentation\ChurnTextRenderer;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -35,7 +34,6 @@ class ChurnCommand extends Command
      */
     public function __construct(
         private MetricsFacade $metricsFacade,
-        private ChurnCalculator $churnCalculator,
         private ChurnTextRenderer $churnTextRenderer
     ) {
         parent::__construct();
@@ -47,9 +45,32 @@ class ChurnCommand extends Command
     protected function configure(): void
     {
         $this
-            ->addArgument(self::ARGUMENT_PATH, InputArgument::REQUIRED, 'Path to PHP files or directories to parse.')
-            ->addOption(self::OPTION_CONFIG_FILE, 'c', InputArgument::OPTIONAL, 'Path to a configuration file', null)
-            ->addOption(self::OPTION_DEBUG, null, InputArgument::OPTIONAL, 'Enables debug output', false);
+            ->addArgument(
+                self::ARGUMENT_PATH,
+                InputArgument::REQUIRED,
+                'Path to PHP files or directories to parse.'
+            )
+            ->addOption(
+                self::OPTION_CONFIG_FILE,
+                'c',
+                InputArgument::OPTIONAL,
+                'Path to a configuration file',
+                null
+            )
+            ->addOption(
+                self::OPTION_VCS,
+                's',
+                InputArgument::OPTIONAL,
+                'Path to a configuration file',
+                'git'
+            )
+            ->addOption(
+                self::OPTION_DEBUG,
+                null,
+                InputArgument::OPTIONAL,
+                'Enables debug output',
+                false
+            );
     }
 
     /**
@@ -62,11 +83,10 @@ class ChurnCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $path = $input->getArgument(self::ARGUMENT_PATH);
-
-        $metricsCollection = $this->metricsFacade->getCognitiveMetrics($path);
-
-        $classes = $this->churnCalculator->calculate($metricsCollection);
+        $classes = $this->metricsFacade->calculateChurn(
+            $input->getArgument(self::ARGUMENT_PATH),
+            $input->getOption(self::OPTION_VCS)
+        );
 
         $this->churnTextRenderer->renderChurnTable($classes);
 
