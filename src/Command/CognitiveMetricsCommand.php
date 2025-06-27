@@ -51,12 +51,42 @@ class CognitiveMetricsCommand extends Command
     protected function configure(): void
     {
         $this
-            ->addArgument(self::ARGUMENT_PATH, InputArgument::REQUIRED, 'Path to PHP files or directories to parse.')
-            ->addOption(self::OPTION_CONFIG_FILE, 'c', InputArgument::OPTIONAL, 'Path to a configuration file', null)
-            ->addOption(self::OPTION_BASELINE, 'b', InputArgument::OPTIONAL, 'Baseline file to get the delta.', null)
-            ->addOption(self::OPTION_REPORT_TYPE, 'r', InputArgument::OPTIONAL, 'Type of report to generate (json, csv, html).', null, ['json', 'csv', 'html'])
-            ->addOption(self::OPTION_REPORT_FILE, 'f', InputArgument::OPTIONAL, 'File to write the report to.')
-            ->addOption(self::OPTION_DEBUG, null, InputArgument::OPTIONAL, 'Enables debug output', false);
+            ->addArgument(
+                name: self::ARGUMENT_PATH,
+                mode: InputArgument::REQUIRED,
+                description: 'Path to PHP files or directories to parse.'
+            )
+            ->addOption(
+                name: self::OPTION_CONFIG_FILE,
+                shortcut: 'c',
+                mode: InputArgument::OPTIONAL,
+                description: 'Path to a configuration file',
+            )
+            ->addOption(
+                name: self::OPTION_BASELINE,
+                shortcut: 'b',
+                mode: InputArgument::OPTIONAL,
+                description: 'Baseline file to get the delta.',
+            )
+            ->addOption(
+                name: self::OPTION_REPORT_TYPE,
+                shortcut: 'r',
+                mode: InputArgument::OPTIONAL,
+                description: 'Type of report to generate (json, csv, html).',
+                suggestedValues: ['json', 'csv', 'html']
+            )
+            ->addOption(
+                name: self::OPTION_REPORT_FILE,
+                shortcut: 'f',
+                mode: InputArgument::OPTIONAL,
+                description: 'File to write the report to.'
+            )
+            ->addOption(
+                name: self::OPTION_DEBUG,
+                mode: InputArgument::OPTIONAL,
+                description: 'Enables debug output',
+                default: false
+            );
     }
 
     /**

@@ -46,30 +46,28 @@ class ChurnCommand extends Command
     {
         $this
             ->addArgument(
-                self::ARGUMENT_PATH,
-                InputArgument::REQUIRED,
-                'Path to PHP files or directories to parse.'
+                name: self::ARGUMENT_PATH,
+                mode: InputArgument::REQUIRED,
+                description: 'Path to PHP files or directories to parse.'
             )
             ->addOption(
-                self::OPTION_CONFIG_FILE,
-                'c',
-                InputArgument::OPTIONAL,
-                'Path to a configuration file',
-                null
+                name: self::OPTION_CONFIG_FILE,
+                shortcut: 'c',
+                mode: InputArgument::OPTIONAL,
+                description: 'Path to a configuration file',
             )
             ->addOption(
-                self::OPTION_VCS,
-                's',
-                InputArgument::OPTIONAL,
-                'Path to a configuration file',
-                'git'
+                name: self::OPTION_VCS,
+                shortcut: 's',
+                mode: InputArgument::OPTIONAL,
+                description: 'Path to a configuration file',
+                default: 'git'
             )
             ->addOption(
-                self::OPTION_DEBUG,
-                null,
-                InputArgument::OPTIONAL,
-                'Enables debug output',
-                false
+                name: self::OPTION_DEBUG,
+                mode: InputArgument::OPTIONAL,
+                description: 'Enables debug output',
+                default: false
             );
     }
 
@@ -84,11 +82,13 @@ class ChurnCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $classes = $this->metricsFacade->calculateChurn(
-            $input->getArgument(self::ARGUMENT_PATH),
-            $input->getOption(self::OPTION_VCS)
+            path: $input->getArgument(self::ARGUMENT_PATH),
+            vcsType: $input->getOption(self::OPTION_VCS)
         );
 
-        $this->churnTextRenderer->renderChurnTable($classes);
+        $this->churnTextRenderer->renderChurnTable(
+            classes: $classes
+        );
 
         return self::SUCCESS;
     }
