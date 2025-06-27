@@ -184,8 +184,8 @@ class CognitiveMetricTextRenderer
     /**
      * @param string $key
      * @param CognitiveMetrics $metrics
-     * @param array $row
-     * @return array
+     * @param array<string, mixed> $row
+     * @return array<string, mixed>
      */
     private function roundWeighs(string $key, CognitiveMetrics $metrics, array $row): array
     {

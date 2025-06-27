@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phauthentic\CognitiveCodeAnalysis\Business\Cognitive;
 
 use JsonException;
-use RuntimeException;
+use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 
 /**
  *
@@ -36,17 +36,17 @@ class BaselineService
      *
      * @param string $baselineFile
      * @return array<string, array<string, mixed>> $baseline
-     * @throws JsonException
+     * @throws JsonException|CognitiveAnalysisException
      */
     public function loadBaseline(string $baselineFile): array
     {
         if (!file_exists($baselineFile)) {
-            throw new RuntimeException('Baseline file does not exist.');
+            throw new CognitiveAnalysisException('Baseline file does not exist.');
         }
 
         $baseline = file_get_contents($baselineFile);
         if ($baseline === false) {
-            throw new RuntimeException('Failed to read baseline file.');
+            throw new CognitiveAnalysisException('Failed to read baseline file.');
         }
 
         return json_decode($baseline, true, 512, JSON_THROW_ON_ERROR);

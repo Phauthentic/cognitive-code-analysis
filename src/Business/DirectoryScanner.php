@@ -6,6 +6,7 @@ namespace Phauthentic\CognitiveCodeAnalysis\Business;
 
 use FilesystemIterator;
 use Generator;
+use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use SplFileInfo;
@@ -39,10 +40,13 @@ class DirectoryScanner
         }
     }
 
+    /**
+     * @throws CognitiveAnalysisException
+     */
     private function assertValidPath(string $path): void
     {
         if (!file_exists($path)) {
-            throw new RuntimeException("Path does not exist: $path");
+            throw new CognitiveAnalysisException("Path does not exist: $path");
         }
     }
 

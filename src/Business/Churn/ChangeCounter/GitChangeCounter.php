@@ -34,7 +34,7 @@ class GitChangeCounter implements ChangeCounterInterface
 
     /**
      * @param int $resultCode
-     * @param array $output
+     * @param array<int, string> $output
      * @param string $filename
      * @return void
      * @throws CognitiveAnalysisException

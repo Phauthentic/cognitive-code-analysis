@@ -7,6 +7,7 @@ namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Cognitive;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\BaselineService;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetrics;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
+use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use JsonException;
@@ -25,7 +26,7 @@ class BaselineServiceTest extends TestCase
 
     public function testLoadBaselineThrowsExceptionIfFileDoesNotExist(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(CognitiveAnalysisException::class);
         $this->expectExceptionMessage('Baseline file does not exist.');
 
         $this->baselineService->loadBaseline('non_existent_file.json');
