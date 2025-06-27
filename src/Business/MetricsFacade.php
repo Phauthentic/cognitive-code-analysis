@@ -53,13 +53,16 @@ class MetricsFacade
     /**
      * @return array<string, array<string, mixed>>
      */
-    public function calculateChurn(string $path, string $vcsType = 'git'): array
+    public function calculateChurn(string $path, string $vcsType = 'git', string $since = '1900-01-01'): array
     {
         $metricsCollection = $this->getCognitiveMetrics($path);
 
         $counter = $this->changeCounterFactory->create($vcsType);
         foreach ($metricsCollection as $metric) {
-            $metric->setTimesChanged($counter->getNumberOfChangesForFile($metric->getFilename()));
+            $metric->setTimesChanged($counter->getNumberOfChangesForFile(
+                filename: $metric->getFilename(),
+                since: $since,
+            ));
         }
 
         return $this->churnCalculator->calculate($metricsCollection);

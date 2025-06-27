@@ -8,5 +8,5 @@ use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetrics;
 
 interface ChangeCounterInterface
 {
-    public function getNumberOfChangesForFile(string $filename): int;
+    public function getNumberOfChangesForFile(string $filename, string $since): int;
 }
