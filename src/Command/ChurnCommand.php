@@ -27,6 +27,8 @@ class ChurnCommand extends Command
 
     public const OPTION_VCS = 'vcs';
 
+    public const OPTION_SINCE = 'since';
+
     public const OPTION_DEBUG = 'debug';
 
     /**
@@ -57,8 +59,14 @@ class ChurnCommand extends Command
                 description: 'Path to a configuration file',
             )
             ->addOption(
-                name: self::OPTION_VCS,
+                name: self::OPTION_SINCE,
                 shortcut: 's',
+                mode: InputArgument::OPTIONAL,
+                description: 'Where to start counting changes from',
+                default: '2000-01-01'
+            )
+            ->addOption(
+                name: self::OPTION_VCS,
                 mode: InputArgument::OPTIONAL,
                 description: 'Path to a configuration file',
                 default: 'git'
@@ -83,7 +91,8 @@ class ChurnCommand extends Command
     {
         $classes = $this->metricsFacade->calculateChurn(
             path: $input->getArgument(self::ARGUMENT_PATH),
-            vcsType: $input->getOption(self::OPTION_VCS)
+            vcsType: $input->getOption(self::OPTION_VCS),
+            since: $input->getOption(self::OPTION_SINCE),
         );
 
         $this->churnTextRenderer->renderChurnTable(

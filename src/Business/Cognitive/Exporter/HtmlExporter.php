@@ -6,7 +6,7 @@ namespace Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter;
 
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Delta;
-use RuntimeException;
+use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 
 /**
  * HtmlExporter class for exporting metrics as an HTML file.
@@ -41,7 +41,7 @@ class HtmlExporter implements DataExporterInterface
         $html = $this->generateHtml($metrics);
 
         if (file_put_contents($filename, $html) === false) {
-            throw new RuntimeException('Could not write to file');
+            throw new CognitiveAnalysisException('Could not write to file');
         }
     }
 
@@ -133,7 +133,7 @@ class HtmlExporter implements DataExporterInterface
         $result = ob_get_clean();
 
         if ($result === false) {
-            throw new RuntimeException('Could not generate HTML');
+            throw new CognitiveAnalysisException('Could not generate HTML');
         }
 
         return $result;

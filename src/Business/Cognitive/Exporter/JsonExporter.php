@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter;
 
+use JsonException;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
-use RuntimeException;
+use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 
 /**
  *
@@ -13,7 +14,7 @@ use RuntimeException;
 class JsonExporter implements DataExporterInterface
 {
     /**
-     * @throws \JsonException
+     * @throws JsonException|CognitiveAnalysisException
      */
     public function export(CognitiveMetricsCollection $metricsCollection, string $filename): void
     {
@@ -50,7 +51,7 @@ class JsonExporter implements DataExporterInterface
         $jsonData = json_encode($jsonData, JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR);
 
         if (file_put_contents($filename, $jsonData) === false) {
-            throw new RuntimeException("Unable to write to file: $filename");
+            throw new CognitiveAnalysisException("Unable to write to file: $filename");
         }
     }
 }

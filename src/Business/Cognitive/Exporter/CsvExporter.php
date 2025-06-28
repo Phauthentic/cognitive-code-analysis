@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter;
 
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
-use RuntimeException;
+use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 
 /**
  *
@@ -40,16 +40,19 @@ class CsvExporter implements DataExporterInterface
         'Combined Cognitive Complexity'
     ];
 
+    /**
+     * @throws CognitiveAnalysisException
+     */
     public function export(CognitiveMetricsCollection $metrics, string $filename): void
     {
         $basename = dirname($filename);
         if (!is_dir($basename)) {
-            throw new RuntimeException(sprintf('Directory %s does not exist', $basename));
+            throw new CognitiveAnalysisException(sprintf('Directory %s does not exist', $basename));
         }
 
         $file = fopen($filename, 'wb');
         if ($file === false) {
-            throw new RuntimeException(sprintf('Could not open file %s for writing', $filename));
+            throw new CognitiveAnalysisException(sprintf('Could not open file %s for writing', $filename));
         }
 
         fputcsv($file, $this->header);

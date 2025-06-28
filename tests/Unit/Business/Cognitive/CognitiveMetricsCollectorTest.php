@@ -9,6 +9,7 @@ use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollect
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollector;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Parser;
 use Phauthentic\CognitiveCodeAnalysis\Business\DirectoryScanner;
+use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 use Phauthentic\CognitiveCodeAnalysis\Config\ConfigLoader;
 use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
 use PHPMD\Console\OutputInterface;
@@ -116,7 +117,7 @@ class CognitiveMetricsCollectorTest extends TestCase
 
     public function testCollectWithInvalidPath(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(CognitiveAnalysisException::class);
         $this->metricsCollector->collect('/invalid/path', $this->configService->getConfig());
     }
 
@@ -124,7 +125,7 @@ class CognitiveMetricsCollectorTest extends TestCase
     {
         $path = './tests/TestCode/UnreadableFile.php';
 
-        $this->expectException(RuntimeException::class);
+        $this->expectException(CognitiveAnalysisException::class);
         $this->metricsCollector->collect($path, $this->configService->getConfig());
     }
 

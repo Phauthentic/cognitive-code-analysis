@@ -7,6 +7,7 @@ namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Cognitive\Export
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetrics;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter\CsvExporter;
+use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
@@ -129,7 +130,7 @@ class CsvExporterTest extends TestCase
     {
         $metricsCollection = new CognitiveMetricsCollection();
 
-        $this->expectException(RuntimeException::class);
+        $this->expectException(CognitiveAnalysisException::class);
         $this->expectExceptionMessage('Directory /invalid/path does not exist');
 
         $this->csvExporter->export($metricsCollection, '/invalid/path/test_metrics.csv');

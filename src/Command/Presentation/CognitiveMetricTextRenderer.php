@@ -6,8 +6,8 @@ namespace Phauthentic\CognitiveCodeAnalysis\Command\Presentation;
 
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetrics;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
+use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
-use RuntimeException;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -21,7 +21,7 @@ class CognitiveMetricTextRenderer
     ) {
     }
 
-    public function metricExceedsThreshold(CognitiveMetrics $metric, CognitiveConfig $config): bool
+    private function metricExceedsThreshold(CognitiveMetrics $metric, CognitiveConfig $config): bool
     {
         return
             $config->showOnlyMethodsExceedingThreshold &&
@@ -31,6 +31,7 @@ class CognitiveMetricTextRenderer
     /**
      * @param CognitiveMetricsCollection $metricsCollection
      * @param CognitiveConfig $config
+     * @throws CognitiveAnalysisException
      */
     public function render(CognitiveMetricsCollection $metricsCollection, CognitiveConfig $config): void
     {
@@ -49,13 +50,8 @@ class CognitiveMetricTextRenderer
                     continue;
                 }
 
-                $row = $this->prepareTableRow($metric);
-                $rows[] = $row;
+                $rows[] = $this->prepareTableRows($metric);
                 $filename = $metric->getFileName();
-            }
-
-            if (empty($rows)) {
-                continue;
             }
 
             $this->renderTable((string)$className, $rows, $filename);
@@ -65,6 +61,7 @@ class CognitiveMetricTextRenderer
     /**
      * @param string $className
      * @param array<int, mixed> $rows
+     * @param string $filename
      */
     private function renderTable(string $className, array $rows, string $filename): void
     {
@@ -103,22 +100,18 @@ class CognitiveMetricTextRenderer
     /**
      * @param CognitiveMetrics $metrics
      * @return array<string, mixed>
+     * @throws CognitiveAnalysisException
      */
-    private function prepareTableRow(CognitiveMetrics $metrics): array
+    private function prepareTableRows(CognitiveMetrics $metrics): array
     {
         $row = $this->metricsToArray($metrics);
         $keys = $this->getKeys();
 
         foreach ($keys as $key) {
-            $getMethod = 'get' . $key;
-            $getMethodWeight = 'get' . $key . 'Weight';
-            $getDeltaMethod = 'get' . $key . 'WeightDelta';
-            $weight = $metrics->{$getMethodWeight}();
-            $row[$key] = $metrics->{$getMethod}() . ' (' . round($weight, 3) . ')';
+            $row = $this->roundWeighs($key, $metrics, $row);
 
-            if (!method_exists($metrics, $getDeltaMethod)) {
-                throw new RuntimeException('Method not found: ' . $getDeltaMethod);
-            }
+            $getDeltaMethod = 'get' . $key . 'WeightDelta';
+            $this->assertDeltaMethodExists($metrics, $getDeltaMethod);
 
             $delta = $metrics->{$getDeltaMethod}();
             if ($delta === null || $delta->hasNotChanged()) {
@@ -169,7 +162,39 @@ class CognitiveMetricTextRenderer
             'ifCount' => $metrics->getIfCount(),
             'ifNestingLevel' => $metrics->getIfNestingLevel(),
             'elseCount' => $metrics->getElseCount(),
-            'score' => $metrics->getScore() > 0.5 ? '<error>' . $metrics->getScore() . '</error>' : '<info>' . $metrics->getScore() . '</info>',
+            'score' => $metrics->getScore() > 0.5
+                ? '<error>' . $metrics->getScore() . '</error>'
+                : '<info>' . $metrics->getScore() . '</info>',
         ];
+    }
+
+    /**
+     * @param CognitiveMetrics $metrics
+     * @param string $getDeltaMethod
+     * @return void
+     * @throws CognitiveAnalysisException
+     */
+    private function assertDeltaMethodExists(CognitiveMetrics $metrics, string $getDeltaMethod): void
+    {
+        if (!method_exists($metrics, $getDeltaMethod)) {
+            throw new CognitiveAnalysisException('Method not found: ' . $getDeltaMethod);
+        }
+    }
+
+    /**
+     * @param string $key
+     * @param CognitiveMetrics $metrics
+     * @param array<string, mixed> $row
+     * @return array<string, mixed>
+     */
+    private function roundWeighs(string $key, CognitiveMetrics $metrics, array $row): array
+    {
+        $getMethod = 'get' . $key;
+        $getMethodWeight = 'get' . $key . 'Weight';
+
+        $weight = $metrics->{$getMethodWeight}();
+        $row[$key] = $metrics->{$getMethod}() . ' (' . round($weight, 3) . ')';
+
+        return $row;
     }
 }
