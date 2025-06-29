@@ -28,7 +28,6 @@ class ProgressBarHandler
         match (true) {
             $event instanceof SourceFilesFound => $this->handleSourceFilesFound($event),
             $event instanceof FileProcessed => $this->handleFileProcessed(),
-            default => null,
         };
 
         if ($this->processedFiles === $this->totalFiles) {
