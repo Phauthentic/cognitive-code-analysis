@@ -68,6 +68,7 @@ class ChurnCalculator
                 $classes[$metric->getClass()] = [
                     'timesChanged' => 0,
                     'score' => 0,
+                    'file' => $metric->getFilename(),
                 ];
             }
 

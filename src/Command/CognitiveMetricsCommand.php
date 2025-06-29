@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace Phauthentic\CognitiveCodeAnalysis\Command;
 
 use Exception;
+use JsonException;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\BaselineService;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
 use Phauthentic\CognitiveCodeAnalysis\Business\MetricsFacade;
+use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 use Phauthentic\CognitiveCodeAnalysis\Command\Presentation\CognitiveMetricTextRenderer;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -24,22 +26,16 @@ use Symfony\Component\Console\Output\OutputInterface;
 )]
 class CognitiveMetricsCommand extends Command
 {
-    // Option names for exporting metrics in different formats and loading a configuration file.
     public const OPTION_CONFIG_FILE = 'config';
     public const OPTION_BASELINE = 'baseline';
     public const OPTION_REPORT_TYPE = 'report-type';
     public const OPTION_REPORT_FILE = 'report-file';
     public const OPTION_DEBUG = 'debug';
-
-    // Argument name for the path to the PHP files or directories.
     private const ARGUMENT_PATH = 'path';
 
-    /**
-     * Constructor to initialize dependencies.
-     */
     public function __construct(
         private MetricsFacade $metricsFacade,
-        private CognitiveMetricTextRenderer $metricTextRenderer,
+        private CognitiveMetricTextRenderer $renderer,
         private BaselineService $baselineService
     ) {
         parent::__construct();
@@ -95,31 +91,26 @@ class CognitiveMetricsCommand extends Command
      * @param InputInterface $input
      * @param OutputInterface $output
      * @return int Command status code.
+     * @throws Exception
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        // Get the path to the files or directories to analyze.
         $path = $input->getArgument(self::ARGUMENT_PATH);
 
-        // Load configuration if the option is provided.
         $configFile = $input->getOption(self::OPTION_CONFIG_FILE);
         if ($configFile && !$this->loadConfiguration($configFile, $output)) {
             return Command::FAILURE;
         }
 
-        // Generate metrics for the provided path.
         $metricsCollection = $this->metricsFacade->getCognitiveMetrics($path);
 
-        // Load baseline if the option is provided.
         $this->handleBaseLine($input, $metricsCollection);
 
-        // Handle different export options.
         if (!$this->handleExportOptions($input, $output, $metricsCollection)) {
             return Command::FAILURE;
         }
 
-        // Render the metrics to the console.
-        $this->metricTextRenderer->render($metricsCollection, $this->metricsFacade->getConfig());
+        $this->renderer->render($metricsCollection, $this->metricsFacade->getConfig());
 
         return Command::SUCCESS;
     }
@@ -165,25 +156,23 @@ class CognitiveMetricsCommand extends Command
      * @param OutputInterface $output
      * @param CognitiveMetricsCollection $metricsCollection
      * @return bool
+     * @throws CognitiveAnalysisException
+     * @throws JsonException
      */
     private function handleExportOptions(InputInterface $input, OutputInterface $output, CognitiveMetricsCollection $metricsCollection): bool
     {
         $reportType = $input->getOption(self::OPTION_REPORT_TYPE);
         $reportFile = $input->getOption(self::OPTION_REPORT_FILE);
 
-        if ($this->areBothReportOptionsMissing($reportType, $reportFile)) {
-            return true;
-        }
-
-        if ($this->isOneReportOptionMissing($reportType, $reportFile, $output)) {
+        if (
+            !$this->areBothReportOptionsMissing($reportType, $reportFile)
+            || $this->isOneReportOptionMissing($reportType, $reportFile, $output)
+            || !$this->isValidReportType($reportType, $output)
+        ) {
             return false;
         }
 
-        if (!$this->isValidReportType($reportType, $output)) {
-            return false;
-        }
-
-        $this->exportMetrics($reportType, $metricsCollection, $reportFile);
+        $this->metricsFacade->exportMetricsReport($metricsCollection, $reportType, $reportFile);
 
         return true;
     }
@@ -199,6 +188,7 @@ class CognitiveMetricsCommand extends Command
             $output->writeln('<error>Both report type and file must be provided.</error>');
             return true;
         }
+
         return false;
     }
 
@@ -209,16 +199,7 @@ class CognitiveMetricsCommand extends Command
             $output->writeln('<error>' . $message . '</error>');
             return false;
         }
-        return true;
-    }
 
-    private function exportMetrics(string $reportType, CognitiveMetricsCollection $metricsCollection, string $reportFile): void
-    {
-        match ($reportType) {
-            'json' => $this->metricsFacade->metricsCollectionToJson($metricsCollection, $reportFile),
-            'csv'  => $this->metricsFacade->metricsCollectionToCsv($metricsCollection, $reportFile),
-            'html' => $this->metricsFacade->metricsCollectionToHtml($metricsCollection, $reportFile),
-            default => null,
-        };
+        return true;
     }
 }

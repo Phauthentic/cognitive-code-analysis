@@ -6,6 +6,7 @@ namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Cognitive;
 
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetrics;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Delta;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -34,6 +35,7 @@ class CognitiveMetricsTest extends TestCase
         ];
     }
 
+    #[Test]
     public function testConstructor(): void
     {
         $metrics = new CognitiveMetrics($this->testMetricsData);
@@ -58,6 +60,7 @@ class CognitiveMetricsTest extends TestCase
         $this->assertSame(0.0, $metrics->getElseCountWeight());
     }
 
+    #[Test]
     public function testFromArray(): void
     {
         $metrics = CognitiveMetrics::fromArray($this->testMetricsData);
@@ -82,6 +85,7 @@ class CognitiveMetricsTest extends TestCase
         $this->assertSame(0.0, $metrics->getElseCountWeight());
     }
 
+    #[Test]
     public function testToArray(): void
     {
         $metrics = new CognitiveMetrics($this->testMetricsData);
@@ -119,6 +123,7 @@ class CognitiveMetricsTest extends TestCase
         $this->assertSame($expectedArray, $metrics->toArray());
     }
 
+    #[Test]
     public function testJsonSerialize(): void
     {
         $metrics = new CognitiveMetrics($this->testMetricsData);
@@ -156,6 +161,7 @@ class CognitiveMetricsTest extends TestCase
         $this->assertSame($expectedArray, $metrics->jsonSerialize());
     }
 
+    #[Test]
     public function testCalculateDeltas(): void
     {
         // Create first set of metrics

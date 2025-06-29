@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Command;
 
+use Exception;
 use Phauthentic\CognitiveCodeAnalysis\Business\MetricsFacade;
 use Phauthentic\CognitiveCodeAnalysis\Command\Presentation\ChurnTextRenderer;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -24,19 +25,18 @@ class ChurnCommand extends Command
     private const ARGUMENT_PATH = 'path';
 
     public const OPTION_CONFIG_FILE = 'config';
-
     public const OPTION_VCS = 'vcs';
-
     public const OPTION_SINCE = 'since';
-
     public const OPTION_DEBUG = 'debug';
+    public const OPTION_REPORT_TYPE = 'report-type';
+    public const OPTION_REPORT_FILE = 'report-file';
 
     /**
      * Constructor to initialize dependencies.
      */
     public function __construct(
         private MetricsFacade $metricsFacade,
-        private ChurnTextRenderer $churnTextRenderer
+        private ChurnTextRenderer $renderer
     ) {
         parent::__construct();
     }
@@ -76,7 +76,21 @@ class ChurnCommand extends Command
                 mode: InputArgument::OPTIONAL,
                 description: 'Enables debug output',
                 default: false
-            );
+            )
+            ->addOption(
+                name: self::OPTION_REPORT_TYPE,
+                shortcut: 'r',
+                mode: InputArgument::OPTIONAL,
+                description: 'Type of report to generate (json).',
+                suggestedValues: ['json']
+            )
+            ->addOption(
+                name: self::OPTION_REPORT_FILE,
+                shortcut: 'f',
+                mode: InputArgument::OPTIONAL,
+                description: 'File to write the report to.'
+            )
+        ;
     }
 
     /**
@@ -95,10 +109,46 @@ class ChurnCommand extends Command
             since: $input->getOption(self::OPTION_SINCE),
         );
 
-        $this->churnTextRenderer->renderChurnTable(
+        if ($this->shouldGenerateReport($input)) {
+            return $this->generateReport($classes, $input, $output);
+        }
+
+        $this->renderer->renderChurnTable(
             classes: $classes
         );
 
         return self::SUCCESS;
+    }
+
+    /**
+     * @param array<string, array<string, mixed>> $classes
+     * @param InputInterface $input
+     * @param OutputInterface $output
+     * @return int
+     */
+    private function generateReport(array $classes, InputInterface $input, OutputInterface $output): int
+    {
+        try {
+            $this->metricsFacade->exportChurnReport(
+                classes: $classes,
+                reportType: $input->getOption(self::OPTION_REPORT_TYPE),
+                filename: $input->getOption(self::OPTION_REPORT_FILE)
+            );
+
+            return self::SUCCESS;
+        } catch (Exception $exception) {
+            $output->writeln(sprintf(
+                '<error>Error generating report: %s</error>',
+                $exception->getMessage()
+            ));
+
+            return self::FAILURE;
+        }
+    }
+
+    private function shouldGenerateReport(InputInterface $input): bool
+    {
+        return $input->getOption(self::OPTION_REPORT_FILE)
+            && $input->getOption(self::OPTION_REPORT_TYPE);
     }
 }

@@ -8,8 +8,8 @@ use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetrics;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter\CsvExporter;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use RuntimeException;
 
 /**
  *
@@ -34,6 +34,7 @@ class CsvExporterTest extends TestCase
         }
     }
 
+    #[Test]
     public function testExportCreatesFile(): void
     {
         $metricsCollection = new CognitiveMetricsCollection();
@@ -68,7 +69,10 @@ class CsvExporterTest extends TestCase
         $file = fopen($this->filename, 'r');
         $this->assertNotFalse($file);
 
-        $header = fgetcsv($file);
+        $header = fgetcsv(
+            stream: $file,
+            escape: '\\',
+        );
 
         $this->assertSame([
             0 => 'Class',
@@ -95,7 +99,10 @@ class CsvExporterTest extends TestCase
             21 => 'Combined Cognitive Complexity'
         ], $header);
 
-        $data = fgetcsv($file);
+        $data = fgetcsv(
+            stream: $file,
+            escape: '\\',
+        );
         $this->assertSame([
             0 => 'TestClass',
             1 => 'testMethod',
@@ -126,6 +133,7 @@ class CsvExporterTest extends TestCase
         fclose($file);
     }
 
+    #[Test]
     public function testExportThrowsExceptionWhenFileCannotBeOpenedBecauseOfMissingDirectory(): void
     {
         $metricsCollection = new CognitiveMetricsCollection();

@@ -7,6 +7,7 @@ namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Cognitive\Export
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetrics;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter\JsonExporter;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -14,15 +15,11 @@ use PHPUnit\Framework\TestCase;
  */
 class JsonExporterTest extends TestCase
 {
-    /**
-     * Tests that the JsonExporter correctly exports metrics to a JSON file.
-     */
+    #[Test]
     public function testExport(): void
     {
-        // Create a temporary file for testing.
         $filename = tempnam(sys_get_temp_dir(), 'json_exporter_test_') . '.json';
 
-        // Create a CognitiveMetricsCollection and add some dummy metrics.
         $metricsCollection = new CognitiveMetricsCollection();
 
         $metrics1 = new CognitiveMetrics([

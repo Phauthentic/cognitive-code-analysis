@@ -8,6 +8,7 @@ use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\BaselineService;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetrics;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use JsonException;
@@ -24,6 +25,7 @@ class BaselineServiceTest extends TestCase
         $this->baselineService = new BaselineService();
     }
 
+    #[Test]
     public function testLoadBaselineThrowsExceptionIfFileDoesNotExist(): void
     {
         $this->expectException(CognitiveAnalysisException::class);
@@ -32,6 +34,7 @@ class BaselineServiceTest extends TestCase
         $this->baselineService->loadBaseline('non_existent_file.json');
     }
 
+    #[Test]
     public function testLoadBaselineThrowsExceptionIfInvalidJson(): void
     {
         $filePath = tempnam(sys_get_temp_dir(), 'baseline');
@@ -46,6 +49,11 @@ class BaselineServiceTest extends TestCase
         }
     }
 
+    /**
+     * @throws CognitiveAnalysisException
+     * @throws JsonException
+     */
+    #[Test]
     public function testLoadBaselineSuccess(): void
     {
         $filePath = tempnam(sys_get_temp_dir(), 'baseline');
@@ -60,7 +68,7 @@ class BaselineServiceTest extends TestCase
             ]
         ];
 
-        file_put_contents($filePath, json_encode($baselineData));
+        file_put_contents($filePath, json_encode($baselineData, JSON_THROW_ON_ERROR));
 
         $result = $this->baselineService->loadBaseline($filePath);
 

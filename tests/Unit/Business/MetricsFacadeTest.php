@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business;
 
 use Phauthentic\CognitiveCodeAnalysis\Application;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Phauthentic\CognitiveCodeAnalysis\Business\MetricsFacade;
 use Symfony\Component\Yaml\Exception\ParseException;
@@ -24,6 +25,7 @@ class MetricsFacadeTest extends TestCase
         $this->metricsFacade = (new Application())->get(MetricsFacade::class);
     }
 
+    #[Test]
     public function testGetCognitiveMetrics(): void
     {
         $cognitiveMetrics = $this->metricsFacade->getCognitiveMetrics($this->testCodePath);
@@ -32,6 +34,7 @@ class MetricsFacadeTest extends TestCase
         $this->assertCount(23, $cognitiveMetrics);
     }
 
+    #[Test]
     public function testLoadConfig(): void
     {
         // Load a valid configuration file
@@ -42,6 +45,7 @@ class MetricsFacadeTest extends TestCase
         $this->assertTrue(true); // If no exception is thrown, the test passes
     }
 
+    #[Test]
     public function testLoadConfigWithInvalidConfigFile(): void
     {
         $this->expectException(ParseException::class);

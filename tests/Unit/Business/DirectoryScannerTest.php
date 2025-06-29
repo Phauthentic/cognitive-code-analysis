@@ -6,6 +6,7 @@ namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business;
 
 use FilesystemIterator;
 use Phauthentic\CognitiveCodeAnalysis\Business\DirectoryScanner;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -70,6 +71,7 @@ class DirectoryScannerTest extends TestCase
         rmdir($dir);
     }
 
+    #[Test]
     public function testScan(): void
     {
         $scanner = new DirectoryScanner();

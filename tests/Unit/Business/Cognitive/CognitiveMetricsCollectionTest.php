@@ -8,6 +8,7 @@ use ArrayIterator;
 use InvalidArgumentException;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetrics;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -20,6 +21,7 @@ class CognitiveMetricsCollectionTest extends TestCase
         return CognitiveMetrics::fromArray($data);
     }
 
+    #[Test]
     public function testAddAndCount(): void
     {
         $metricsCollection = new CognitiveMetricsCollection();
@@ -60,6 +62,7 @@ class CognitiveMetricsCollectionTest extends TestCase
         $this->assertSame(2, $metricsCollection->count());
     }
 
+    #[Test]
     public function testGetIterator(): void
     {
         $metricsCollection = new CognitiveMetricsCollection();
@@ -101,6 +104,7 @@ class CognitiveMetricsCollectionTest extends TestCase
         $this->assertCount(2, $iterator);
     }
 
+    #[Test]
     public function testFilter(): void
     {
         $metricsCollection = new CognitiveMetricsCollection();
@@ -148,6 +152,7 @@ class CognitiveMetricsCollectionTest extends TestCase
         $this->assertSame(10.0, $filtered->getIterator()['ClassB::methodB']->getScore());
     }
 
+    #[Test]
     public function testContains(): void
     {
         $metricsCollection = new CognitiveMetricsCollection();

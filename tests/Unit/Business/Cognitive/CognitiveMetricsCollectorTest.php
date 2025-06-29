@@ -15,6 +15,7 @@ use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
 use PHPMD\Console\OutputInterface;
 use PhpParser\NodeTraverser;
 use PhpParser\ParserFactory;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use Symfony\Component\Config\Definition\Processor;
@@ -67,6 +68,7 @@ class CognitiveMetricsCollectorTest extends TestCase
         );
     }
 
+    #[Test]
     public function testCollectWithValidDirectoryPath(): void
     {
         $path = './tests/TestCode';
@@ -77,6 +79,7 @@ class CognitiveMetricsCollectorTest extends TestCase
         $this->assertCount(23, $metricsCollection);
     }
 
+    #[Test]
     public function testCollectWithExcludedClasses(): void
     {
         $configService = new ConfigService(
@@ -105,6 +108,7 @@ class CognitiveMetricsCollectorTest extends TestCase
         $this->assertCount(22, $metricsCollection);
     }
 
+    #[Test]
     public function testCollectWithValidFilePath(): void
     {
         $path = './tests/TestCode/Paginator.php';
@@ -115,12 +119,14 @@ class CognitiveMetricsCollectorTest extends TestCase
         $this->assertGreaterThan(0, $metricsCollection->count(), 'CognitiveMetrics collection should not be empty');
     }
 
+    #[Test]
     public function testCollectWithInvalidPath(): void
     {
         $this->expectException(CognitiveAnalysisException::class);
         $this->metricsCollector->collect('/invalid/path', $this->configService->getConfig());
     }
 
+    #[Test]
     public function testCollectWithUnreadableFile(): void
     {
         $path = './tests/TestCode/UnreadableFile.php';
@@ -132,6 +138,7 @@ class CognitiveMetricsCollectorTest extends TestCase
     /**
      * Test the collected metrics to match the expected findings.
      */
+    #[Test]
     public function testCollectedMetrics(): void
     {
         $metricsCollection = $this->metricsCollector->collect('./tests/TestCode2', $this->configService->getConfig());
