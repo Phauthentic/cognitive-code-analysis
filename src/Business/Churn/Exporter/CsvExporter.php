@@ -32,7 +32,7 @@ class CsvExporter implements DataExporterInterface
         }
 
         $dir = dirname($filename);
-        if (!is_dir($dir) ||!is_writable($dir)) {
+        if (!is_dir($dir) || !is_writable($dir)) {
             throw new CognitiveAnalysisException(sprintf('Directory %s does not exist for file %s', $dir, $filename));
         }
     }
