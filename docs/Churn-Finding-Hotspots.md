@@ -11,6 +11,8 @@ bin/phpcca churn <path-to-folder> [--config=<file>] [--git=<vcs>] [--debug]
 - `<path-to-folder>`: **Required.** Path to the PHP file or directory to analyze.
 - `--config, -c`: Path to a configuration file (optional).
 - `--vcs, -s`: Version control system to use for change detection (default: `git`).
+- `--report-type, -r`: Type of report to generate (`json`, `csv`, `html`).
+- `--report-file, -f`: File to save the report (default: `phpcca-churn-report.html`).
 - `--debug`: Enables debug output.
 
 ## What it does
@@ -33,6 +35,22 @@ bin/phpcca churn <path-to-folder> [--config=<file>] [--git=<vcs>] [--debug]
 | App\Controller\Bar   | 7            | 10     | 70    |
 +----------------------+--------------+--------+-------+
 ```
+
+## Exporting Reports
+
+You can export the churn report in various formats. The command supports three report types: `html`, `json`, and `csv`.
+
+You must use the `--report-type` option to specify the format and the `--report-file` option to specify the output file name together to generate a report.
+
+```bash
+bin/phpcca churn <path-to-folder> --report-type=<report-type> --report-file=<filename>
+```
+
+Supported report types:
+
+- `html`: Generates an HTML report.
+- `json`: Generates a JSON report.
+- `csv`: Generates a CSV report.
 
 ## When to use
 

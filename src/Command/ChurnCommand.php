@@ -82,7 +82,7 @@ class ChurnCommand extends Command
                 shortcut: 'r',
                 mode: InputArgument::OPTIONAL,
                 description: 'Type of report to generate (json).',
-                suggestedValues: ['json']
+                suggestedValues: ['json', 'html', 'csv']
             )
             ->addOption(
                 name: self::OPTION_REPORT_FILE,
