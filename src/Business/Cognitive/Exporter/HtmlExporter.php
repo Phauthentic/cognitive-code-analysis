@@ -6,6 +6,7 @@ namespace Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter;
 
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Delta;
+use Phauthentic\CognitiveCodeAnalysis\Business\Utility\Datetime;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 
 /**
@@ -90,7 +91,7 @@ class HtmlExporter implements DataExporterInterface
         </head>
         <body>
         <div class="container-fluid">
-            <h1 class="mb-4">Cognitive Metrics Report - <?php echo date('Y-m-d H:i:s') ?></h1>
+            <h1 class="mb-4">Cognitive Metrics Report - <?php echo (new Datetime())->format('Y-m-d H:i:s') ?></h1>
             <p>
                 This report contains the cognitive complexity metrics for the analyzed code in <?php echo count($groupedByClass); ?> classes.
             </p>

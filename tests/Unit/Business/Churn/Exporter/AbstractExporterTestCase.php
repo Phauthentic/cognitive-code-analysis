@@ -21,7 +21,7 @@ class AbstractExporterTestCase extends TestCase
         }
     }
 
-    public function getTestData()
+    public function getTestData(): array
     {
         return [
             'Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetrics' => [
