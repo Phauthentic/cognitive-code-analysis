@@ -24,7 +24,6 @@ class CognitiveMetrics implements JsonSerializable
         'ifCount' => 'ifCount',
         'ifNestingLevel' => 'ifNestingLevel',
         'elseCount' => 'elseCount',
-        //'timesChanged' => 'timesChanged',
     ];
 
     private string $class;
