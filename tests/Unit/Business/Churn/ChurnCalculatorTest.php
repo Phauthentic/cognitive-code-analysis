@@ -33,8 +33,8 @@ class ChurnCalculatorTest extends TestCase
         $result = $churnCalculator->calculate($metricsCollection);
 
         $expected = [
-            'ClassA' => ['timesChanged' => 5, 'score' => 2.0, 'churn' => 10],
-            'ClassB' => ['timesChanged' => 3, 'score' => 4.0, 'churn' => 12],
+            'ClassA' => ['timesChanged' => 5, 'score' => 2.0, 'churn' => 10.0, 'file' => ''],
+            'ClassB' => ['timesChanged' => 3, 'score' => 4.0, 'churn' => 12.0, 'file' => ''],
         ];
 
         $this->assertEquals($expected, $result);

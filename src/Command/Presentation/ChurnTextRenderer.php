@@ -27,6 +27,14 @@ class ChurnTextRenderer
     ) {
     }
 
+    public function reportWritten(string $reportFile): void
+    {
+        $this->output->writeln(sprintf(
+            '<info>Report written too: %s</info>',
+            $reportFile
+        ));
+    }
+
     /**
      * @param array<string, mixed> $classes An associative array where keys are class names and values are arrays
      * containing 'score', 'churn', and 'timesChanged'.

@@ -9,7 +9,6 @@ use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollect
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter\CsvExporter;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 use PHPUnit\Framework\TestCase;
-use RuntimeException;
 
 /**
  *

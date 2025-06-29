@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Business;
 
+use JsonException;
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChangeCounter\ChangeCounterFactory;
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChurnCalculator;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
@@ -12,6 +13,7 @@ use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter\CsvExporter;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter\HtmlExporter;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter\JsonExporter;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\ScoreCalculator;
+use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
 use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
 
@@ -84,18 +86,38 @@ class MetricsFacade
         return $this->configService->getConfig();
     }
 
-    public function metricsCollectionToCsv(CognitiveMetricsCollection $metricsCollection, string $filename): void
-    {
-        (new CsvExporter())->export($metricsCollection, $filename);
+    /**
+     * @param array<string, array<string, mixed>> $classes
+     * @throws CognitiveAnalysisException
+     * @throws JsonException
+     */
+    public function exportChurnReport(
+        array $classes,
+        string $reportType,
+        string $filename
+    ): void {
+        match ($reportType) {
+            'json' => (new Churn\Exporter\JsonExporter())->export($classes, $filename),
+            'csv' => (new Churn\Exporter\CsvExporter())->export($classes, $filename),
+            'html' => (new Churn\Exporter\HtmlExporter())->export($classes, $filename),
+            default => null,
+        };
     }
 
-    public function metricsCollectionToJson(CognitiveMetricsCollection $metricsCollection, string $filename): void
-    {
-        (new JsonExporter())->export($metricsCollection, $filename);
-    }
-
-    public function metricsCollectionToHtml(CognitiveMetricsCollection $metricsCollection, string $filename): void
-    {
-        (new HtmlExporter())->export($metricsCollection, $filename);
+    /**
+     * @throws CognitiveAnalysisException
+     * @throws JsonException
+     */
+    public function exportMetricsReport(
+        CognitiveMetricsCollection $metricsCollection,
+        string $reportType,
+        string $filename
+    ): void {
+        match ($reportType) {
+            'json' => (new JsonExporter())->export($metricsCollection, $filename),
+            'csv'  => (new CsvExporter())->export($metricsCollection, $filename),
+            'html' => (new HtmlExporter())->export($metricsCollection, $filename),
+            default => null,
+        };
     }
 }

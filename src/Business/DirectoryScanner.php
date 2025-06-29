@@ -25,7 +25,7 @@ class DirectoryScanner
      * @param array<string> $paths Array of file or directory paths to scan
      * @param array<string> $exclude Array of regex patterns to exclude files
      * @return Generator<SplFileInfo> Generator yielding SplFileInfo objects
-     * @throws RuntimeException
+     * @throws RuntimeException|CognitiveAnalysisException
      */
     public function scan(array $paths, array $exclude = []): Generator
     {
@@ -34,7 +34,9 @@ class DirectoryScanner
 
             if (is_file($path)) {
                 yield from $this->yieldFileIfNotExcluded($path, $exclude);
-            } elseif (is_dir($path)) {
+            }
+
+            if (is_dir($path)) {
                 yield from $this->traverseDirectory($path, $exclude);
             }
         }
@@ -102,6 +104,7 @@ class DirectoryScanner
                 return true;
             }
         }
+
         return false;
     }
 }
