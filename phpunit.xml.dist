@@ -10,6 +10,11 @@
          beStrictAboutChangesToGlobalState="true"
          beStrictAboutCoverageMetadata="true"
          beStrictAboutOutputDuringTests="false"
+         displayDetailsOnTestsThatTriggerDeprecations="true"
+         displayDetailsOnTestsThatTriggerErrors="true"
+         displayDetailsOnTestsThatTriggerNotices="true"
+         displayDetailsOnTestsThatTriggerWarnings="true"
+         displayDetailsOnPhpunitDeprecations="true"
          failOnRisky="true"
          failOnWarning="false">
 

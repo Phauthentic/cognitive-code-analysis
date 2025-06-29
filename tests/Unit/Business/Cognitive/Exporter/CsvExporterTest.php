@@ -67,7 +67,10 @@ class CsvExporterTest extends TestCase
         $file = fopen($this->filename, 'r');
         $this->assertNotFalse($file);
 
-        $header = fgetcsv($file);
+        $header = fgetcsv(
+            stream: $file,
+            escape: '\\',
+        );
 
         $this->assertSame([
             0 => 'Class',
@@ -94,7 +97,10 @@ class CsvExporterTest extends TestCase
             21 => 'Combined Cognitive Complexity'
         ], $header);
 
-        $data = fgetcsv($file);
+        $data = fgetcsv(
+            stream: $file,
+            escape: '\\',
+        );
         $this->assertSame([
             0 => 'TestClass',
             1 => 'testMethod',

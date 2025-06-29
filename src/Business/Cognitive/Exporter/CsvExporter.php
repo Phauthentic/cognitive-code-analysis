@@ -55,7 +55,7 @@ class CsvExporter implements DataExporterInterface
             throw new CognitiveAnalysisException(sprintf('Could not open file %s for writing', $filename));
         }
 
-        fputcsv($file, $this->header);
+        fputcsv($file, $this->header, ',', '"', '\\');
 
         $groupedByClass = $metrics->groupBy('class');
 
@@ -94,7 +94,7 @@ class CsvExporter implements DataExporterInterface
                     (string)$data->getElseCountWeightDelta(),
 
                     $data->getScore()
-                ]);
+                ], ',', '"', '\\');
             }
         }
 
