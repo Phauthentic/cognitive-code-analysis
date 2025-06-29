@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Churn\Exporter;
 
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Exporter\CsvExporter;
+use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 use PHPUnit\Framework\Attributes\Test;
 
 /**
@@ -30,5 +31,14 @@ class CsvExportTest extends AbstractExporterTestCase
             expected: __DIR__ . '/CsvExporterContent.csv',
             actual: $this->filename
         );
+    }
+
+    #[Test]
+    public function testNotWriteableFile(): void
+    {
+        $this->expectException(CognitiveAnalysisException::class);
+        $this->expectExceptionMessage('Directory /not/writable does not exist for file /not/writable/file.csv');
+
+        $this->exporter->export([], '/not/writable/file.csv');
     }
 }

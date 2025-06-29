@@ -25,10 +25,15 @@ class CsvExporter implements DataExporterInterface
     /**
      * @throws CognitiveAnalysisException
      */
-    private function assertFileIsWritable(mixed $file): void
+    private function assertFileIsWritable(string $filename): void
     {
-        if (!is_resource($file)) {
-            throw new CognitiveAnalysisException(sprintf('Could not open file %s for writing', $file));
+        if (file_exists($filename) && !is_writable($filename)) {
+            throw new CognitiveAnalysisException(sprintf('File %s is not writable', $filename));
+        }
+
+        $dir = dirname($filename);
+        if (!is_dir($dir) ||!is_writable($dir)) {
+            throw new CognitiveAnalysisException(sprintf('Directory %s does not exist for file %s', $dir, $filename));
         }
     }
 
@@ -39,8 +44,9 @@ class CsvExporter implements DataExporterInterface
      */
     public function export(array $classes, string $filename): void
     {
+        $this->assertFileIsWritable($filename);
+
         $file = fopen($filename, 'wb');
-        $this->assertFileIsWritable($file);
 
         /* @phpstan-ignore argument.type */
         fputcsv($file, $this->header, ',', '"', '\\');
