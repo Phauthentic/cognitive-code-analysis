@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Churn\Exporter;
 
+use Phauthentic\CognitiveCodeAnalysis\Business\Utility\Datetime;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -13,15 +14,22 @@ class AbstractExporterTestCase extends TestCase
 {
     protected string $filename;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        Datetime::$fixedDate = '2023-10-01 12:00:00';
+    }
+
     protected function tearDown(): void
     {
         parent::tearDown();
         if (file_exists($this->filename)) {
             unlink($this->filename);
         }
+        Datetime::$fixedDate = null;
     }
 
-    public function getTestData(): array
+    protected function getTestData(): array
     {
         return [
             'Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetrics' => [

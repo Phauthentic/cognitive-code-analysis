@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phauthentic\CognitiveCodeAnalysis\Business\Churn\Exporter;
 
 use JsonException;
+use Phauthentic\CognitiveCodeAnalysis\Business\Utility\Datetime;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 
 /**
@@ -18,7 +19,12 @@ class JsonExporter implements DataExporterInterface
      */
     public function export(array $classes, string $filename): void
     {
-        $jsonData = json_encode($classes, JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR);
+        $data = [
+            'createdAt' => (new DateTime())->format('Y-m-d H:i:s'),
+            'classes' => $classes,
+        ];
+
+        $jsonData = json_encode($data, JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR);
 
         if (file_put_contents($filename, $jsonData) === false) {
             throw new CognitiveAnalysisException("Unable to write to file: $filename");

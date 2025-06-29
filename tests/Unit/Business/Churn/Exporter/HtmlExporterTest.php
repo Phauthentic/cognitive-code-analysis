@@ -26,7 +26,9 @@ class HtmlExporterTest extends AbstractExporterTestCase
 
         $this->exporter->export($classes, $this->filename);
 
-        $content = file_get_contents(__DIR__ . '/HtmlExporterContent.html');
-        $this->assertSame($content, file_get_contents($this->filename));
+        $this->assertFileEquals(
+            expected: __DIR__ . '/HtmlExporterContent.html',
+            actual: $this->filename
+        );
     }
 }

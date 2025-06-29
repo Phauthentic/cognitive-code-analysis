@@ -8,6 +8,7 @@ use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetrics;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter\HtmlExporter;
 use Phauthentic\CognitiveCodeAnalysis\Business\Utility\Datetime;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -35,6 +36,7 @@ class HtmlExporterTest extends TestCase
         DateTime::$fixedDate = null;
     }
 
+    #[Test]
     public function testExportCreatesFile(): void
     {
         $metricsCollection = new CognitiveMetricsCollection();

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Cognitive;
 
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Delta;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -12,6 +13,7 @@ use PHPUnit\Framework\TestCase;
  */
 class DeltaTest extends TestCase
 {
+    #[Test]
     public function testDeltaWhenIncreased(): void
     {
         $before = 5.0;
@@ -23,6 +25,7 @@ class DeltaTest extends TestCase
         $this->assertSame(5.0, $delta->getValue());
     }
 
+    #[Test]
     public function testDeltaWhenDecreased(): void
     {
         $before = 10.0;
@@ -34,6 +37,7 @@ class DeltaTest extends TestCase
         $this->assertSame(-5.0, $delta->getValue());
     }
 
+    #[Test]
     public function testDeltaWhenEqual(): void
     {
         $before = 10.0;
@@ -45,6 +49,7 @@ class DeltaTest extends TestCase
         $this->assertSame(0.0, $delta->getValue());
     }
 
+    #[Test]
     public function testDeltaHasChanged(): void
     {
         $before = 10.0;
@@ -54,6 +59,7 @@ class DeltaTest extends TestCase
         $this->assertFalse($delta->hasNotChanged());
     }
 
+    #[Test]
     public function testDeltaHasNotChanged(): void
     {
         $before = 10.0;
@@ -63,6 +69,7 @@ class DeltaTest extends TestCase
         $this->assertTrue($delta->hasNotChanged());
     }
 
+    #[Test]
     public function testDeltaToString(): void
     {
         $before = 10.0;

@@ -27,9 +27,9 @@ class JsonExporterTest extends AbstractExporterTestCase
 
         $this->exporter->export($classes, $this->filename);
 
-        file_put_contents(__DIR__ . '/JsonExporterContent.json', file_get_contents($this->filename));
-
-        $content = file_get_contents(__DIR__ . '/JsonExporterContent.json');
-        $this->assertSame($content, file_get_contents($this->filename));
+        $this->assertFileEquals(
+            expected: __DIR__ . '/JsonExporterContent.json',
+            actual: $this->filename
+        );
     }
 }
