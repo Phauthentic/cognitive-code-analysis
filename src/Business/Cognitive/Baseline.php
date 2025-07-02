@@ -10,7 +10,7 @@ use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 /**
  *
  */
-class BaselineService
+class Baseline
 {
     /**
      * @param CognitiveMetricsCollection $metricsCollection

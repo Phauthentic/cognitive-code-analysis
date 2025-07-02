@@ -6,7 +6,7 @@ namespace Phauthentic\CognitiveCodeAnalysis;
 
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChangeCounter\ChangeCounterFactory;
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChurnCalculator;
-use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\BaselineService;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Baseline;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollector;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Events\FileProcessed;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Events\SourceFilesFound;
@@ -83,7 +83,7 @@ class Application
             ])
             ->setPublic(true);
 
-        $this->containerBuilder->register(BaselineService::class, BaselineService::class)
+        $this->containerBuilder->register(Baseline::class, Baseline::class)
             ->setPublic(true);
 
         $this->containerBuilder->register(Processor::class, Processor::class)
@@ -215,7 +215,7 @@ class Application
             ->setArguments([
                 new Reference(MetricsFacade::class),
                 new Reference(CognitiveMetricTextRenderer::class),
-                new Reference(BaselineService::class),
+                new Reference(Baseline::class),
                 new Reference(CognitiveMetricsReportHandler::class),
             ])
             ->setPublic(true);

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phauthentic\CognitiveCodeAnalysis\Command;
 
 use Exception;
-use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\BaselineService;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Baseline;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
 use Phauthentic\CognitiveCodeAnalysis\Business\MetricsFacade;
 use Phauthentic\CognitiveCodeAnalysis\Command\Handler\CognitiveMetricsReportHandler;
@@ -35,7 +35,7 @@ class CognitiveMetricsCommand extends Command
     public function __construct(
         private MetricsFacade $metricsFacade,
         private CognitiveMetricTextRenderer $renderer,
-        private BaselineService $baselineService,
+        private Baseline $baselineService,
         private CognitiveMetricsReportHandler $reportHandler
     ) {
         parent::__construct();
