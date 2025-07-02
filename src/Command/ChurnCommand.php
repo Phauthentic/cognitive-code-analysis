@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Command;
 
-use Exception;
 use Phauthentic\CognitiveCodeAnalysis\Business\MetricsFacade;
+use Phauthentic\CognitiveCodeAnalysis\Command\Handler\ChurnReportHandler;
 use Phauthentic\CognitiveCodeAnalysis\Command\Presentation\ChurnTextRenderer;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -18,12 +18,11 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 #[AsCommand(
     name: 'churn',
-    description: ''
+    description: 'Calculates the churn based on version control history.',
 )]
 class ChurnCommand extends Command
 {
     private const ARGUMENT_PATH = 'path';
-
     public const OPTION_CONFIG_FILE = 'config';
     public const OPTION_VCS = 'vcs';
     public const OPTION_SINCE = 'since';
@@ -36,7 +35,8 @@ class ChurnCommand extends Command
      */
     public function __construct(
         private MetricsFacade $metricsFacade,
-        private ChurnTextRenderer $renderer
+        private ChurnTextRenderer $renderer,
+        private ChurnReportHandler $reportHandler
     ) {
         parent::__construct();
     }
@@ -109,8 +109,11 @@ class ChurnCommand extends Command
             since: $input->getOption(self::OPTION_SINCE),
         );
 
-        if ($this->shouldGenerateReport($input)) {
-            return $this->generateReport($classes, $input, $output);
+        $reportType = $input->getOption(self::OPTION_REPORT_TYPE);
+        $reportFile = $input->getOption(self::OPTION_REPORT_FILE);
+
+        if ($reportType !== null || $reportFile !== null) {
+            return $this->reportHandler->handle($classes, $reportType, $reportFile);
         }
 
         $this->renderer->renderChurnTable(
@@ -118,37 +121,5 @@ class ChurnCommand extends Command
         );
 
         return self::SUCCESS;
-    }
-
-    /**
-     * @param array<string, array<string, mixed>> $classes
-     * @param InputInterface $input
-     * @param OutputInterface $output
-     * @return int
-     */
-    private function generateReport(array $classes, InputInterface $input, OutputInterface $output): int
-    {
-        try {
-            $this->metricsFacade->exportChurnReport(
-                classes: $classes,
-                reportType: $input->getOption(self::OPTION_REPORT_TYPE),
-                filename: $input->getOption(self::OPTION_REPORT_FILE)
-            );
-
-            return self::SUCCESS;
-        } catch (Exception $exception) {
-            $output->writeln(sprintf(
-                '<error>Error generating report: %s</error>',
-                $exception->getMessage()
-            ));
-
-            return self::FAILURE;
-        }
-    }
-
-    private function shouldGenerateReport(InputInterface $input): bool
-    {
-        return $input->getOption(self::OPTION_REPORT_FILE)
-            && $input->getOption(self::OPTION_REPORT_TYPE);
     }
 }

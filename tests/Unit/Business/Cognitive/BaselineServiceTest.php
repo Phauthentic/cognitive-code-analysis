@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Cognitive;
 
-use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\BaselineService;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Baseline;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetrics;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
@@ -18,11 +18,11 @@ use JsonException;
  */
 class BaselineServiceTest extends TestCase
 {
-    protected BaselineService $baselineService;
+    protected Baseline $baselineService;
 
     protected function setUp(): void
     {
-        $this->baselineService = new BaselineService();
+        $this->baselineService = new Baseline();
     }
 
     #[Test]
