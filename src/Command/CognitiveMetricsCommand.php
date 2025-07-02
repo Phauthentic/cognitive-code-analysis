@@ -5,11 +5,10 @@ declare(strict_types=1);
 namespace Phauthentic\CognitiveCodeAnalysis\Command;
 
 use Exception;
-use JsonException;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\BaselineService;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
 use Phauthentic\CognitiveCodeAnalysis\Business\MetricsFacade;
-use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
+use Phauthentic\CognitiveCodeAnalysis\Command\Handler\CognitiveMetricsReportHandler;
 use Phauthentic\CognitiveCodeAnalysis\Command\Presentation\CognitiveMetricTextRenderer;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -36,7 +35,8 @@ class CognitiveMetricsCommand extends Command
     public function __construct(
         private MetricsFacade $metricsFacade,
         private CognitiveMetricTextRenderer $renderer,
-        private BaselineService $baselineService
+        private BaselineService $baselineService,
+        private CognitiveMetricsReportHandler $reportHandler
     ) {
         parent::__construct();
     }
@@ -110,14 +110,7 @@ class CognitiveMetricsCommand extends Command
         $reportFile = $input->getOption(self::OPTION_REPORT_FILE);
 
         if ($reportType !== null || $reportFile !== null) {
-            if ($this->isOneReportOptionMissing($reportType, $reportFile, $output)) {
-                return Command::FAILURE;
-            }
-            if (!$this->isValidReportType($reportType, $output)) {
-                return Command::FAILURE;
-            }
-            $this->metricsFacade->exportMetricsReport($metricsCollection, $reportType, $reportFile);
-            return Command::SUCCESS;
+            return $this->reportHandler->handle($metricsCollection, $reportType, $reportFile);
         }
 
         $this->renderer->render($metricsCollection, $this->metricsFacade->getConfig());
@@ -157,26 +150,5 @@ class CognitiveMetricsCommand extends Command
             $output->writeln('<error>Failed to load configuration: ' . $e->getMessage() . '</error>');
             return false;
         }
-    }
-
-    private function isOneReportOptionMissing(?string $reportType, ?string $reportFile, OutputInterface $output): bool
-    {
-        if (($reportType !== null && $reportFile === null) || ($reportType === null && $reportFile !== null)) {
-            $output->writeln('<error>Both report type and file must be provided.</error>');
-            return true;
-        }
-
-        return false;
-    }
-
-    private function isValidReportType(?string $reportType, OutputInterface $output): bool
-    {
-        if (!in_array($reportType, ['json', 'csv', 'html'])) {
-            $message = sprintf('Invalid report type `%s` provided. Only `json`, `csv`, and `html` are accepted.', $reportType);
-            $output->writeln('<error>' . $message . '</error>');
-            return false;
-        }
-
-        return true;
     }
 }
