@@ -105,10 +105,7 @@ class CognitiveMetricsCommand extends Command
         $metricsCollection = $this->metricsFacade->getCognitiveMetrics($path);
 
         $this->handleBaseLine($input, $metricsCollection);
-
-        if (!$this->handleExportOptions($input, $output, $metricsCollection)) {
-            return Command::FAILURE;
-        }
+        $this->handleExport($input, $output, $metricsCollection);
 
         $this->renderer->render($metricsCollection, $this->metricsFacade->getConfig());
 
@@ -159,13 +156,13 @@ class CognitiveMetricsCommand extends Command
      * @throws CognitiveAnalysisException
      * @throws JsonException
      */
-    private function handleExportOptions(InputInterface $input, OutputInterface $output, CognitiveMetricsCollection $metricsCollection): bool
+    private function handleExport(InputInterface $input, OutputInterface $output, CognitiveMetricsCollection $metricsCollection): bool
     {
         $reportType = $input->getOption(self::OPTION_REPORT_TYPE);
         $reportFile = $input->getOption(self::OPTION_REPORT_FILE);
 
         if (
-            !$this->areBothReportOptionsMissing($reportType, $reportFile)
+            $this->areBothReportOptionsMissing($reportType, $reportFile)
             || $this->isOneReportOptionMissing($reportType, $reportFile, $output)
             || !$this->isValidReportType($reportType, $output)
         ) {
