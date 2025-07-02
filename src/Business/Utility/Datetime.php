@@ -11,6 +11,9 @@ use DateTime as PHPDateTime;
  */
 class Datetime extends PHPDateTime
 {
+    /**
+     * Used only in testing to fix the date for all tests.
+     */
     public static ?string $fixedDate = null;
 
     public function __construct()
