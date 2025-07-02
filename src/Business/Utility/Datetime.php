@@ -11,7 +11,7 @@ use DateTime as PHPDateTime;
  */
 class Datetime extends PHPDateTime
 {
-    public static ?string $fixedDate;
+    public static ?string $fixedDate = null;
 
     public function __construct()
     {
