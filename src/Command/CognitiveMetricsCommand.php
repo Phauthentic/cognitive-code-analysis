@@ -105,7 +105,20 @@ class CognitiveMetricsCommand extends Command
         $metricsCollection = $this->metricsFacade->getCognitiveMetrics($path);
 
         $this->handleBaseLine($input, $metricsCollection);
-        $this->handleExport($input, $output, $metricsCollection);
+
+        $reportType = $input->getOption(self::OPTION_REPORT_TYPE);
+        $reportFile = $input->getOption(self::OPTION_REPORT_FILE);
+
+        if ($reportType !== null || $reportFile !== null) {
+            if ($this->isOneReportOptionMissing($reportType, $reportFile, $output)) {
+                return Command::FAILURE;
+            }
+            if (!$this->isValidReportType($reportType, $output)) {
+                return Command::FAILURE;
+            }
+            $this->metricsFacade->exportMetricsReport($metricsCollection, $reportType, $reportFile);
+            return Command::SUCCESS;
+        }
 
         $this->renderer->render($metricsCollection, $this->metricsFacade->getConfig());
 
@@ -144,39 +157,6 @@ class CognitiveMetricsCommand extends Command
             $output->writeln('<error>Failed to load configuration: ' . $e->getMessage() . '</error>');
             return false;
         }
-    }
-
-    /**
-     * Handles exporting metrics to different formats based on user input.
-     *
-     * @param InputInterface $input
-     * @param OutputInterface $output
-     * @param CognitiveMetricsCollection $metricsCollection
-     * @return bool
-     * @throws CognitiveAnalysisException
-     * @throws JsonException
-     */
-    private function handleExport(InputInterface $input, OutputInterface $output, CognitiveMetricsCollection $metricsCollection): bool
-    {
-        $reportType = $input->getOption(self::OPTION_REPORT_TYPE);
-        $reportFile = $input->getOption(self::OPTION_REPORT_FILE);
-
-        if (
-            $this->areBothReportOptionsMissing($reportType, $reportFile)
-            || $this->isOneReportOptionMissing($reportType, $reportFile, $output)
-            || !$this->isValidReportType($reportType, $output)
-        ) {
-            return false;
-        }
-
-        $this->metricsFacade->exportMetricsReport($metricsCollection, $reportType, $reportFile);
-
-        return true;
-    }
-
-    private function areBothReportOptionsMissing(?string $reportType, ?string $reportFile): bool
-    {
-        return $reportType === null && $reportFile === null;
     }
 
     private function isOneReportOptionMissing(?string $reportType, ?string $reportFile, OutputInterface $output): bool
