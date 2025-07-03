@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phauthentic\CognitiveCodeAnalysis\Business\Cognitive;
 
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Events\FileProcessed;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Events\ParserFailed;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Events\SourceFilesFound;
 use Phauthentic\CognitiveCodeAnalysis\Business\DirectoryScanner;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
@@ -13,6 +14,7 @@ use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
 use SplFileInfo;
 use Symfony\Component\Messenger\Exception\ExceptionInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
+use Throwable;
 
 /**
  * CognitiveMetricsCollector class that collects cognitive metrics from source files
@@ -69,16 +71,24 @@ class CognitiveMetricsCollector
      *
      * @param iterable<SplFileInfo> $files
      * @return CognitiveMetricsCollection
-     * @throws CognitiveAnalysisException|ExceptionInterface
+     * @throws ExceptionInterface
      */
     private function findMetrics(iterable $files): CognitiveMetricsCollection
     {
         $metricsCollection = new CognitiveMetricsCollection();
 
         foreach ($files as $file) {
-            $metrics = $this->parser->parse(
-                $this->getCodeFromFile($file)
-            );
+            try {
+                $metrics = $this->parser->parse(
+                    $this->getCodeFromFile($file)
+                );
+            } catch (Throwable $exception) {
+                $this->messageBus->dispatch(new ParserFailed(
+                    $file,
+                    $exception
+                ));
+                continue;
+            }
 
             $metricsCollection = $this->processMethodMetrics(
                 $metrics,

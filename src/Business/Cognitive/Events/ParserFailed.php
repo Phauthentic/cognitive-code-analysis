@@ -5,14 +5,16 @@ declare(strict_types=1);
 namespace Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Events;
 
 use SplFileInfo;
+use Throwable;
 
 /**
  *
  */
-class FileProcessed
+class ParserFailed
 {
     public function __construct(
-        public readonly SplFileInfo $file
+        public readonly SplFileInfo $file,
+        public readonly Throwable $throwable
     ) {
     }
 }
