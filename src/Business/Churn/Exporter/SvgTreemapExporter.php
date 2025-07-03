@@ -39,14 +39,17 @@ class SvgTreemapExporter implements DataExporterInterface
 
         // Prepare data: sort by churn descending, filter out zero churn
         $items = [];
+        $scores = [];
         foreach ($classes as $class => $data) {
             $churn = (float)($data['churn'] ?? 0);
+            $score = (float)($data['score'] ?? 0);
             if ($churn > 0) {
                 $items[] = [
                     'class' => $class,
                     'churn' => $churn,
-                    'score' => (float)($data['score'] ?? 0),
+                    'score' => $score,
                 ];
+                $scores[] = $score;
             }
         }
         usort($items, fn($a, $b) => $b['churn'] <=> $a['churn']);
@@ -56,6 +59,14 @@ class SvgTreemapExporter implements DataExporterInterface
             $totalChurn = 1;
         }
 
+        // --- NEW: Find min/max score for normalization ---
+        $minScore = !empty($scores) ? min($scores) : 0;
+        $maxScore = !empty($scores) ? max($scores) : 10;
+        if ($minScore === $maxScore) {
+            $minScore = 0;
+            $maxScore = 10;
+        }
+
         // Recursively layout rectangles
         $rects = [];
         $this->layoutTreemap($items, 0, 0, $width, $height, $totalChurn, true, $rects, $padding);
@@ -63,13 +74,17 @@ class SvgTreemapExporter implements DataExporterInterface
         // Render SVG
         $svgRects = [];
         foreach ($rects as $rect) {
+            // --- NEW: Normalize score for color ---
+            $normalizedScore = ($maxScore > $minScore)
+                ? 10 * ($rect['score'] - $minScore) / ($maxScore - $minScore)
+                : 0;
             $svgRects[] = sprintf(
                 '<g><rect x="%.2f" y="%.2f" width="%.2f" height="%.2f" fill="%s" stroke="#222" stroke-width="1"/><title>%s&#10;Churn: %s&#10;Score: %s</title><text x="%.2f" y="%.2f" font-size="13" fill="#000">%s</text></g>',
                 $rect['x'] + $padding,
                 $rect['y'] + $padding,
                 max(0, $rect['width'] - $padding * 2),
                 max(0, $rect['height'] - $padding * 2),
-                $this->scoreToColor($rect['score']),
+                $this->scoreToColor($normalizedScore),
                 htmlspecialchars($rect['class']),
                 $rect['churn'],
                 $rect['score'],
@@ -115,6 +130,7 @@ SVG;
         if (empty($items)) {
             return;
         }
+
         if (count($items) === 1) {
             $item = $items[0];
             $rects[] = [
@@ -139,6 +155,7 @@ SVG;
                 break;
             }
         }
+
         if ($splitIdx <= 0 || $splitIdx >= count($items)) {
             $splitIdx = 1;
         }
@@ -171,6 +188,7 @@ SVG;
         $r = (int)(255 * ($score / 10));
         $g = (int)(180 * (1 - $score / 10));
         $b = 80;
+
         return sprintf('rgb(%d,%d,%d)', $r, $g, $b);
     }
 }
