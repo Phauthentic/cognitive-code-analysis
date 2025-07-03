@@ -26,7 +26,7 @@ class SvgTreemapExporter implements DataExporterInterface
      */
     public function export(array $classes, string $filename): void
     {
-        $svg = $this->generateSvgTreemap($classes);
+        $svg = $this->generateSvgTreemap(classes: $classes);
 
         if (file_put_contents($filename, $svg) === false) {
             throw new CognitiveAnalysisException("Unable to write to file: $filename");
@@ -47,19 +47,19 @@ class SvgTreemapExporter implements DataExporterInterface
 
         $rects = [];
         $this->layoutTreemap(
-            $items,
-            0,
-            0,
-            self::SVG_WIDTH,
-            self::SVG_HEIGHT,
-            true,         // $vertical
-            $rects,       // $rects
-            self::PADDING // $padding
+            items: $items,
+            x: 0,
+            y: 0,
+            width: self::SVG_WIDTH,
+            height: self::SVG_HEIGHT,
+            vertical: true,
+            rects: $rects,
+            padding: self::PADDING
         );
 
-        $svgRects = $this->renderSvgRects($rects, $minScore, $maxScore);
+        $svgRects = $this->renderSvgRects(rects: $rects, minScore: $minScore, maxScore: $maxScore);
 
-        return $this->wrapSvg($svgRects);
+        return $this->wrapSvg(rectsSvg: $svgRects);
     }
 
     /**
@@ -122,8 +122,8 @@ class SvgTreemapExporter implements DataExporterInterface
     {
         $svgRects = [];
         foreach ($rects as $rect) {
-            $normalizedScore = $this->normalizeScore($rect['score'], $minScore, $maxScore);
-            $svgRects[] = $this->renderSvgRect($rect, $normalizedScore);
+            $normalizedScore = $this->normalizeScore(score: $rect['score'], minScore: $minScore, maxScore: $maxScore);
+            $svgRects[] = $this->renderSvgRect(rect: $rect, normalizedScore: $normalizedScore);
         }
 
         return implode("\n", $svgRects);
@@ -142,7 +142,7 @@ class SvgTreemapExporter implements DataExporterInterface
         $y = $rect['y'] + self::PADDING;
         $width = max(0, $rect['width'] - self::PADDING * 2);
         $height = max(0, $rect['height'] - self::PADDING * 2);
-        $color = $this->scoreToColor($normalizedScore);
+        $color = $this->scoreToColor(score: $normalizedScore);
         $class = htmlspecialchars($rect['class']);
         $churn = $rect['churn'];
         $score = $rect['score'];
@@ -254,7 +254,10 @@ SVG;
         }
 
         $sum = array_sum(array_column($items, 'churn'));
-        $splitIdx = $this->findSplitIndex($items, $sum);
+        $splitIdx = $this->findSplitIndex(
+            items: $items,
+            sum: $sum
+        );
 
         $first = array_slice($items, 0, $splitIdx);
         $second = array_slice($items, $splitIdx);
@@ -264,15 +267,51 @@ SVG;
         if ($vertical) {
             $w1 = $width * ($firstSum / $sum);
             $w2 = $width - $w1;
-            $this->layoutTreemap($first, $x, $y, $w1, $height, false, $rects, $padding);
-            $this->layoutTreemap($second, $x + $w1, $y, $w2, $height, false, $rects, $padding);
+            $this->layoutTreemap(
+                items: $first,
+                x: $x,
+                y: $y,
+                width: $w1,
+                height: $height,
+                vertical: false,
+                rects: $rects,
+                padding: $padding
+            );
+            $this->layoutTreemap(
+                items: $second,
+                x: $x + $w1,
+                y: $y,
+                width: $w2,
+                height: $height,
+                vertical: false,
+                rects: $rects,
+                padding: $padding
+            );
             return;
         }
 
         $h1 = $height * ($firstSum / $sum);
         $h2 = $height - $h1;
-        $this->layoutTreemap($first, $x, $y, $width, $h1, true, $rects, $padding);
-        $this->layoutTreemap($second, $x, $y + $h1, $width, $h2, true, $rects, $padding);
+        $this->layoutTreemap(
+            items: $first,
+            x: $x,
+            y: $y,
+            width: $width,
+            height: $h1,
+            vertical: true,
+            rects: $rects,
+            padding: $padding
+        );
+        $this->layoutTreemap(
+            items: $second,
+            x: $x,
+            y: $y + $h1,
+            width: $width,
+            height: $h2,
+            vertical: true,
+            rects: $rects,
+            padding: $padding
+        );
     }
 
     /**
