@@ -8,6 +8,8 @@ use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 
 /**
  * Exports churn data as an SVG treemap.
+ *
+ * @SuppressWarnings("PHPMD.ShortVariable")
  */
 class SvgTreemapExporter implements DataExporterInterface
 {
@@ -40,7 +42,6 @@ class SvgTreemapExporter implements DataExporterInterface
     private function generateSvgTreemap(array $classes): string
     {
         $items = $this->prepareItems($classes);
-        $totalChurn = $this->calculateTotalChurn($items);
 
         [$minScore, $maxScore] = $this->findScoreRange($items);
 
@@ -51,10 +52,9 @@ class SvgTreemapExporter implements DataExporterInterface
             0,
             self::SVG_WIDTH,
             self::SVG_HEIGHT,
-            $totalChurn,
-            true,
-            $rects,
-            self::PADDING
+            true,         // $vertical
+            $rects,       // $rects
+            self::PADDING // $padding
         );
 
         $svgRects = $this->renderSvgRects($rects, $minScore, $maxScore);
@@ -83,19 +83,8 @@ class SvgTreemapExporter implements DataExporterInterface
             }
         }
         usort($items, fn($a, $b) => $b['churn'] <=> $a['churn']);
-        return $items;
-    }
 
-    /**
-     * Calculates the total churn value.
-     *
-     * @param array<int, array{class: string, churn: float, score: float}> $items
-     * @return float
-     */
-    private function calculateTotalChurn(array $items): float
-    {
-        $totalChurn = array_sum(array_column($items, 'churn'));
-        return $totalChurn > 0 ? $totalChurn : 1.0;
+        return $items;
     }
 
     /**
@@ -110,11 +99,14 @@ class SvgTreemapExporter implements DataExporterInterface
         if (empty($scores)) {
             return [self::COLOR_MIN, self::COLOR_MAX];
         }
+
         $minScore = min($scores);
         $maxScore = max($scores);
+
         if ($minScore === $maxScore) {
             return [self::COLOR_MIN, self::COLOR_MAX];
         }
+
         return [$minScore, $maxScore];
     }
 
@@ -133,6 +125,7 @@ class SvgTreemapExporter implements DataExporterInterface
             $normalizedScore = $this->normalizeScore($rect['score'], $minScore, $maxScore);
             $svgRects[] = $this->renderSvgRect($rect, $normalizedScore);
         }
+
         return implode("\n", $svgRects);
     }
 
@@ -214,6 +207,7 @@ SVG;
         if ($maxScore > $minScore) {
             return self::COLOR_MAX * ($score - $minScore) / ($maxScore - $minScore);
         }
+
         return 0.0;
     }
 
@@ -225,7 +219,6 @@ SVG;
      * @param float $y
      * @param float $width
      * @param float $height
-     * @param float $totalChurn
      * @param bool $vertical
      * @param array<int, array<string, mixed>> $rects
      * @param int $padding
@@ -237,7 +230,6 @@ SVG;
         float $y,
         float $width,
         float $height,
-        float $totalChurn,
         bool $vertical,
         array &$rects,
         int $padding
@@ -268,19 +260,19 @@ SVG;
         $second = array_slice($items, $splitIdx);
 
         $firstSum = array_sum(array_column($first, 'churn'));
-        $secondSum = array_sum(array_column($second, 'churn'));
 
         if ($vertical) {
             $w1 = $width * ($firstSum / $sum);
             $w2 = $width - $w1;
-            $this->layoutTreemap($first, $x, $y, $w1, $height, $firstSum, false, $rects, $padding);
-            $this->layoutTreemap($second, $x + $w1, $y, $w2, $height, $secondSum, false, $rects, $padding);
-        } else {
-            $h1 = $height * ($firstSum / $sum);
-            $h2 = $height - $h1;
-            $this->layoutTreemap($first, $x, $y, $width, $h1, $firstSum, true, $rects, $padding);
-            $this->layoutTreemap($second, $x, $y + $h1, $width, $h2, $secondSum, true, $rects, $padding);
+            $this->layoutTreemap($first, $x, $y, $w1, $height, false, $rects, $padding);
+            $this->layoutTreemap($second, $x + $w1, $y, $w2, $height, false, $rects, $padding);
+            return;
         }
+
+        $h1 = $height * ($firstSum / $sum);
+        $h2 = $height - $h1;
+        $this->layoutTreemap($first, $x, $y, $width, $h1, true, $rects, $padding);
+        $this->layoutTreemap($second, $x, $y + $h1, $width, $h2, true, $rects, $padding);
     }
 
     /**
