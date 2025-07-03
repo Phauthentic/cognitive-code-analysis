@@ -11,6 +11,12 @@ use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
  */
 class SvgTreemapExporter implements DataExporterInterface
 {
+    private const SVG_WIDTH = 1200;
+    private const SVG_HEIGHT = 800;
+    private const PADDING = 2;
+    private const COLOR_MIN = 0;
+    private const COLOR_MAX = 10;
+
     /**
      * @param array<string, array<string, mixed>> $classes
      * @param string $filename
@@ -33,13 +39,38 @@ class SvgTreemapExporter implements DataExporterInterface
      */
     private function generateSvgTreemap(array $classes): string
     {
-        $width = 1200;
-        $height = 800;
-        $padding = 2;
+        $items = $this->prepareItems($classes);
+        $totalChurn = $this->calculateTotalChurn($items);
 
-        // Prepare data: sort by churn descending, filter out zero churn
+        [$minScore, $maxScore] = $this->findScoreRange($items);
+
+        $rects = [];
+        $this->layoutTreemap(
+            $items,
+            0,
+            0,
+            self::SVG_WIDTH,
+            self::SVG_HEIGHT,
+            $totalChurn,
+            true,
+            $rects,
+            self::PADDING
+        );
+
+        $svgRects = $this->renderSvgRects($rects, $minScore, $maxScore);
+
+        return $this->wrapSvg($svgRects);
+    }
+
+    /**
+     * Prepares and filters items for the treemap.
+     *
+     * @param array<string, array<string, mixed>> $classes
+     * @return array<int, array{class: string, churn: float, score: float}>
+     */
+    private function prepareItems(array $classes): array
+    {
         $items = [];
-        $scores = [];
         foreach ($classes as $class => $data) {
             $churn = (float)($data['churn'] ?? 0);
             $score = (float)($data['score'] ?? 0);
@@ -49,52 +80,109 @@ class SvgTreemapExporter implements DataExporterInterface
                     'churn' => $churn,
                     'score' => $score,
                 ];
-                $scores[] = $score;
             }
         }
         usort($items, fn($a, $b) => $b['churn'] <=> $a['churn']);
+        return $items;
+    }
 
+    /**
+     * Calculates the total churn value.
+     *
+     * @param array<int, array{class: string, churn: float, score: float}> $items
+     * @return float
+     */
+    private function calculateTotalChurn(array $items): float
+    {
         $totalChurn = array_sum(array_column($items, 'churn'));
-        if ($totalChurn <= 0) {
-            $totalChurn = 1;
-        }
+        return $totalChurn > 0 ? $totalChurn : 1.0;
+    }
 
-        // --- NEW: Find min/max score for normalization ---
-        $minScore = !empty($scores) ? min($scores) : 0;
-        $maxScore = !empty($scores) ? max($scores) : 10;
+    /**
+     * Finds the minimum and maximum score for normalization.
+     *
+     * @param array<int, array{class: string, churn: float, score: float}> $items
+     * @return array{float, float}
+     */
+    private function findScoreRange(array $items): array
+    {
+        $scores = array_column($items, 'score');
+        if (empty($scores)) {
+            return [self::COLOR_MIN, self::COLOR_MAX];
+        }
+        $minScore = min($scores);
+        $maxScore = max($scores);
         if ($minScore === $maxScore) {
-            $minScore = 0;
-            $maxScore = 10;
+            return [self::COLOR_MIN, self::COLOR_MAX];
         }
+        return [$minScore, $maxScore];
+    }
 
-        // Recursively layout rectangles
-        $rects = [];
-        $this->layoutTreemap($items, 0, 0, $width, $height, $totalChurn, true, $rects, $padding);
-
-        // Render SVG
+    /**
+     * Renders SVG rectangles for the treemap.
+     *
+     * @param array<int, array<string, mixed>> $rects
+     * @param float $minScore
+     * @param float $maxScore
+     * @return string
+     */
+    private function renderSvgRects(array $rects, float $minScore, float $maxScore): string
+    {
         $svgRects = [];
         foreach ($rects as $rect) {
-            // --- NEW: Normalize score for color ---
-            $normalizedScore = ($maxScore > $minScore)
-                ? 10 * ($rect['score'] - $minScore) / ($maxScore - $minScore)
-                : 0;
-            $svgRects[] = sprintf(
-                '<g><rect x="%.2f" y="%.2f" width="%.2f" height="%.2f" fill="%s" stroke="#222" stroke-width="1"/><title>%s&#10;Churn: %s&#10;Score: %s</title><text x="%.2f" y="%.2f" font-size="13" fill="#000">%s</text></g>',
-                $rect['x'] + $padding,
-                $rect['y'] + $padding,
-                max(0, $rect['width'] - $padding * 2),
-                max(0, $rect['height'] - $padding * 2),
-                $this->scoreToColor($normalizedScore),
-                htmlspecialchars($rect['class']),
-                $rect['churn'],
-                $rect['score'],
-                $rect['x'] + $padding + 4,
-                $rect['y'] + 18,
-                htmlspecialchars(mb_strimwidth($rect['class'], 0, 40, '…'))
-            );
+            $normalizedScore = $this->normalizeScore($rect['score'], $minScore, $maxScore);
+            $svgRects[] = $this->renderSvgRect($rect, $normalizedScore);
         }
-        $rectsSvg = implode("\n", $svgRects);
+        return implode("\n", $svgRects);
+    }
 
+    /**
+     * Renders a single SVG rectangle.
+     *
+     * @param array<string, mixed> $rect
+     * @param float $normalizedScore
+     * @return string
+     */
+    private function renderSvgRect(array $rect, float $normalizedScore): string
+    {
+        $x = $rect['x'] + self::PADDING;
+        $y = $rect['y'] + self::PADDING;
+        $width = max(0, $rect['width'] - self::PADDING * 2);
+        $height = max(0, $rect['height'] - self::PADDING * 2);
+        $color = $this->scoreToColor($normalizedScore);
+        $class = htmlspecialchars($rect['class']);
+        $churn = $rect['churn'];
+        $score = $rect['score'];
+        $textX = $x + 4;
+        $textY = $y + 18;
+        $label = htmlspecialchars(mb_strimwidth($rect['class'], 0, 40, '…'));
+
+        return sprintf(
+            '<g><rect x="%.2f" y="%.2f" width="%.2f" height="%.2f" fill="%s" stroke="#222" stroke-width="1"/><title>%s&#10;Churn: %s&#10;Score: %s</title><text x="%.2f" y="%.2f" font-size="13" fill="#000">%s</text></g>',
+            $x,
+            $y,
+            $width,
+            $height,
+            $color,
+            $class,
+            $churn,
+            $score,
+            $textX,
+            $textY,
+            $label
+        );
+    }
+
+    /**
+     * Wraps SVG rectangles in the SVG document.
+     *
+     * @param string $rectsSvg
+     * @return string
+     */
+    private function wrapSvg(string $rectsSvg): string
+    {
+        $width = self::SVG_WIDTH;
+        $height = self::SVG_HEIGHT;
         return <<<SVG
 <?xml version="1.0" encoding="UTF-8"?>
 <svg width="{$width}" height="{$height}" xmlns="http://www.w3.org/2000/svg">
@@ -114,19 +202,46 @@ SVG;
     }
 
     /**
+     * Normalizes a score to a 0-10 range for color mapping.
+     *
+     * @param float $score
+     * @param float $minScore
+     * @param float $maxScore
+     * @return float
+     */
+    private function normalizeScore(float $score, float $minScore, float $maxScore): float
+    {
+        if ($maxScore > $minScore) {
+            return self::COLOR_MAX * ($score - $minScore) / ($maxScore - $minScore);
+        }
+        return 0.0;
+    }
+
+    /**
      * Recursively layout rectangles for a slice-and-dice treemap.
-     * @param array $items
+     *
+     * @param array<int, array{class: string, churn: float, score: float}> $items
      * @param float $x
      * @param float $y
      * @param float $width
      * @param float $height
      * @param float $totalChurn
      * @param bool $vertical
-     * @param array $rects
+     * @param array<int, array<string, mixed>> $rects
      * @param int $padding
+     * @return void
      */
-    private function layoutTreemap(array $items, float $x, float $y, float $width, float $height, float $totalChurn, bool $vertical, array &$rects, int $padding): void
-    {
+    private function layoutTreemap(
+        array $items,
+        float $x,
+        float $y,
+        float $width,
+        float $height,
+        float $totalChurn,
+        bool $vertical,
+        array &$rects,
+        int $padding
+    ): void {
         if (empty($items)) {
             return;
         }
@@ -142,23 +257,12 @@ SVG;
                 'churn' => $item['churn'],
                 'score' => $item['score'],
             ];
+
             return;
         }
 
         $sum = array_sum(array_column($items, 'churn'));
-        $accum = 0;
-        $splitIdx = 0;
-        foreach ($items as $i => $item) {
-            $accum += $item['churn'];
-            if ($accum >= $sum / 2) {
-                $splitIdx = $i + 1;
-                break;
-            }
-        }
-
-        if ($splitIdx <= 0 || $splitIdx >= count($items)) {
-            $splitIdx = 1;
-        }
+        $splitIdx = $this->findSplitIndex($items, $sum);
 
         $first = array_slice($items, 0, $splitIdx);
         $second = array_slice($items, $splitIdx);
@@ -169,24 +273,48 @@ SVG;
         if ($vertical) {
             $w1 = $width * ($firstSum / $sum);
             $w2 = $width - $w1;
-            $this->layoutTreemap($first, $x, $y, $w1, $height, $firstSum, !$vertical, $rects, $padding);
-            $this->layoutTreemap($second, $x + $w1, $y, $w2, $height, $secondSum, !$vertical, $rects, $padding);
+            $this->layoutTreemap($first, $x, $y, $w1, $height, $firstSum, false, $rects, $padding);
+            $this->layoutTreemap($second, $x + $w1, $y, $w2, $height, $secondSum, false, $rects, $padding);
         } else {
             $h1 = $height * ($firstSum / $sum);
             $h2 = $height - $h1;
-            $this->layoutTreemap($first, $x, $y, $width, $h1, $firstSum, !$vertical, $rects, $padding);
-            $this->layoutTreemap($second, $x, $y + $h1, $width, $h2, $secondSum, !$vertical, $rects, $padding);
+            $this->layoutTreemap($first, $x, $y, $width, $h1, $firstSum, true, $rects, $padding);
+            $this->layoutTreemap($second, $x, $y + $h1, $width, $h2, $secondSum, true, $rects, $padding);
         }
     }
 
     /**
+     * Finds the index to split the items for the treemap layout.
+     *
+     * @param array<int, array{class: string, churn: float, score: float}> $items
+     * @param float $sum
+     * @return int
+     */
+    private function findSplitIndex(array $items, float $sum): int
+    {
+        $accum = 0;
+        foreach ($items as $i => $item) {
+            $accum += $item['churn'];
+            if ($accum >= $sum / 2) {
+                $splitIdx = $i + 1;
+                return ($splitIdx <= 0 || $splitIdx >= count($items)) ? 1 : $splitIdx;
+            }
+        }
+
+        return 1;
+    }
+
+    /**
      * Maps a score (0-10) to a color from green to red.
+     *
+     * @param float $score
+     * @return string
      */
     private function scoreToColor(float $score): string
     {
-        $score = max(0, min(10, $score));
-        $r = (int)(255 * ($score / 10));
-        $g = (int)(180 * (1 - $score / 10));
+        $score = max(self::COLOR_MIN, min(self::COLOR_MAX, $score));
+        $r = (int)(255 * ($score / self::COLOR_MAX));
+        $g = (int)(180 * (1 - $score / self::COLOR_MAX));
         $b = 80;
 
         return sprintf('rgb(%d,%d,%d)', $r, $g, $b);
