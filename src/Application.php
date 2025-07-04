@@ -9,6 +9,7 @@ use Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChurnCalculator;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Baseline;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollector;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Events\FileProcessed;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Events\ParserFailed;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Events\SourceFilesFound;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Parser;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\ScoreCalculator;
@@ -16,6 +17,7 @@ use Phauthentic\CognitiveCodeAnalysis\Business\DirectoryScanner;
 use Phauthentic\CognitiveCodeAnalysis\Business\MetricsFacade;
 use Phauthentic\CognitiveCodeAnalysis\Command\ChurnCommand;
 use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsCommand;
+use Phauthentic\CognitiveCodeAnalysis\Command\EventHandler\ParserErrorHandler;
 use Phauthentic\CognitiveCodeAnalysis\Command\EventHandler\ProgressBarHandler;
 use Phauthentic\CognitiveCodeAnalysis\Command\EventHandler\VerboseHandler;
 use Phauthentic\CognitiveCodeAnalysis\Command\Handler\ChurnReportHandler;
@@ -176,6 +178,9 @@ class Application
             FileProcessed::class => [
                 $progressbar,
                 $verbose
+            ],
+            ParserFailed::class => [
+                new ParserErrorHandler($this->get(OutputInterface::class))
             ],
         ]);
 
