@@ -64,4 +64,33 @@ class CognitiveMetricsVisitorTest extends TestCase
         $this->assertEquals(1, $metrics['ifNestingLevel']);
         $this->assertEquals(2, $metrics['elseCount']);
     }
+
+    public function testCountVariablesNotAlreadyTrackedAsArguments(): void
+    {
+        $code = <<<'CODE'
+        <?php
+        class Example {
+            public function foo($arg1) {
+                $a = 1;
+                $b = 2;
+                $arg1 = 3;
+                ${$dynamic} = 4;
+            }
+        }
+        CODE;
+
+        $parser = (new ParserFactory())->createForNewestSupportedVersion();
+        $ast = $parser->parse($code);
+
+        $visitor = new CognitiveMetricsVisitor();
+        $traverser = new NodeTraverser();
+        $traverser->addVisitor($visitor);
+        $traverser->traverse($ast);
+
+        $metrics = $visitor->getMethodMetrics();
+        $method = '\Example::foo';
+
+        $this->assertArrayHasKey($method, $metrics);
+        $this->assertEquals(3, $metrics[$method]['variableCount']);
+    }
 }

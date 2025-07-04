@@ -194,7 +194,7 @@ class CognitiveMetricsVisitor extends NodeVisitorAbstract
     {
         match (true) {
             $node instanceof Node\Stmt\Return_ => $this->incrementReturnCount(),
-            $node instanceof Node\Expr\Variable => $this->trackVariable($node),
+            $node instanceof Node\Expr\Variable => $this->countVariablesNotAlreadyTrackedAsArguments($node),
             $node instanceof Node\Expr\PropertyFetch => $this->trackPropertyFetch($node),
             $node instanceof Node\Stmt\If_ => $this->trackIfStatement(),
             $node instanceof Node\Stmt\Else_,
@@ -208,10 +208,30 @@ class CognitiveMetricsVisitor extends NodeVisitorAbstract
         $this->currentReturnCount++;
     }
 
-    private function trackVariable(Node\Expr\Variable $node): void
+    /**
+     * Count variables that are not already tracked as method arguments.
+     *
+     * Important note about variable handling in this method:
+     *
+     * In PhpParser, the $node->name property of a Node\Expr\Variable can be either:
+     *
+     * - a string (for simple variables like $foo)
+     * - or an Expr node (usually another Variable or an expression, for complex variables like ${$bar} or variable
+     *   variables)
+     *
+     * This is because PHP allows variable variables and complex expressions as variable names, so the parser represents
+     * them as objects rather than plain strings. Always check the type before using it as an array key.
+     *
+     * When $node->name is an object (not a string), it represents complex or variable variables (like ${$foo})
+     * in PHP. These cases are rare in typical code and are challenging to statically analyze. For metrics like
+     * variable counting, they are usually not relevant or are intentionally skipped, since you cannot reliably
+     * determine the variable name at parse time.
+     *
+     * @link https://github.com/Phauthentic/cognitive-code-analysis/issues
+     */
+    private function countVariablesNotAlreadyTrackedAsArguments(Node\Expr\Variable $node): void
     {
-        // Only count variables not already tracked as arguments
-        if (!isset($this->methodArguments[$node->name])) {
+        if (is_string($node->name) && !isset($this->methodArguments[$node->name])) {
             $this->currentVariables[$node->name] = true;
         }
     }
