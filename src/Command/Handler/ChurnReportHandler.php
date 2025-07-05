@@ -60,7 +60,7 @@ class ChurnReportHandler
 
     private function isValidReportType(?string $reportType): bool
     {
-        return in_array($reportType, ['json', 'csv', 'html']);
+        return in_array($reportType, ['json', 'csv', 'html', 'svg']);
     }
 
     /**

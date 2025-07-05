@@ -34,9 +34,9 @@ class ChurnCommand extends Command
      * Constructor to initialize dependencies.
      */
     public function __construct(
-        private MetricsFacade $metricsFacade,
-        private ChurnTextRenderer $renderer,
-        private ChurnReportHandler $reportHandler
+        readonly private MetricsFacade $metricsFacade,
+        readonly private ChurnTextRenderer $renderer,
+        readonly private ChurnReportHandler $reportHandler
     ) {
         parent::__construct();
     }
