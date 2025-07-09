@@ -16,6 +16,11 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class CognitiveMetricTextRenderer
 {
+    /**
+     * @var CognitiveMetrics[]
+     */
+    private array $highlighted = [];
+
     public function __construct(
         private readonly OutputInterface $output
     ) {
@@ -35,6 +40,8 @@ class CognitiveMetricTextRenderer
      */
     public function render(CognitiveMetricsCollection $metricsCollection, CognitiveConfig $config): void
     {
+        $this->highlighted = [];
+
         $groupedByClass = $metricsCollection->groupBy('class');
 
         foreach ($groupedByClass as $className => $metrics) {
@@ -50,12 +57,18 @@ class CognitiveMetricTextRenderer
                     continue;
                 }
 
-                $rows[] = $this->prepareTableRows($metric);
+                if ($metric->getScore() > $config->scoreThreshold) {
+                    $this->highlighted[] = $metric;
+                }
+
+                $rows[] = $this->prepareTableRows($metric, $config);
                 $filename = $metric->getFileName();
             }
 
             $this->renderTable((string)$className, $rows, $filename);
         }
+
+        $this->renderSummary($config);
     }
 
     /**
@@ -102,9 +115,9 @@ class CognitiveMetricTextRenderer
      * @return array<string, mixed>
      * @throws CognitiveAnalysisException
      */
-    private function prepareTableRows(CognitiveMetrics $metrics): array
+    private function prepareTableRows(CognitiveMetrics $metrics, CognitiveConfig $config): array
     {
-        $row = $this->metricsToArray($metrics);
+        $row = $this->metricsToArray($metrics, $config);
         $keys = $this->getKeys();
 
         foreach ($keys as $key) {
@@ -150,7 +163,7 @@ class CognitiveMetricTextRenderer
      * @param CognitiveMetrics $metrics
      * @return array<string, mixed>
      */
-    private function metricsToArray(CognitiveMetrics $metrics): array
+    private function metricsToArray(CognitiveMetrics $metrics, CognitiveConfig $config): array
     {
         return [
             'methodName' => $metrics->getMethod(),
@@ -162,7 +175,7 @@ class CognitiveMetricTextRenderer
             'ifCount' => $metrics->getIfCount(),
             'ifNestingLevel' => $metrics->getIfNestingLevel(),
             'elseCount' => $metrics->getElseCount(),
-            'score' => $metrics->getScore() > 0.5
+            'score' => $metrics->getScore() > $config->scoreThreshold
                 ? '<error>' . $metrics->getScore() . '</error>'
                 : '<info>' . $metrics->getScore() . '</info>',
         ];
@@ -196,5 +209,35 @@ class CognitiveMetricTextRenderer
         $row[$key] = $metrics->{$getMethod}() . ' (' . round($weight, 3) . ')';
 
         return $row;
+    }
+
+    private function renderSummary(CognitiveConfig $config): void
+    {
+        if ($this->highlighted === []) {
+            return;
+        }
+
+        usort(
+            $this->highlighted,
+            fn (CognitiveMetrics $a, CognitiveMetrics $b) => $b->getScore() <=> $a->getScore()
+        );
+
+        $this->output->writeln('<info>Most Complex Methods</info>');
+
+        $table = new Table($this->output);
+        $table->setStyle('box');
+        $table->setHeaders(['Method', 'Score']);
+
+        foreach ($this->highlighted as $metric) {
+            $table->addRow([
+                $metric->getClass() . '::' . $metric->getMethod(),
+                $metric->getScore() > $config->scoreThreshold
+                    ? '<error>' . $metric->getScore() . '</error>'
+                    : $metric->getScore(),
+            ]);
+        }
+
+        $table->render();
+        $this->output->writeln('');
     }
 }
