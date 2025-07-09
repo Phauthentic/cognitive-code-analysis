@@ -226,13 +226,11 @@ class CognitiveMetricTextRenderer
 
         $table = new Table($this->output);
         $table->setStyle('box');
-        $table->setHeaders(['Class', 'Method', 'File', 'Score']);
+        $table->setHeaders(['Method', 'Score']);
 
         foreach ($this->highlighted as $metric) {
             $table->addRow([
-                $metric->getClass(),
-                $metric->getMethod(),
-                $metric->getFileName(),
+                $metric->getClass() . '::' . $metric->getMethod(),
                 $metric->getScore() > $config->scoreThreshold
                     ? '<error>' . $metric->getScore() . '</error>'
                     : $metric->getScore(),
