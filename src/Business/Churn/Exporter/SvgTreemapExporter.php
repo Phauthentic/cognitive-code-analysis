@@ -9,6 +9,13 @@ use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 /**
  * Exports churn data as an SVG treemap.
  *
+ * The size of the rectangles in the treemap is scaled proportionally to the "churn" value of each class. The
+ * layoutTreemap method calculates the dimensions of each rectangle based on the relative churn values of the items,
+ * ensuring that the total area of the rectangles corresponds to the total churn.
+ *
+ * The algorithm uses a slice-and-dice approach to divide the space recursively, alternating between vertical
+ * and horizontal splits.
+ *
  * @SuppressWarnings("PHPMD.ShortVariable")
  */
 class SvgTreemapExporter implements DataExporterInterface
