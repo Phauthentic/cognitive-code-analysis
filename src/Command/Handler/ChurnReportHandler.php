@@ -25,7 +25,7 @@ class ChurnReportHandler
      *
      * @param array<string, array<string, mixed>> $classes
      */
-    public function handle(
+    public function exportToFile(
         array $classes,
         ?string $reportType,
         ?string $reportFile,
@@ -60,7 +60,7 @@ class ChurnReportHandler
 
     private function isValidReportType(?string $reportType): bool
     {
-        return in_array($reportType, ['json', 'csv', 'html', 'svg']);
+        return in_array($reportType, ['json', 'csv', 'html', 'svg-treemap'], true);
     }
 
     /**
