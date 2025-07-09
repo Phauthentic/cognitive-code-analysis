@@ -12,10 +12,7 @@ use Symfony\Component\Config\Definition\Processor;
  */
 class ConfigService
 {
-    /**
-     * @var array<string, mixed>
-     */
-    private array $config;
+    private CognitiveConfig $config;
 
     /**
      * @SuppressWarnings(PHPMD)
@@ -24,9 +21,16 @@ class ConfigService
         private readonly Processor $processor,
         private readonly ConfigLoader $configuration
     ) {
-        $this->config = $this->processor->processConfiguration($this->configuration, [
+        $this->loadDefaultConfig();
+    }
+
+    private function loadDefaultConfig(): void
+    {
+        $config = $this->processor->processConfiguration($this->configuration, [
             Yaml::parseFile(__DIR__ . '/../../config.yml'),
         ]);
+
+        $this->config = (new ConfigFactory())->fromArray($config);
     }
 
     /**
@@ -34,14 +38,16 @@ class ConfigService
      */
     public function loadConfig(string $configFilePath): void
     {
-        $this->config = $this->processor->processConfiguration($this->configuration, [
+        $config = $this->processor->processConfiguration($this->configuration, [
             Yaml::parseFile(__DIR__ . '/../../config.yml'),
             Yaml::parseFile($configFilePath),
         ]);
+
+        $this->config = (new ConfigFactory())->fromArray($config);
     }
 
     public function getConfig(): CognitiveConfig
     {
-        return (new ConfigFactory())->fromArray($this->config);
+        return $this->config;
     }
 }
