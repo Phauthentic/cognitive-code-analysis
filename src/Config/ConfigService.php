@@ -24,6 +24,9 @@ class ConfigService
         $this->loadDefaultConfig();
     }
 
+    /**
+     * @SuppressWarnings(PHPMD)
+     */
     private function loadDefaultConfig(): void
     {
         $config = $this->processor->processConfiguration($this->configuration, [
