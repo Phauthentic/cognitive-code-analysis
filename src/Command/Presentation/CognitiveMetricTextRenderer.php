@@ -8,6 +8,7 @@ use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetrics;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
+use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -17,7 +18,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 class CognitiveMetricTextRenderer
 {
     public function __construct(
-        private readonly OutputInterface $output
+        private readonly OutputInterface $output,
+        private readonly ConfigService $configService,
     ) {
     }
 
@@ -30,12 +32,12 @@ class CognitiveMetricTextRenderer
 
     /**
      * @param CognitiveMetricsCollection $metricsCollection
-     * @param CognitiveConfig $config
      * @throws CognitiveAnalysisException
      */
-    public function render(CognitiveMetricsCollection $metricsCollection, CognitiveConfig $config): void
+    public function render(CognitiveMetricsCollection $metricsCollection): void
     {
         $groupedByClass = $metricsCollection->groupBy('class');
+        $config = $this->configService->getConfig();
 
         foreach ($groupedByClass as $className => $metrics) {
             if (count($metrics) === 0) {
@@ -162,7 +164,7 @@ class CognitiveMetricTextRenderer
             'ifCount' => $metrics->getIfCount(),
             'ifNestingLevel' => $metrics->getIfNestingLevel(),
             'elseCount' => $metrics->getElseCount(),
-            'score' => $metrics->getScore() > 0.5
+            'score' => $metrics->getScore() > $this->configService->getConfig()->scoreThreshold
                 ? '<error>' . $metrics->getScore() . '</error>'
                 : '<info>' . $metrics->getScore() . '</info>',
         ];

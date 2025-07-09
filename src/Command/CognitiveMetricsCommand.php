@@ -113,7 +113,7 @@ class CognitiveMetricsCommand extends Command
             return $this->reportHandler->handle($metricsCollection, $reportType, $reportFile);
         }
 
-        $this->renderer->render($metricsCollection, $this->metricsFacade->getConfig());
+        $this->renderer->render($metricsCollection);
 
         return Command::SUCCESS;
     }
