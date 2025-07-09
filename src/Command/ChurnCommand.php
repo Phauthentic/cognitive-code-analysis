@@ -34,9 +34,9 @@ class ChurnCommand extends Command
      * Constructor to initialize dependencies.
      */
     public function __construct(
-        private MetricsFacade $metricsFacade,
-        private ChurnTextRenderer $renderer,
-        private ChurnReportHandler $reportHandler
+        readonly private MetricsFacade $metricsFacade,
+        readonly private ChurnTextRenderer $renderer,
+        readonly private ChurnReportHandler $report
     ) {
         parent::__construct();
     }
@@ -113,7 +113,7 @@ class ChurnCommand extends Command
         $reportFile = $input->getOption(self::OPTION_REPORT_FILE);
 
         if ($reportType !== null || $reportFile !== null) {
-            return $this->reportHandler->handle($classes, $reportType, $reportFile);
+            return $this->report->exportToFile($classes, $reportType, $reportFile);
         }
 
         $this->renderer->renderChurnTable(
