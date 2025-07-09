@@ -52,9 +52,9 @@ class CognitiveMetricsVisitorTest extends TestCase
         $traverser->traverse($statements);
 
         $methodMetrics = $metricsVisitor->getMethodMetrics();
-        $this->assertArrayHasKey('MyNamespace\\MyClass::myMethod', $methodMetrics);
+        $this->assertArrayHasKey('\\MyNamespace\\MyClass::myMethod', $methodMetrics);
 
-        $metrics = $methodMetrics['MyNamespace\\MyClass::myMethod'];
+        $metrics = $methodMetrics['\\MyNamespace\\MyClass::myMethod'];
         $this->assertEquals(12, $metrics['lineCount']);
         $this->assertEquals(2, $metrics['argCount']);
         $this->assertEquals(3, $metrics['returnCount']);
@@ -79,6 +79,8 @@ class CognitiveMetricsVisitorTest extends TestCase
         }
         CODE;
 
+//$code = file_get_contents(__DIR__ . '/../../TestCode/Paginator.php');
+
         $parser = (new ParserFactory())->createForNewestSupportedVersion();
         $ast = $parser->parse($code);
 
@@ -88,6 +90,7 @@ class CognitiveMetricsVisitorTest extends TestCase
         $traverser->traverse($ast);
 
         $metrics = $visitor->getMethodMetrics();
+        //dd($metrics);
         $method = '\Example::foo';
 
         $this->assertArrayHasKey($method, $metrics);

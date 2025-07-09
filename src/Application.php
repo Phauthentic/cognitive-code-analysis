@@ -17,6 +17,7 @@ use Phauthentic\CognitiveCodeAnalysis\Business\DirectoryScanner;
 use Phauthentic\CognitiveCodeAnalysis\Business\MetricsFacade;
 use Phauthentic\CognitiveCodeAnalysis\Command\ChurnCommand;
 use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsCommand;
+use Phauthentic\CognitiveCodeAnalysis\Command\CyclomaticComplexityCommand;
 use Phauthentic\CognitiveCodeAnalysis\Command\EventHandler\ParserErrorHandler;
 use Phauthentic\CognitiveCodeAnalysis\Command\EventHandler\ProgressBarHandler;
 use Phauthentic\CognitiveCodeAnalysis\Command\EventHandler\VerboseHandler;
@@ -232,6 +233,9 @@ class Application
                 new Reference(ChurnReportHandler::class),
             ])
             ->setPublic(true);
+
+        $this->containerBuilder->register(CyclomaticComplexityCommand::class, CyclomaticComplexityCommand::class)
+            ->setPublic(true);
     }
 
     private function configureApplication(): void
@@ -239,7 +243,8 @@ class Application
         $this->containerBuilder->register(SymfonyApplication::class, SymfonyApplication::class)
             ->setPublic(true)
             ->addMethodCall('add', [new Reference(CognitiveMetricsCommand::class)])
-            ->addMethodCall('add', [new Reference(ChurnCommand::class)]);
+            ->addMethodCall('add', [new Reference(ChurnCommand::class)])
+            ->addMethodCall('add', [new Reference(CyclomaticComplexityCommand::class)]);
     }
 
     public function run(): void

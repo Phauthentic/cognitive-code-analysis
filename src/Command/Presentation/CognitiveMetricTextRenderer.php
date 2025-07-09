@@ -93,7 +93,11 @@ class CognitiveMetricTextRenderer
             "If",
             "If Nesting\nLevel",
             "Else",
-            "Cognitive\nComplexity"
+            "Cognitive\nComplexity",
+            "Halstead\nVolume",
+            "Halstead\nDifficulty",
+            "Halstead\nEffort",
+            "Cyclomatic\nComplexity"
         ];
     }
 
@@ -126,6 +130,7 @@ class CognitiveMetricTextRenderer
             $row[$key] .= PHP_EOL . '<info>Δ -' . $delta->getValue() . '</info>';
         }
 
+        // No delta for halstead/cyclomatic
         return $row;
     }
 
@@ -143,6 +148,7 @@ class CognitiveMetricTextRenderer
             'ifCount',
             'ifNestingLevel',
             'elseCount',
+            // No keys for halstead/cyclomatic, handled separately in metricsToArray
         ];
     }
 
@@ -152,6 +158,14 @@ class CognitiveMetricTextRenderer
      */
     private function metricsToArray(CognitiveMetrics $metrics): array
     {
+        $halstead = $metrics->getHalstead();
+        $cyclomatic = $metrics->getCyclomatic();
+
+        $halsteadVolume = $this->formatHalsteadVolume($halstead);
+        $halsteadDifficulty = $this->formatHalsteadDifficulty($halstead);
+        $halsteadEffort = $this->formatHalsteadEffort($halstead);
+        $cyclomaticComplexity = $this->formatCyclomaticComplexity($cyclomatic);
+
         return [
             'methodName' => $metrics->getMethod(),
             'lineCount' => $metrics->getLineCount(),
@@ -162,10 +176,90 @@ class CognitiveMetricTextRenderer
             'ifCount' => $metrics->getIfCount(),
             'ifNestingLevel' => $metrics->getIfNestingLevel(),
             'elseCount' => $metrics->getElseCount(),
-            'score' => $metrics->getScore() > 0.5
-                ? '<error>' . $metrics->getScore() . '</error>'
-                : '<info>' . $metrics->getScore() . '</info>',
+            'score' => $this->formatScore($metrics->getScore()),
+            'halsteadVolume' => $halsteadVolume,
+            'halsteadDifficulty' => $halsteadDifficulty,
+            'halsteadEffort' => $halsteadEffort,
+            'cyclomaticComplexity' => $cyclomaticComplexity,
         ];
+    }
+
+    private function formatScore(float $score): string
+    {
+        return $score > 0.5
+            ? '<error>' . $score . '</error>'
+            : '<info>' . $score . '</info>';
+    }
+
+    private function formatHalsteadVolume($halstead): string
+    {
+        if (!$halstead) {
+            return '-';
+        }
+        $value = round($halstead->getVolume(), 3);
+        if ($value >= 1000) {
+            return '<error>' . $value . '</error>';
+        }
+        if ($value >= 100) {
+            return '<comment>' . $value . '</comment>';
+        }
+        return (string)$value;
+    }
+
+    private function formatHalsteadDifficulty($halstead): string
+    {
+        if (!$halstead) {
+            return '-';
+        }
+        $value = round($halstead->difficulty, 3);
+        if ($value >= 50) {
+            return '<error>' . $value . '</error>';
+        }
+        if ($value >= 10) {
+            return '<comment>' . $value . '</comment>';
+        }
+        return (string)$value;
+    }
+
+    private function formatHalsteadEffort($halstead): string
+    {
+        if (!$halstead) {
+            return '-';
+        }
+        $value = round($halstead->effort, 3);
+        if ($value >= 5000) {
+            return '<error>' . $value . '</error>';
+        }
+        if ($value >= 500) {
+            return '<comment>' . $value . '</comment>';
+        }
+        return (string)$value;
+    }
+
+    private function formatCyclomaticComplexity($cyclomatic): string
+    {
+        if (!$cyclomatic) {
+            return '-';
+        }
+        $complexity = $cyclomatic->complexity;
+        $risk = $cyclomatic->riskLevel ?? '';
+        if ($risk === '') {
+            return (string)$complexity;
+        }
+        $riskColored = $this->colorCyclomaticRisk($risk);
+        return $complexity . ' (' . $riskColored . ')';
+    }
+
+    private function colorCyclomaticRisk(string $risk): string
+    {
+        $riskLower = strtolower($risk);
+        if ($riskLower === 'medium') {
+            return '<comment>' . $risk . '</comment>';
+        }
+        if ($riskLower === 'high') {
+            return '<error>' . $risk . '</error>';
+        }
+        return $risk;
     }
 
     /**

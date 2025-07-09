@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Business\Cognitive;
 
+use Phauthentic\CognitiveCodeAnalysis\Business\Halstead\HalsteadMetrics;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cyclomatic\CyclomaticMetrics;
 use InvalidArgumentException;
 use JsonSerializable;
 
@@ -59,6 +61,9 @@ class CognitiveMetrics implements JsonSerializable
     private ?Delta $ifNestingLevelWeightDelta = null;
     private ?Delta $elseCountWeightDelta = null;
 
+    private ?HalsteadMetrics $halstead = null;
+    private ?CyclomaticMetrics $cyclomatic = null;
+
     /**
      * @param array<string, mixed> $metrics
      */
@@ -73,6 +78,14 @@ class CognitiveMetrics implements JsonSerializable
 
         $this->setRequiredMetricProperties($metrics);
         $this->setOptionalMetricProperties($metrics);
+
+        if (isset($metrics['halstead'])) {
+            $this->halstead = new HalsteadMetrics($metrics['halstead']);
+        }
+
+        if (isset($metrics['cyclomatic_complexity'])) {
+            $this->cyclomatic = new CyclomaticMetrics($metrics['cyclomatic_complexity']);
+        }
     }
 
     /**
@@ -83,7 +96,7 @@ class CognitiveMetrics implements JsonSerializable
     {
         $missingKeys = array_diff_key($this->metrics, $metrics);
         if (!empty($missingKeys)) {
-            throw new InvalidArgumentException('Missing required keys');
+            throw new InvalidArgumentException('Missing required keys: ' . implode(', ', $missingKeys));
         }
 
         // Not pretty to set each but more efficient than using a loop and $this->metrics
@@ -410,5 +423,21 @@ class CognitiveMetrics implements JsonSerializable
     public function jsonSerialize(): array
     {
         return $this->toArray();
+    }
+
+    /**
+     * @return HalsteadMetrics|null
+     */
+    public function getHalstead(): ?HalsteadMetrics
+    {
+        return $this->halstead;
+    }
+
+    /**
+     * @return CyclomaticMetrics|null
+     */
+    public function getCyclomatic(): ?CyclomaticMetrics
+    {
+        return $this->cyclomatic;
     }
 }
