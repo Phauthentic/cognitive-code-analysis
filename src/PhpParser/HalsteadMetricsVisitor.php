@@ -42,24 +42,35 @@ class HalsteadMetricsVisitor extends NodeVisitorAbstract
      */
     public function enterNode(Node $node)
     {
-        if ($node instanceof Namespace_) {
-            $this->setCurrentNamespace($node);
-        } elseif ($node instanceof Class_) {
-            $this->setCurrentClassName($node);
-        } elseif ($node instanceof Node\Stmt\ClassMethod) {
-            $this->currentMethodName = $node->name->toString();
-            $this->methodOperators = [];
-            $this->methodOperands = [];
-        } elseif ($this->isOperator($node)) {
-            $this->addOperator($node);
-            if ($this->currentMethodName !== null) {
-                $this->methodOperators[] = $node->getType();
-            }
-        } elseif ($this->isOperand($node)) {
-            $this->addOperand($node);
-            if ($this->currentMethodName !== null) {
-                $this->methodOperands[] = $this->getOperandValue($node);
-            }
+        $result = match (true) {
+            $node instanceof Namespace_ => function () use ($node) {
+                $this->setCurrentNamespace($node);
+            },
+            $node instanceof Class_ => function () use ($node) {
+                $this->setCurrentClassName($node);
+            },
+            $node instanceof Node\Stmt\ClassMethod => function () use ($node) {
+                $this->currentMethodName = $node->name->toString();
+                $this->methodOperators = [];
+                $this->methodOperands = [];
+            },
+            $this->isOperator($node) => function () use ($node) {
+                $this->addOperator($node);
+                if ($this->currentMethodName !== null) {
+                    $this->methodOperators[] = $node->getType();
+                }
+            },
+            $this->isOperand($node) => function () use ($node) {
+                $this->addOperand($node);
+                if ($this->currentMethodName !== null) {
+                    $this->methodOperands[] = $this->getOperandValue($node);
+                }
+            },
+            default => null,
+        };
+
+        if ($result !== null) {
+            $result();
         }
     }
 
