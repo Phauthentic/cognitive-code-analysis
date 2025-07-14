@@ -6,7 +6,7 @@ Cognitive Code Analysis is an approach to understanding and improving code by fo
 
 [Source: Human Cognitive Limitations. Broad, Consistent, Clinical Application of Physiological Principles Will Require Decision Support](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5822395/)
 
-## Installation
+## Installation ⚙️
 
 ```bash
 composer require --dev phauthentic/cognitive-code-analysis
@@ -42,7 +42,7 @@ Note that this requires a version control system (VCS) to be set up, such as Git
 bin/phpcca churn <path-to-folder>
 ```
 
-## Documentation
+## Documentation 📚
 
 * [Cognitive Complexity Analysis](./docs/Cognitive-Complexity-Analysis.md#cognitive-complexity-analysis)
   * [Why bother?](./docs/Cognitive-Complexity-Analysis.md#why-bother)
@@ -56,8 +56,9 @@ bin/phpcca churn <path-to-folder>
   * [Examples](#examples)
     * [Wordpress WP_Debug_Data](#wordpress-wp_debug_data)
     * [Doctrine Paginator](#doctrine-paginator)
+  * [Reporting Issues](#reporting-issues)
 
-## Resources
+## Resources 🔗
 
 These pages and papers provide more information on cognitive limitations and readability and the impact on the business.
 
@@ -72,7 +73,7 @@ These pages and papers provide more information on cognitive limitations and rea
 * **Halstead Complexity**
   * [Halstead Complexity Measures](https://en.wikipedia.org/wiki/Halstead_complexity_measures)
 
-## Examples
+## Examples 📖
 
 ### Cognitive Metrics
 
@@ -119,7 +120,13 @@ Class: Doctrine\ORM\Tools\Pagination\Paginator
 └───────────────────────────────────────────┴────────┴───────────┴─────────┴───────────┴──────────┴───────┴────────────┴───────────┴────────────┘
 ```
 
-## License
+## Reporting Issues 🪲
+
+If you find a bug or have a feature request, please open an issue on the [GitHub repository](https://github.com/Phauthentic/cognitive-code-analysis/issues/new). 
+
+Especially the AST-parser used under the hood to analyse the code might have issues with certain code constructs, so please provide a minimal example that reproduces the issue.
+
+## License ⚖️
 
 Copyright Florian Krämer
 

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1200" height="800" xmlns="http://www.w3.org/2000/svg">
+    <style>
+        text { pointer-events: none; font-family: Arial, sans-serif; }
+        rect:hover { stroke: #000; stroke-width: 2; }
+    </style>
+    <rect x="0" y="0" width="1200" height="800" fill="#f8f9fa"/>
+    <g>
+        <text x="20" y="30" font-size="28" fill="#333">Churn Treemap</text>
+    </g>
+    <g>
+        <g><rect x="2.00" y="2.00" width="938.70" height="478.55" fill="rgb(255,0,80)" stroke="#222" stroke-width="1"/><title>Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetrics&#10;Churn: 12.252&#10;Score: 2.042</title><text x="6.00" y="20.00" font-size="13" fill="#000">Phauthentic\CognitiveCodeAnalysis\Busin…</text></g>
+<g><rect x="2.00" y="484.55" width="938.70" height="313.45" fill="rgb(21,164,80)" stroke="#222" stroke-width="1"/><title>Phauthentic\CognitiveCodeAnalysis\Command\Presentation\CognitiveMetricTextRenderer&#10;Churn: 8.06&#10;Score: 0.806</title><text x="6.00" y="502.55" font-size="13" fill="#000">Phauthentic\CognitiveCodeAnalysis\Comma…</text></g>
+<g><rect x="944.70" y="2.00" width="253.30" height="796.00" fill="rgb(0,180,80)" stroke="#222" stroke-width="1"/><title>Phauthentic\CognitiveCodeAnalysis\Business\MetricsFacade&#10;Churn: 5.544&#10;Score: 0.693</title><text x="948.70" y="20.00" font-size="13" fill="#000">Phauthentic\CognitiveCodeAnalysis\Busin…</text></g>
+    </g>
+</svg>
