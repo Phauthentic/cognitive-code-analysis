@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Business\Cyclomatic;
 
+/**
+ * @SuppressWarnings(TooManyFields)
+ */
 class CyclomaticMetrics
 {
     /**
@@ -120,6 +123,9 @@ class CyclomaticMetrics
      */
     public int $ternaryCount;
 
+    /**
+     * @param array<string, mixed> $data
+     */
     public function __construct(array $data)
     {
 

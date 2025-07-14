@@ -14,6 +14,8 @@ use PhpParser\NodeVisitorAbstract;
  * - Base complexity: 1
  * - +1 for each decision point (if, while, for, foreach, switch case, catch, etc.)
  * - +1 for each logical operator (&&, ||, and, or, xor)
+ *
+ * @SuppressWarnings(TooManyFields)
  */
 class CyclomaticComplexityVisitor extends NodeVisitorAbstract
 {

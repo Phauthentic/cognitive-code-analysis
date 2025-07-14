@@ -10,7 +10,9 @@ use PhpParser\Node\Stmt\Namespace_;
 use PhpParser\NodeVisitorAbstract;
 
 /**
- *
+ * @SuppressWarnings(PHPMD.TooManyFields)
+ * @SuppressWarnings(PHPMD.ShortVariable)
+ * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
  */
 class HalsteadMetricsVisitor extends NodeVisitorAbstract
 {
@@ -271,18 +273,6 @@ class HalsteadMetricsVisitor extends NodeVisitorAbstract
             return 0.0;
         }
         return ($n1 / 2) * ($N2 / $n2);
-    }
-
-    /**
-     * Calculate the effort required for the program.
-     *
-     * @param float $difficulty The difficulty of the program.
-     * @param float $volume The volume of the program.
-     * @return float The effort required for the program.
-     */
-    private function calculateEffort(float $difficulty, float $volume): float
-    {
-        return $difficulty * $volume;
     }
 
     /**

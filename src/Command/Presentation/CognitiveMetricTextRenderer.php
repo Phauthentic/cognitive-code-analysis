@@ -10,6 +10,8 @@ use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Output\OutputInterface;
+use Phauthentic\CognitiveCodeAnalysis\Business\Halstead\HalsteadMetrics;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cyclomatic\CyclomaticMetrics;
 
 /**
  *
@@ -191,7 +193,10 @@ class CognitiveMetricTextRenderer
             : '<info>' . $score . '</info>';
     }
 
-    private function formatHalsteadVolume($halstead): string
+    /**
+     * @param HalsteadMetrics|null $halstead
+     */
+    private function formatHalsteadVolume(?HalsteadMetrics $halstead): string
     {
         if (!$halstead) {
             return '-';
@@ -206,7 +211,10 @@ class CognitiveMetricTextRenderer
         return (string)$value;
     }
 
-    private function formatHalsteadDifficulty($halstead): string
+    /**
+     * @param HalsteadMetrics|null $halstead
+     */
+    private function formatHalsteadDifficulty(?HalsteadMetrics $halstead): string
     {
         if (!$halstead) {
             return '-';
@@ -221,7 +229,10 @@ class CognitiveMetricTextRenderer
         return (string)$value;
     }
 
-    private function formatHalsteadEffort($halstead): string
+    /**
+     * @param HalsteadMetrics|null $halstead
+     */
+    private function formatHalsteadEffort(?HalsteadMetrics $halstead): string
     {
         if (!$halstead) {
             return '-';
@@ -236,7 +247,10 @@ class CognitiveMetricTextRenderer
         return (string)$value;
     }
 
-    private function formatCyclomaticComplexity($cyclomatic): string
+    /**
+     * @param CyclomaticMetrics|null $cyclomatic
+     */
+    private function formatCyclomaticComplexity(?CyclomaticMetrics $cyclomatic): string
     {
         if (!$cyclomatic) {
             return '-';
