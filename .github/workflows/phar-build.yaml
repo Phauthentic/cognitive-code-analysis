@@ -1,0 +1,57 @@
+name: Build and Release PHAR
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-phar:
+    name: Build PHAR
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        extensions: json, fileinfo
+        tools: composer
+
+    - name: Install dependencies
+      run: composer install --no-dev --optimize-autoloader
+
+    - name: Build PHAR
+      run: |
+        composer global require humbug/box
+        ~/.composer/vendor/bin/box compile -c box.json.dist
+
+    - name: Upload PHAR artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: phpcca.phar
+        path: phpcca.phar
+
+  release:
+    name: Create Release
+    needs: build-phar
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Download PHAR artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: phpcca.phar
+
+    - name: Create GitHub Release
+      uses: ncipollo/release-action@v1
+      with:
+        artifacts: phpcca.phar
+        token: ${{ secrets.GITHUB_TOKEN }}
+        tag: ${{ github.ref_name }}
+        name: Release ${{ github.ref_name }}
+        body: |
+          This release includes the compiled PHAR file for version ${{ github.ref_name }}.
