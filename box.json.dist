@@ -1,5 +1,12 @@
 {
-    "main": "./analyse.php",
+    "main": "./bin/phpcca",
     "compression": "GZ",
-    "output": "phpcca.phar"
+    "output": "phpcca.phar",
+    "force-autodiscovery": true,
+    "files": [
+        "config.yml",
+        "composer.json",
+        "readme.md",
+        "LICENSE"
+    ]
 }
