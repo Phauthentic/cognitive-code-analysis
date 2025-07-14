@@ -8,6 +8,7 @@ use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetrics;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
+use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Output\OutputInterface;
 use Phauthentic\CognitiveCodeAnalysis\Business\Halstead\HalsteadMetrics;
@@ -19,7 +20,8 @@ use Phauthentic\CognitiveCodeAnalysis\Business\Cyclomatic\CyclomaticMetrics;
 class CognitiveMetricTextRenderer
 {
     public function __construct(
-        private readonly OutputInterface $output
+        private readonly OutputInterface $output,
+        private readonly ConfigService $configService,
     ) {
     }
 
@@ -32,12 +34,12 @@ class CognitiveMetricTextRenderer
 
     /**
      * @param CognitiveMetricsCollection $metricsCollection
-     * @param CognitiveConfig $config
      * @throws CognitiveAnalysisException
      */
-    public function render(CognitiveMetricsCollection $metricsCollection, CognitiveConfig $config): void
+    public function render(CognitiveMetricsCollection $metricsCollection): void
     {
         $groupedByClass = $metricsCollection->groupBy('class');
+        $config = $this->configService->getConfig();
 
         foreach ($groupedByClass as $className => $metrics) {
             if (count($metrics) === 0) {
@@ -132,7 +134,6 @@ class CognitiveMetricTextRenderer
             $row[$key] .= PHP_EOL . '<info>Δ -' . $delta->getValue() . '</info>';
         }
 
-        // No delta for halstead/cyclomatic
         return $row;
     }
 
@@ -150,7 +151,6 @@ class CognitiveMetricTextRenderer
             'ifCount',
             'ifNestingLevel',
             'elseCount',
-            // No keys for halstead/cyclomatic, handled separately in metricsToArray
         ];
     }
 
@@ -163,11 +163,6 @@ class CognitiveMetricTextRenderer
         $halstead = $metrics->getHalstead();
         $cyclomatic = $metrics->getCyclomatic();
 
-        $halsteadVolume = $this->formatHalsteadVolume($halstead);
-        $halsteadDifficulty = $this->formatHalsteadDifficulty($halstead);
-        $halsteadEffort = $this->formatHalsteadEffort($halstead);
-        $cyclomaticComplexity = $this->formatCyclomaticComplexity($cyclomatic);
-
         return [
             'methodName' => $metrics->getMethod(),
             'lineCount' => $metrics->getLineCount(),
@@ -179,22 +174,23 @@ class CognitiveMetricTextRenderer
             'ifNestingLevel' => $metrics->getIfNestingLevel(),
             'elseCount' => $metrics->getElseCount(),
             'score' => $this->formatScore($metrics->getScore()),
-            'halsteadVolume' => $halsteadVolume,
-            'halsteadDifficulty' => $halsteadDifficulty,
-            'halsteadEffort' => $halsteadEffort,
-            'cyclomaticComplexity' => $cyclomaticComplexity,
+            'halsteadVolume' => $this->formatHalsteadVolume($halstead),
+            'halsteadDifficulty' => $this->formatHalsteadDifficulty($halstead),
+            'halsteadEffort' => $this->formatHalsteadEffort($halstead),
+            'cyclomaticComplexity' => $this->formatCyclomaticComplexity($cyclomatic),
         ];
     }
 
     private function formatScore(float $score): string
     {
-        return $score > 0.5
+        return $score > $this->configService->getConfig()->scoreThreshold
             ? '<error>' . $score . '</error>'
             : '<info>' . $score . '</info>';
     }
 
     /**
      * @param HalsteadMetrics|null $halstead
+     * @return string
      */
     private function formatHalsteadVolume(?HalsteadMetrics $halstead): string
     {

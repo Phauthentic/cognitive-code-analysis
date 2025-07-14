@@ -81,7 +81,8 @@ class Application
 
         $this->containerBuilder->register(CognitiveMetricTextRenderer::class, CognitiveMetricTextRenderer::class)
             ->setArguments([
-                new Reference(OutputInterface::class)
+                new Reference(OutputInterface::class),
+                new Reference(ConfigService::class)
             ])
             ->setPublic(true);
 

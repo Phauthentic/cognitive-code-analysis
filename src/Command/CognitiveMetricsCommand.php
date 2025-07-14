@@ -33,10 +33,10 @@ class CognitiveMetricsCommand extends Command
     private const ARGUMENT_PATH = 'path';
 
     public function __construct(
-        private MetricsFacade $metricsFacade,
-        private CognitiveMetricTextRenderer $renderer,
-        private Baseline $baselineService,
-        private CognitiveMetricsReportHandler $reportHandler
+        readonly private MetricsFacade $metricsFacade,
+        readonly private CognitiveMetricTextRenderer $renderer,
+        readonly private Baseline $baselineService,
+        readonly private CognitiveMetricsReportHandler $reportHandler
     ) {
         parent::__construct();
     }
@@ -113,7 +113,7 @@ class CognitiveMetricsCommand extends Command
             return $this->reportHandler->handle($metricsCollection, $reportType, $reportFile);
         }
 
-        $this->renderer->render($metricsCollection, $this->metricsFacade->getConfig());
+        $this->renderer->render($metricsCollection);
 
         return Command::SUCCESS;
     }
