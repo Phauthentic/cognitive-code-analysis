@@ -4,7 +4,12 @@ on:
   push:
     tags:
       - '^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?(\+([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?$'
-
+  workflow_dispatch:
+    inputs:
+      tags:
+        description: 'Tags'
+        required: True
+        type: boolean
 jobs:
   build-phar:
     name: Build PHAR
