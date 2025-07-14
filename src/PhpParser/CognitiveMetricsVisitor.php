@@ -170,10 +170,19 @@ class CognitiveMetricsVisitor extends NodeVisitorAbstract
                 return false;
             }
 
-            $this->currentClassName = $this->currentNamespace . '\\' . $node->name->toString();
+            $fqcn = $this->currentNamespace . '\\' . $node->name->toString();
+            $this->currentClassName = $this->normalizeFqcn($fqcn);
         }
 
         return true;
+    }
+
+    /**
+     * Ensures the FQCN always starts with a backslash.
+     */
+    private function normalizeFqcn(string $fqcn): string
+    {
+        return str_starts_with($fqcn, '\\') ? $fqcn : '\\' . $fqcn;
     }
 
     public function enterNode(Node $node): void

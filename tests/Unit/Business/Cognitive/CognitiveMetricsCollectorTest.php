@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Cognitive;
 
-use Phauthentic\CognitiveCodeAnalysis\Application;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollector;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Parser;
@@ -12,19 +11,13 @@ use Phauthentic\CognitiveCodeAnalysis\Business\DirectoryScanner;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 use Phauthentic\CognitiveCodeAnalysis\Config\ConfigLoader;
 use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
-use PHPMD\Console\OutputInterface;
 use PhpParser\NodeTraverser;
 use PhpParser\ParserFactory;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use RuntimeException;
 use Symfony\Component\Config\Definition\Processor;
-use Symfony\Component\Console\Output\NullOutput;
 use Symfony\Component\Messenger\Envelope;
-use Symfony\Component\Messenger\Handler\HandlersLocator;
-use Symfony\Component\Messenger\MessageBus;
 use Symfony\Component\Messenger\MessageBusInterface;
-use Symfony\Component\Messenger\Middleware\HandleMessageMiddleware;
 
 /**
  *
