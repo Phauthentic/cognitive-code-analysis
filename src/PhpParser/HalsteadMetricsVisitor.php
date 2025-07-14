@@ -12,7 +12,6 @@ use PhpParser\NodeVisitorAbstract;
 /**
  * @SuppressWarnings(PHPMD.TooManyFields)
  * @SuppressWarnings(PHPMD.ShortVariable)
- * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
  */
 class HalsteadMetricsVisitor extends NodeVisitorAbstract
 {
