@@ -25,12 +25,10 @@ jobs:
       run: composer install --no-dev --optimize-autoloader
 
     - name: Build PHAR
-      run: |
-        composer global require humbug/box
-        ~/.composer/vendor/bin/box compile -c box.json.dist
+      run: composer build-phar
 
     - name: Upload PHAR artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: phpcca.phar
         path: phpcca.phar
@@ -42,7 +40,7 @@ jobs:
 
     steps:
     - name: Download PHAR artifact
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: phpcca.phar
 
