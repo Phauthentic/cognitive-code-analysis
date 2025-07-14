@@ -63,15 +63,14 @@ class HalsteadMetricsVisitor extends NodeVisitorAbstract
 
     private function setCurrentNamespace(Namespace_ $node): void
     {
-        $this->currentNamespace = $node->name ? $node->name->toString() : null;
+        $this->currentNamespace = $node->name instanceof \PhpParser\Node\Name ? $node->name->toString() : '';
     }
 
     private function setCurrentClassName(Class_ $node): void
     {
         $className = $node->name ? $node->name->toString() : '';
-        $fqcn = $this->currentNamespace
-            ? $this->currentNamespace . '\\' . $className
-            : $className;
+        // Always build FQCN as "namespace\class" (even if namespace is empty)
+        $fqcn = ($this->currentNamespace !== '' ? $this->currentNamespace . '\\' : '') . $className;
         $this->currentClassName = $this->normalizeFqcn($fqcn);
     }
 
@@ -110,6 +109,10 @@ class HalsteadMetricsVisitor extends NodeVisitorAbstract
             // Store metrics for the class before resetting
             $this->storeClassMetrics();
             $this->resetMetrics();
+        }
+
+        if ($node instanceof Namespace_) {
+            $this->currentNamespace = '';
         }
     }
 

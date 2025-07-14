@@ -50,22 +50,8 @@ class Parser
         $methodMetrics = $this->cognitiveMetricsVisitor->getMethodMetrics();
         $this->cognitiveMetricsVisitor->resetValues();
 
-        $cyclomatic = $this->cyclomaticComplexityVisitor->getComplexitySummary();
-        foreach ($cyclomatic['methods'] as $method => $complexity) {
-            $methodMetrics[$method]['cyclomatic_complexity'] = $complexity;
-        }
-
-        $halstead = $this->halsteadMetricsVisitor->getMetrics();
-//dd(array_keys($methodMetrics));
-//dd(array_keys($halstead['methods']));
-//dd(array_diff(array_keys($halstead['methods']), array_keys($methodMetrics)));
-        foreach ($halstead['methods'] as $method => $metrics) {
-            if (!isset( $methodMetrics[$method])) {
-                //dd( $methodMetrics[$method]);
-                //dd($method);
-            }
-            $methodMetrics[$method]['halstead'] = $metrics;
-        }
+        $methodMetrics = $this->getCyclomaticComplexityVisitor($methodMetrics);
+        $methodMetrics = $this->getHalsteadMetricsVisitor($methodMetrics);
 
         return $methodMetrics;
     }
@@ -86,5 +72,33 @@ class Parser
         }
 
         $this->traverser->traverse($ast);
+    }
+
+    /**
+     * @param array<string, array<string, int>> $methodMetrics
+     * @return array<string, array<string, int>>
+     */
+    private function getHalsteadMetricsVisitor(array $methodMetrics): array
+    {
+        $halstead = $this->halsteadMetricsVisitor->getMetrics();
+        foreach ($halstead['methods'] as $method => $metrics) {
+            $methodMetrics[$method]['halstead'] = $metrics;
+        }
+
+        return $methodMetrics;
+    }
+
+    /**
+     * @param array<string, array<string, int>> $methodMetrics
+     * @return array<string, array<string, int>>
+     */
+    private function getCyclomaticComplexityVisitor(array $methodMetrics): array
+    {
+        $cyclomatic = $this->cyclomaticComplexityVisitor->getComplexitySummary();
+        foreach ($cyclomatic['methods'] as $method => $complexity) {
+            $methodMetrics[$method]['cyclomatic_complexity'] = $complexity;
+        }
+
+        return $methodMetrics;
     }
 }

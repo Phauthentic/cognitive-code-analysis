@@ -6,7 +6,6 @@ namespace Phauthentic\CognitiveCodeAnalysis\Business\Cyclomatic;
 
 class CyclomaticMetrics
 {
-    
     /**
      * The cyclomatic complexity value.
      * @var int
@@ -123,7 +122,7 @@ class CyclomaticMetrics
 
     public function __construct(array $data)
     {
-        
+
         $this->complexity = $data['complexity'] ?? 1;
         $this->riskLevel = (string)($data['risk_level'] ?? $data['riskLevel'] ?? 'unknown');
         $this->totalCount = $data['totalCount'] ?? $data['breakdown']['total'] ?? 0;
