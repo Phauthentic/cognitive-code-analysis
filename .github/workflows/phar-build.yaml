@@ -1,12 +1,10 @@
-name: Build and Release PHAR
+name: 'Build and Release PHAR'
 
 on:
-  workflow_dispatch:
-    inputs:
-      tags:
-        description: 'Tags'
-        required: True
-        type: boolean
+  push:
+    tags:
+      - '*'
+
 jobs:
   build-phar:
     name: Build PHAR
@@ -54,3 +52,4 @@ jobs:
         tag: ${{ github.ref_name }}
         name: Release ${{ github.ref_name }}
         draft: true
+        generateReleaseNotes: true
