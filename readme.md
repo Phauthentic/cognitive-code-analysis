@@ -70,7 +70,9 @@ These pages and papers provide more information on cognitive limitations and rea
   * [Code Readability Testing, an Empirical Study](https://www.researchgate.net/publication/299412540_Code_Readability_Testing_an_Empirical_Study) by Todd Sedano.
   * [An Empirical Validation of Cognitive Complexity as a Measure of Source Code Understandability](https://arxiv.org/pdf/2007.12520) by Marvin Muñoz Barón, Marvin Wyrich, and Stefan Wagner.
 * **Halstead Complexity**
-  * [Halstead Complexity Measures](https://en.wikipedia.org/wiki/Halstead_complexity_measures)
+  * [Halstead Complexity](https://en.wikipedia.org/wiki/Halstead_complexity_measures)
+* **Cyclomatic Complexity**
+  * [Cyclomatic Complexity](https://en.wikipedia.org/wiki/Cyclomatic_complexity)
 
 ## Examples
 
