@@ -87,7 +87,7 @@ class CognitiveMetricTextRenderer
      */
     private function getTableHeaders(): array
     {
-        return [
+        $fields = [
             "Method Name",
             "Lines",
             "Arguments",
@@ -98,11 +98,19 @@ class CognitiveMetricTextRenderer
             "If Nesting\nLevel",
             "Else",
             "Cognitive\nComplexity",
-            "Halstead\nVolume",
-            "Halstead\nDifficulty",
-            "Halstead\nEffort",
-            "Cyclomatic\nComplexity"
         ];
+
+        if ($this->configService->getConfig()->showHalsteadComplexity) {
+            $fields[] = "Halstead\nVolume";
+            $fields[] = "Halstead\nDifficulty";
+            $fields[] = "Halstead\nEffort";
+        }
+
+        if ($this->configService->getConfig()->showCyclomaticComplexity) {
+            $fields[] = "Cyclomatic\nComplexity";
+        }
+
+        return $fields;
     }
 
     /**
@@ -163,7 +171,7 @@ class CognitiveMetricTextRenderer
         $halstead = $metrics->getHalstead();
         $cyclomatic = $metrics->getCyclomatic();
 
-        return [
+        $fields = [
             'methodName' => $metrics->getMethod(),
             'lineCount' => $metrics->getLineCount(),
             'argCount' => $metrics->getArgCount(),
@@ -174,11 +182,19 @@ class CognitiveMetricTextRenderer
             'ifNestingLevel' => $metrics->getIfNestingLevel(),
             'elseCount' => $metrics->getElseCount(),
             'score' => $this->formatScore($metrics->getScore()),
-            'halsteadVolume' => $this->formatHalsteadVolume($halstead),
-            'halsteadDifficulty' => $this->formatHalsteadDifficulty($halstead),
-            'halsteadEffort' => $this->formatHalsteadEffort($halstead),
-            'cyclomaticComplexity' => $this->formatCyclomaticComplexity($cyclomatic),
         ];
+
+        if ($this->configService->getConfig()->showHalsteadComplexity) {
+            $fields['halsteadVolume'] = $this->formatHalsteadVolume($halstead);
+            $fields['halsteadDifficulty'] = $this->formatHalsteadDifficulty($halstead);
+            $fields['halsteadEffort'] = $this->formatHalsteadEffort($halstead);
+        }
+
+        if ($this->configService->getConfig()->showCyclomaticComplexity) {
+            $fields['cyclomaticComplexity'] = $this->formatCyclomaticComplexity($cyclomatic);
+        }
+
+        return $fields;
     }
 
     private function formatScore(float $score): string

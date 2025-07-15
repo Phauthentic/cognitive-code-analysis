@@ -3,6 +3,8 @@ cognitive:
   excludePatterns:
   scoreThreshold: 0.5
   showOnlyMethodsExceedingThreshold: false
+  showHalsteadComplexity: false
+  showCyclomaticComplexity: false
   metrics:
     lineCount:
       threshold: 60

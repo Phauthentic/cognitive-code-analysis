@@ -7,7 +7,7 @@ namespace Phauthentic\CognitiveCodeAnalysis\Config;
 use InvalidArgumentException;
 
 /**
- *
+ * @SuppressWarnings(BooleanArgumentFlag)
  */
 class CognitiveConfig
 {
@@ -21,7 +21,9 @@ class CognitiveConfig
         public readonly array $excludePatterns,
         public readonly array $metrics,
         public readonly bool $showOnlyMethodsExceedingThreshold,
-        public readonly float $scoreThreshold
+        public readonly float $scoreThreshold,
+        public readonly bool $showHalsteadComplexity = false,
+        public readonly bool $showCyclomaticComplexity = false,
     ) {
     }
 }

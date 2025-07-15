@@ -15,21 +15,22 @@ class ConfigFactory
      */
     public function fromArray(array $config): CognitiveConfig
     {
-        $metrics = [];
-        foreach ($config['cognitive']['metrics'] as $name => $metric) {
-            $metrics[$name] = new MetricsConfig(
+        $metrics = array_map(function ($metric) {
+            return new MetricsConfig(
                 $metric['threshold'],
                 $metric['scale'],
                 $metric['enabled']
             );
-        }
+        }, $config['cognitive']['metrics']);
 
         return new CognitiveConfig(
-            $config['cognitive']['excludeFilePatterns'],
-            $config['cognitive']['excludePatterns'],
-            $metrics,
-            $config['cognitive']['showOnlyMethodsExceedingThreshold'],
-            $config['cognitive']['scoreThreshold']
+            excludeFilePatterns: $config['cognitive']['excludeFilePatterns'],
+            excludePatterns: $config['cognitive']['excludePatterns'],
+            metrics: $metrics,
+            showOnlyMethodsExceedingThreshold: $config['cognitive']['showOnlyMethodsExceedingThreshold'],
+            scoreThreshold: $config['cognitive']['scoreThreshold'],
+            showHalsteadComplexity: $config['cognitive']['showHalsteadComplexity'] ?? false,
+            showCyclomaticComplexity: $config['cognitive']['showCyclomaticComplexity'] ?? false
         );
     }
 }
