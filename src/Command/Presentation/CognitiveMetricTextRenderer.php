@@ -87,7 +87,7 @@ class CognitiveMetricTextRenderer
      */
     private function getTableHeaders(): array
     {
-        return [
+        $fields = [
             "Method Name",
             "Lines",
             "Arguments",
@@ -98,11 +98,40 @@ class CognitiveMetricTextRenderer
             "If Nesting\nLevel",
             "Else",
             "Cognitive\nComplexity",
-            "Halstead\nVolume",
-            "Halstead\nDifficulty",
-            "Halstead\nEffort",
-            "Cyclomatic\nComplexity"
         ];
+
+        $fields = $this->addHalsteadHeaders($fields);
+        $fields = $this->addCyclomaticHeaders($fields);
+
+        return $fields;
+    }
+
+    /**
+     * @param array<string> $fields
+     * @return array<string>
+     */
+    private function addHalsteadHeaders(array $fields): array
+    {
+        if ($this->configService->getConfig()->showHalsteadComplexity) {
+            $fields[] = "Halstead\nVolume";
+            $fields[] = "Halstead\nDifficulty";
+            $fields[] = "Halstead\nEffort";
+        }
+
+        return $fields;
+    }
+
+    /**
+     * @param array<string> $fields
+     * @return array<string>
+     */
+    private function addCyclomaticHeaders(array $fields): array
+    {
+        if ($this->configService->getConfig()->showCyclomaticComplexity) {
+            $fields[] = "Cyclomatic\nComplexity";
+        }
+
+        return $fields;
     }
 
     /**
@@ -160,10 +189,7 @@ class CognitiveMetricTextRenderer
      */
     private function metricsToArray(CognitiveMetrics $metrics): array
     {
-        $halstead = $metrics->getHalstead();
-        $cyclomatic = $metrics->getCyclomatic();
-
-        return [
+        $fields = [
             'methodName' => $metrics->getMethod(),
             'lineCount' => $metrics->getLineCount(),
             'argCount' => $metrics->getArgCount(),
@@ -174,11 +200,42 @@ class CognitiveMetricTextRenderer
             'ifNestingLevel' => $metrics->getIfNestingLevel(),
             'elseCount' => $metrics->getElseCount(),
             'score' => $this->formatScore($metrics->getScore()),
-            'halsteadVolume' => $this->formatHalsteadVolume($halstead),
-            'halsteadDifficulty' => $this->formatHalsteadDifficulty($halstead),
-            'halsteadEffort' => $this->formatHalsteadEffort($halstead),
-            'cyclomaticComplexity' => $this->formatCyclomaticComplexity($cyclomatic),
         ];
+
+        $fields = $this->addHalsteadFields($fields, $metrics->getHalstead());
+        $fields = $this->addCyclomaticFields($fields, $metrics->getCyclomatic());
+
+        return $fields;
+    }
+
+    /**
+     * @param array<string, mixed> $fields
+     * @param HalsteadMetrics|null $halstead
+     * @return array<string, mixed>
+     */
+    private function addHalsteadFields(array $fields, ?HalsteadMetrics $halstead): array
+    {
+        if ($this->configService->getConfig()->showHalsteadComplexity) {
+            $fields['halsteadVolume'] = $this->formatHalsteadVolume($halstead);
+            $fields['halsteadDifficulty'] = $this->formatHalsteadDifficulty($halstead);
+            $fields['halsteadEffort'] = $this->formatHalsteadEffort($halstead);
+        }
+
+        return $fields;
+    }
+
+    /**
+     * @param array<string, mixed> $fields
+     * @param CyclomaticMetrics|null $cyclomatic
+     * @return array<string, mixed>
+     */
+    private function addCyclomaticFields(array $fields, ?CyclomaticMetrics $cyclomatic): array
+    {
+        if ($this->configService->getConfig()->showCyclomaticComplexity) {
+            $fields['cyclomaticComplexity'] = $this->formatCyclomaticComplexity($cyclomatic);
+        }
+
+        return $fields;
     }
 
     private function formatScore(float $score): string
@@ -188,28 +245,21 @@ class CognitiveMetricTextRenderer
             : '<info>' . $score . '</info>';
     }
 
-    /**
-     * @param HalsteadMetrics|null $halstead
-     * @return string
-     */
     private function formatHalsteadVolume(?HalsteadMetrics $halstead): string
     {
         if (!$halstead) {
             return '-';
         }
+
         $value = round($halstead->getVolume(), 3);
-        if ($value >= 1000) {
-            return '<error>' . $value . '</error>';
-        }
-        if ($value >= 100) {
-            return '<comment>' . $value . '</comment>';
-        }
-        return (string)$value;
+
+        return match (true) {
+            $value >= 1000 => '<error>' . $value . '</error>',
+            $value >= 100 => '<comment>' . $value . '</comment>',
+            default => (string)$value,
+        };
     }
 
-    /**
-     * @param HalsteadMetrics|null $halstead
-     */
     private function formatHalsteadDifficulty(?HalsteadMetrics $halstead): string
     {
         if (!$halstead) {
@@ -225,9 +275,6 @@ class CognitiveMetricTextRenderer
         return (string)$value;
     }
 
-    /**
-     * @param HalsteadMetrics|null $halstead
-     */
     private function formatHalsteadEffort(?HalsteadMetrics $halstead): string
     {
         if (!$halstead) {
@@ -243,9 +290,6 @@ class CognitiveMetricTextRenderer
         return (string)$value;
     }
 
-    /**
-     * @param CyclomaticMetrics|null $cyclomatic
-     */
     private function formatCyclomaticComplexity(?CyclomaticMetrics $cyclomatic): string
     {
         if (!$cyclomatic) {
@@ -262,14 +306,11 @@ class CognitiveMetricTextRenderer
 
     private function colorCyclomaticRisk(string $risk): string
     {
-        $riskLower = strtolower($risk);
-        if ($riskLower === 'medium') {
-            return '<comment>' . $risk . '</comment>';
-        }
-        if ($riskLower === 'high') {
-            return '<error>' . $risk . '</error>';
-        }
-        return $risk;
+        return match (strtolower($risk)) {
+            'medium' => '<comment>' . $risk . '</comment>',
+            'high' => '<error>' . $risk . '</error>',
+            default => $risk,
+        };
     }
 
     /**

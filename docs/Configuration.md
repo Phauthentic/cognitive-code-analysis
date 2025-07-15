@@ -67,3 +67,15 @@ cognitive:
         threshold: 1
         scale: 1.0
 ```
+
+## Showing additional metrics
+
+You can show the Halstead Complexity and the Cyclomatic Complexity in the output by setting the following configuration options to `true`, the default is `false`.
+
+This can be useful to get a better understanding of the complexity of your code. Keep in mind that each of them measures a different aspect of complexity, so it is recommended to use them in conjunction with cognitive complexity.
+
+```yaml
+cognitive:
+  showHalsteadComplexity: false
+  showCyclomaticComplexity: false
+```

@@ -38,7 +38,7 @@ class CyclomaticComplexityVisitor extends NodeVisitorAbstract
     private string $currentClassName = '';
     private string $currentMethod = '';
 
-    // Complexity counters for current method
+    // Complexity counters for the current method
     private int $currentMethodComplexity = 1; // Base complexity
     private int $ifCount = 0;
     private int $elseIfCount = 0;
@@ -112,9 +112,6 @@ class CyclomaticComplexityVisitor extends NodeVisitorAbstract
         }
     }
 
-    /**
-     * Ensures the FQCN always starts with a backslash.
-     */
     private function normalizeFqcn(string $fqcn): string
     {
         return str_starts_with($fqcn, '\\') ? $fqcn : '\\' . $fqcn;
