@@ -58,7 +58,9 @@ class CognitiveMetricTextRenderer
                 $filename = $metric->getFileName();
             }
 
-            $this->renderTable((string)$className, $rows, $filename);
+            if (count($rows) > 0) {
+                $this->renderTable((string)$className, $rows, $filename);
+            }
         }
     }
 
@@ -266,13 +268,12 @@ class CognitiveMetricTextRenderer
             return '-';
         }
         $value = round($halstead->difficulty, 3);
-        if ($value >= 50) {
-            return '<error>' . $value . '</error>';
-        }
-        if ($value >= 10) {
-            return '<comment>' . $value . '</comment>';
-        }
-        return (string)$value;
+
+        return match (true) {
+            $value >= 50 => '<error>' . $value . '</error>',
+            $value >= 10 => '<comment>' . $value . '</comment>',
+            default => (string)$value,
+        };
     }
 
     private function formatHalsteadEffort(?HalsteadMetrics $halstead): string
@@ -281,13 +282,12 @@ class CognitiveMetricTextRenderer
             return '-';
         }
         $value = round($halstead->effort, 3);
-        if ($value >= 5000) {
-            return '<error>' . $value . '</error>';
-        }
-        if ($value >= 500) {
-            return '<comment>' . $value . '</comment>';
-        }
-        return (string)$value;
+
+        return match (true) {
+            $value >= 5000 => '<error>' . $value . '</error>',
+            $value >= 500 => '<comment>' . $value . '</comment>',
+            default => (string)$value,
+        };
     }
 
     private function formatCyclomaticComplexity(?CyclomaticMetrics $cyclomatic): string
