@@ -170,20 +170,7 @@ class Application
             $this->get(OutputInterface::class)
         );
 
-        // Set up event handlers locator
-        $handlersLocator = new HandlersLocator([
-            SourceFilesFound::class => [
-                $progressbar,
-                $verbose
-            ],
-            FileProcessed::class => [
-                $progressbar,
-                $verbose
-            ],
-            ParserFailed::class => [
-                new ParserErrorHandler($this->get(OutputInterface::class))
-            ],
-        ]);
+        $handlersLocator = $this->setUpEventHandlersLocator($progressbar, $verbose);
 
         $messageBus = new MessageBus([
             new HandleMessageMiddleware($handlersLocator),
@@ -261,5 +248,27 @@ class Application
     public function getContainer(): ContainerBuilder
     {
         return $this->containerBuilder;
+    }
+
+    /**
+     * @param ProgressBarHandler $progressbar
+     * @param VerboseHandler $verbose
+     * @return HandlersLocator
+     */
+    private function setUpEventHandlersLocator(ProgressBarHandler $progressbar, VerboseHandler $verbose): HandlersLocator
+    {
+        return new HandlersLocator([
+            SourceFilesFound::class => [
+                $progressbar,
+                $verbose
+            ],
+            FileProcessed::class => [
+                $progressbar,
+                $verbose
+            ],
+            ParserFailed::class => [
+                new ParserErrorHandler($this->get(OutputInterface::class))
+            ],
+        ]);
     }
 }
