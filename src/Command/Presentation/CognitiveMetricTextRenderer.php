@@ -17,7 +17,7 @@ use Phauthentic\CognitiveCodeAnalysis\Business\Cyclomatic\CyclomaticMetrics;
 /**
  *
  */
-class CognitiveMetricTextRenderer
+class CognitiveMetricTextRenderer implements CognitiveMetricTextRendererInterface
 {
     public function __construct(
         private readonly OutputInterface $output,

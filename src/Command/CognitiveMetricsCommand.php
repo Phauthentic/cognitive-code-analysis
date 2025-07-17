@@ -9,11 +9,12 @@ use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Baseline;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
 use Phauthentic\CognitiveCodeAnalysis\Business\MetricsFacade;
 use Phauthentic\CognitiveCodeAnalysis\Command\Handler\CognitiveMetricsReportHandler;
-use Phauthentic\CognitiveCodeAnalysis\Command\Presentation\CognitiveMetricTextRenderer;
+use Phauthentic\CognitiveCodeAnalysis\Command\Presentation\CognitiveMetricTextRendererInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
@@ -34,7 +35,7 @@ class CognitiveMetricsCommand extends Command
 
     public function __construct(
         readonly private MetricsFacade $metricsFacade,
-        readonly private CognitiveMetricTextRenderer $renderer,
+        readonly private CognitiveMetricTextRendererInterface $renderer,
         readonly private Baseline $baselineService,
         readonly private CognitiveMetricsReportHandler $reportHandler
     ) {
@@ -69,7 +70,6 @@ class CognitiveMetricsCommand extends Command
                 shortcut: 'r',
                 mode: InputArgument::OPTIONAL,
                 description: 'Type of report to generate (json, csv, html).',
-                suggestedValues: ['json', 'csv', 'html']
             )
             ->addOption(
                 name: self::OPTION_REPORT_FILE,
