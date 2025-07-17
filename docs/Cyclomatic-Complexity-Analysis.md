@@ -49,3 +49,16 @@ The calculator counts the following complexity factors:
 4. **Extract conditions**: Move complex conditions to separate methods
 5. **Use strategy pattern**: Replace complex switch statements
 6. **Limit logical operators**: Avoid deeply nested AND/OR conditions
+
+## How Are Cyclomatic Metrics Used in This Tool?
+
+Cyclomatic complexity is calculated for each class and method in your codebase. The results are shown alongside other metrics to help you identify complex, hard-to-test, or risky code.
+
+To enable cyclomatic complexity in the output, set the following in your configuration file:
+
+```yaml
+cognitive:
+  showCyclomaticComplexity: true
+```
+
+When enabled, the tool will display cyclomatic complexity scores in the analysis report, allowing you to spot methods and classes that may need refactoring or additional testing.
