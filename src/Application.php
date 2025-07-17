@@ -24,6 +24,7 @@ use Phauthentic\CognitiveCodeAnalysis\Command\Handler\ChurnReportHandler;
 use Phauthentic\CognitiveCodeAnalysis\Command\Handler\CognitiveMetricsReportHandler;
 use Phauthentic\CognitiveCodeAnalysis\Command\Presentation\ChurnTextRenderer;
 use Phauthentic\CognitiveCodeAnalysis\Command\Presentation\CognitiveMetricTextRenderer;
+use Phauthentic\CognitiveCodeAnalysis\Command\Presentation\CognitiveMetricTextRendererInterface;
 use Phauthentic\CognitiveCodeAnalysis\Config\ConfigLoader;
 use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
 use PhpParser\NodeTraverser;
@@ -58,6 +59,11 @@ class Application
 
     private function registerServices(): void
     {
+        $outputClass = getenv('APP_ENV') === 'test' ? NullOutput::class : ConsoleOutput::class;
+
+        $this->containerBuilder->register(OutputInterface::class, $outputClass)
+            ->setPublic(true);
+
         $this->containerBuilder->register(ChangeCounterFactory::class, ChangeCounterFactory::class)
             ->setPublic(true);
 
@@ -79,7 +85,7 @@ class Application
             ])
             ->setPublic(true);
 
-        $this->containerBuilder->register(CognitiveMetricTextRenderer::class, CognitiveMetricTextRenderer::class)
+        $this->containerBuilder->register(CognitiveMetricTextRendererInterface::class, CognitiveMetricTextRenderer::class)
             ->setArguments([
                 new Reference(OutputInterface::class),
                 new Reference(ConfigService::class)
@@ -170,20 +176,7 @@ class Application
             $this->get(OutputInterface::class)
         );
 
-        // Set up event handlers locator
-        $handlersLocator = new HandlersLocator([
-            SourceFilesFound::class => [
-                $progressbar,
-                $verbose
-            ],
-            FileProcessed::class => [
-                $progressbar,
-                $verbose
-            ],
-            ParserFailed::class => [
-                new ParserErrorHandler($this->get(OutputInterface::class))
-            ],
-        ]);
+        $handlersLocator = $this->setUpEventHandlersLocator($progressbar, $verbose);
 
         $messageBus = new MessageBus([
             new HandleMessageMiddleware($handlersLocator),
@@ -220,7 +213,7 @@ class Application
         $this->containerBuilder->register(CognitiveMetricsCommand::class, CognitiveMetricsCommand::class)
             ->setArguments([
                 new Reference(MetricsFacade::class),
-                new Reference(CognitiveMetricTextRenderer::class),
+                new Reference(CognitiveMetricTextRendererInterface::class),
                 new Reference(Baseline::class),
                 new Reference(CognitiveMetricsReportHandler::class),
             ])
@@ -261,5 +254,27 @@ class Application
     public function getContainer(): ContainerBuilder
     {
         return $this->containerBuilder;
+    }
+
+    /**
+     * @param ProgressBarHandler $progressbar
+     * @param VerboseHandler $verbose
+     * @return HandlersLocator
+     */
+    private function setUpEventHandlersLocator(ProgressBarHandler $progressbar, VerboseHandler $verbose): HandlersLocator
+    {
+        return new HandlersLocator([
+            SourceFilesFound::class => [
+                $progressbar,
+                $verbose
+            ],
+            FileProcessed::class => [
+                $progressbar,
+                $verbose
+            ],
+            ParserFailed::class => [
+                new ParserErrorHandler($this->get(OutputInterface::class))
+            ],
+        ]);
     }
 }
