@@ -17,12 +17,15 @@ jobs:
     - name: Setup PHP
       uses: shivammathur/setup-php@v2
       with:
-        php-version: '8.2'
+        php-version: '8.4'
         extensions: json, fileinfo
         tools: composer
 
     - name: Install dependencies
       run: composer install --no-dev --optimize-autoloader
+
+    - name: Inject version from tag
+      run: sed -i "s/public const VERSION = .*/public const VERSION = '\${{ github.ref_name }}';/" src/Application.php
 
     - name: Build PHAR
       run: composer build-phar
