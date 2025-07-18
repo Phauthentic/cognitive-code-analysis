@@ -1,8 +1,12 @@
 {
-    "main": "./bin/phpcca",
     "compression": "GZ",
     "output": "phpcca.phar",
     "force-autodiscovery": true,
+    "compactors": [
+        "KevinGH\\Box\\Compactor\\Json",
+        "KevinGH\\Box\\Compactor\\Php",
+        "KevinGH\\Box\\Compactor\\PhpScoper"
+    ],
     "files": [
         "config.yml",
         "composer.json",

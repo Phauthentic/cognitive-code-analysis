@@ -231,6 +231,10 @@ class Application
     private function configureApplication(): void
     {
         $this->containerBuilder->register(SymfonyApplication::class, SymfonyApplication::class)
+            ->setArguments([
+                'Cognitive Code Analysis',
+                '1.3.1'
+            ])
             ->setPublic(true)
             ->addMethodCall('add', [new Reference(CognitiveMetricsCommand::class)])
             ->addMethodCall('add', [new Reference(ChurnCommand::class)]);
