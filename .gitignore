@@ -10,4 +10,4 @@
 .env
 infection.log
 phive.phar
-cognitive-analysis.phar
+phpcca.phar
