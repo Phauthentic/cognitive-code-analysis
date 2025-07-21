@@ -31,7 +31,7 @@ jobs:
       run: |
         mkdir -p tools
         curl -Ls https://github.com/box-project/box/releases/download/4.6.6/box.phar -o tools/box
-        chmod +x tools/box.phar
+        chmod +x tools/box
 
     - name: Build PHAR
       run: composer build-phar
