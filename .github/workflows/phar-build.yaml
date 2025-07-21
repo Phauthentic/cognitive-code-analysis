@@ -25,7 +25,7 @@ jobs:
       run: composer install --no-dev --optimize-autoloader
 
     - name: Inject version from tag
-      run: sed -i "s/public const VERSION = .*/public const VERSION = '\${{ github.ref_name }}';/" src/Application.php
+      run: sed -i "s/public const VERSION = .*/public const VERSION = '${{ github.ref_name }}';/" src/Application.php
 
     - name: Build PHAR
       run: composer build-phar
