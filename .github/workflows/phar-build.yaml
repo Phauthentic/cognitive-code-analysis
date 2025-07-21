@@ -25,9 +25,10 @@ jobs:
       run: composer install --no-dev --optimize-autoloader
 
     - name: Inject version from tag
-      run: |
-        VERSION=$(echo "${{ github.ref_name }}" | sed 's/^\\//')
-        sed -i "s/public const VERSION = .*/public const VERSION = '$VERSION';/" src/Application.php
+      run: sed -i "s/public const VERSION = .*/public const VERSION = '${{ github.ref_name }}';/" src/Application.php
+
+    - name: Install Box
+      run: curl -Ls https://github.com/box-project/box/releases/download/4.6.6/box.phar -o tools/box
 
     - name: Build PHAR
       run: composer build-phar
