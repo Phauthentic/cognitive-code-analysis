@@ -49,6 +49,8 @@ use Symfony\Component\Messenger\Middleware\HandleMessageMiddleware;
  */
 class Application
 {
+    public const VERSION = '1.3.0';
+
     private ContainerBuilder $containerBuilder;
 
     public function __construct()
@@ -231,6 +233,10 @@ class Application
     private function configureApplication(): void
     {
         $this->containerBuilder->register(SymfonyApplication::class, SymfonyApplication::class)
+            ->setArguments([
+                'Cognitive Code Analysis',
+                self::VERSION
+            ])
             ->setPublic(true)
             ->addMethodCall('add', [new Reference(CognitiveMetricsCommand::class)])
             ->addMethodCall('add', [new Reference(ChurnCommand::class)]);

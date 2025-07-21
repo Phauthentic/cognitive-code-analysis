@@ -25,10 +25,7 @@ class VerboseHandler
 
     public function __invoke(SourceFilesFound|FileProcessed $event): void
     {
-        if (
-            $this->input->hasOption(CognitiveMetricsCommand::OPTION_DEBUG)
-                && $this->input->getOption(CognitiveMetricsCommand::OPTION_DEBUG) === false
-        ) {
+        if (!$this->isDebugEnabled()) {
             return;
         }
 
@@ -61,5 +58,14 @@ class VerboseHandler
         }
 
         return round($size, 2) . ' ' . $units[$index];
+    }
+
+    /**
+     * @return bool
+     */
+    public function isDebugEnabled(): bool
+    {
+        return $this->input->hasOption(CognitiveMetricsCommand::OPTION_DEBUG)
+            && $this->input->getOption(CognitiveMetricsCommand::OPTION_DEBUG) === false;
     }
 }
