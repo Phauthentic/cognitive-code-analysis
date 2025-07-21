@@ -66,6 +66,6 @@ class VerboseHandler
     public function isDebugEnabled(): bool
     {
         return $this->input->hasOption(CognitiveMetricsCommand::OPTION_DEBUG)
-            && $this->input->getOption(CognitiveMetricsCommand::OPTION_DEBUG) === false;
+            && $this->input->getOption(CognitiveMetricsCommand::OPTION_DEBUG) === true;
     }
 }
