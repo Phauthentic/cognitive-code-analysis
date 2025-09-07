@@ -79,3 +79,17 @@ cognitive:
   showHalsteadComplexity: false
   showCyclomaticComplexity: false
 ```
+
+## Grouping Results by Class
+
+You can control how the analysis results are displayed by setting the `groupByClass` option.
+
+```yaml
+cognitive:
+  groupByClass: true
+```
+
+- **`true` (default)**: Results are grouped by class, showing all methods within each class together
+- **`false`**: Results are displayed as a flat list without grouping
+
+When `groupByClass` is enabled, the output will show separate tables for each class, making it easier to understand the complexity within specific classes. When disabled, all methods are shown in a single table sorted by their complexity score.
