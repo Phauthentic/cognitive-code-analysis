@@ -21,6 +21,11 @@ use Throwable;
  */
 class CognitiveMetricsCollector
 {
+    /**
+     * @var array<string, array<string, string>>|null Cached ignored items from the last parsing operation
+     */
+    private ?array $ignoredItems = null;
+
     public function __construct(
         protected readonly Parser $parser,
         protected readonly DirectoryScanner $directoryScanner,
@@ -82,6 +87,9 @@ class CognitiveMetricsCollector
                 $metrics = $this->parser->parse(
                     $this->getCodeFromFile($file)
                 );
+
+                // Store ignored items from the parser
+                $this->ignoredItems = $this->parser->getIgnored();
             } catch (Throwable $exception) {
                 $this->messageBus->dispatch(new ParserFailed(
                     $file,
@@ -161,5 +169,35 @@ class CognitiveMetricsCollector
     private function findSourceFiles(string $path, array $exclude = []): iterable
     {
         return $this->directoryScanner->scan([$path], ['^(?!.*\.php$).+'] + $exclude);
+    }
+
+    /**
+     * Get all ignored classes and methods from the last parsing operation.
+     *
+     * @return array<string, array<string, string>> Array with 'classes' and 'methods' keys
+     */
+    public function getIgnored(): array
+    {
+        return $this->ignoredItems ?? ['classes' => [], 'methods' => []];
+    }
+
+    /**
+     * Get ignored classes from the last parsing operation.
+     *
+     * @return array<string, string> Array of ignored class FQCNs
+     */
+    public function getIgnoredClasses(): array
+    {
+        return $this->ignoredItems['classes'] ?? [];
+    }
+
+    /**
+     * Get ignored methods from the last parsing operation.
+     *
+     * @return array<string, string> Array of ignored method keys (ClassName::methodName)
+     */
+    public function getIgnoredMethods(): array
+    {
+        return $this->ignoredItems['methods'] ?? [];
     }
 }

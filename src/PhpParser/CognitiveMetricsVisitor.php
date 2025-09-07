@@ -9,6 +9,8 @@ use PhpParser\NodeVisitorAbstract;
 
 /**
  * Node visitor to collect method metrics.
+ *
+ * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
  */
 class CognitiveMetricsVisitor extends NodeVisitorAbstract
 {
@@ -20,6 +22,13 @@ class CognitiveMetricsVisitor extends NodeVisitorAbstract
     private string $currentClassName = '';
     private string $currentMethod = '';
     private int $currentReturnCount = 0;
+
+    /**
+     * @var AnnotationVisitor|null The annotation visitor to check for ignored items
+     */
+    private ?AnnotationVisitor $annotationVisitor = null;
+
+
 
     /**
      * @var array<string, bool>
@@ -41,6 +50,14 @@ class CognitiveMetricsVisitor extends NodeVisitorAbstract
     private int $elseCount = 0;
     private int $ifCount = 0;
 
+    /**
+     * Set the annotation visitor to check for ignored items.
+     */
+    public function setAnnotationVisitor(AnnotationVisitor $annotationVisitor): void
+    {
+        $this->annotationVisitor = $annotationVisitor;
+    }
+
     public function resetValues(): void
     {
         $this->currentReturnCount = 0;
@@ -54,16 +71,58 @@ class CognitiveMetricsVisitor extends NodeVisitorAbstract
         $this->ifCount = 0;
     }
 
+    /**
+     * Create the initial metrics array for a method.
+     */
+    private function createMetricsArray(Node\Stmt\ClassMethod $node): array
+    {
+        return [
+            'lineCount' => $this->calculateLineCount($node),
+            'argCount' => $this->countMethodArguments($node),
+            'returnCount' => 0,
+            'variableCount' => 0,
+            'propertyCallCount' => 0,
+            'ifNestingLevel' => 0,
+            'elseCount' => 0,
+            'ifCount' => 0,
+        ];
+    }
+
+    /**
+     * Check if we have a valid class context for method processing.
+     */
+    private function isValidContext(): bool
+    {
+        return !empty($this->currentClassName);
+    }
+
+    /**
+     * Build the method key for the current class and method.
+     */
+    private function buildMethodKey(): string
+    {
+        return "{$this->currentClassName}::{$this->currentMethod}";
+    }
+
     private function classMethodOnEnterNode(Node $node): void
     {
-        if (!$this->isClassMethodNode($node)) {
+        // Skip methods that don't have a class or trait context (interfaces, global functions)
+        if (!$this->isClassMethodNode($node) || !$this->isValidContext()) {
             return;
+        }
+
+        // Check if this method should be ignored
+        if ($this->annotationVisitor !== null) {
+            $methodKey = $this->currentClassName . '::' . $node->name->toString();
+            if ($this->annotationVisitor->isMethodIgnored($methodKey)) {
+                return;
+            }
         }
 
         $this->initializeMethodContext($node);
         $this->resetValues();
-        $this->recordMethodMetrics($node);
         $this->trackMethodArguments($node);
+        // Note: recordMethodMetrics is now called in leaveNode to ensure currentMethod is set
     }
 
     /**
@@ -86,26 +145,6 @@ class CognitiveMetricsVisitor extends NodeVisitorAbstract
     private function initializeMethodContext(Node\Stmt\ClassMethod $node): void
     {
         $this->currentMethod = $node->name->toString();
-    }
-
-    /**
-     * Record the initial metrics for the current method.
-     *
-     * @param Node\Stmt\ClassMethod $node The class method node.
-     * @return void
-     */
-    private function recordMethodMetrics(Node\Stmt\ClassMethod $node): void
-    {
-        $this->methodMetrics["{$this->currentClassName}::{$this->currentMethod}"] = [
-            'lineCount' => $this->calculateLineCount($node),
-            'argCount' => $this->countMethodArguments($node),
-            'returnCount' => 0,
-            'variableCount' => 0,
-            'propertyCallCount' => 0,
-            'ifNestingLevel' => 0,
-            'elseCount' => 0,
-            'ifCount' => 0,
-        ];
     }
 
     /**
@@ -163,15 +202,31 @@ class CognitiveMetricsVisitor extends NodeVisitorAbstract
         }
     }
 
+    /**
+     * Check if the node is a class or trait declaration.
+     */
+    private function isClassOrTraitNode(Node $node): bool
+    {
+        return $node instanceof Node\Stmt\Class_ || $node instanceof Node\Stmt\Trait_;
+    }
+
     private function setCurrentClassOnEnterNode(Node $node): bool
     {
-        if ($node instanceof Node\Stmt\Class_) {
-            if ($node->name === null) {
-                return false;
-            }
+        if (!$this->isClassOrTraitNode($node)) {
+            return true;
+        }
 
-            $fqcn = $this->currentNamespace . '\\' . $node->name->toString();
-            $this->currentClassName = $this->normalizeFqcn($fqcn);
+        if ($node->name === null) {
+            return false;
+        }
+
+        $fqcn = $this->currentNamespace . '\\' . $node->name->toString();
+        $this->currentClassName = $this->normalizeFqcn($fqcn);
+
+        // Check if this class should be ignored
+        if ($this->annotationVisitor !== null && $this->annotationVisitor->isClassIgnored($this->currentClassName)) {
+            $this->currentClassName = ''; // Clear the class name if ignored
+            return false;
         }
 
         return true;
@@ -247,14 +302,14 @@ class CognitiveMetricsVisitor extends NodeVisitorAbstract
 
     private function trackPropertyFetch(Node\Expr\PropertyFetch $node): void
     {
-        if (
-            $node->name instanceof Node\Expr\Variable
-            || !method_exists($node->name, 'toString')
-        ) {
+        // Skip if property name is a variable or doesn't have toString method
+        if (!$node->name instanceof Node\Identifier) {
             return;
         }
 
         $property = $node->name->toString();
+
+        // Only track new properties to avoid duplicates
         if (!isset($this->accessedProperties[$property])) {
             $this->accessedProperties[$property] = true;
             $this->propertyCalls++;
@@ -283,20 +338,45 @@ class CognitiveMetricsVisitor extends NodeVisitorAbstract
         }
     }
 
+
+
     private function writeMetricsOnLeaveNode(Node $node): void
     {
-        if ($node instanceof Node\Stmt\ClassMethod) {
-            $method = "{$this->currentClassName}::{$this->currentMethod}";
-            $this->methodMetrics[$method]['returnCount'] = $this->currentReturnCount;
-            $this->methodMetrics[$method]['variableCount'] = count($this->currentVariables);
-            $this->methodMetrics[$method]['propertyCallCount'] = $this->propertyCalls;
-            $this->methodMetrics[$method]['ifCount'] = $this->ifCount;
-            $this->methodMetrics[$method]['ifNestingLevel'] = $this->maxIfNestingLevel;
-            $this->methodMetrics[$method]['elseCount'] = $this->elseCount;
-            $this->methodMetrics[$method]['lineCount'] = $node->getEndLine() - $node->getStartLine() + 1;
-            $this->methodMetrics[$method]['argCount'] = count($node->getParams());
-            $this->currentMethod = '';
+        if (!$node instanceof Node\Stmt\ClassMethod) {
+            return;
         }
+
+        // Skip methods that don't have a class or trait context (interfaces, global functions)
+        if (!$this->isValidContext()) {
+            $this->currentMethod = '';
+            return;
+        }
+
+        // Check if this method should be ignored
+        if ($this->annotationVisitor !== null) {
+            $methodKey = $this->currentClassName . '::' . $node->name->toString();
+            if ($this->annotationVisitor->isMethodIgnored($methodKey)) {
+                $this->currentMethod = '';
+                return;
+            }
+        }
+
+        // Record the method metrics if they haven't been recorded yet
+        $methodKey = $this->buildMethodKey();
+        if (!isset($this->methodMetrics[$methodKey])) {
+            $this->methodMetrics[$methodKey] = $this->createMetricsArray($node);
+        }
+
+        // Update the metrics with the collected values
+        $this->methodMetrics[$methodKey]['returnCount'] = $this->currentReturnCount;
+        $this->methodMetrics[$methodKey]['variableCount'] = count($this->currentVariables);
+        $this->methodMetrics[$methodKey]['propertyCallCount'] = $this->propertyCalls;
+        $this->methodMetrics[$methodKey]['ifCount'] = $this->ifCount;
+        $this->methodMetrics[$methodKey]['ifNestingLevel'] = $this->maxIfNestingLevel;
+        $this->methodMetrics[$methodKey]['elseCount'] = $this->elseCount;
+        $this->methodMetrics[$methodKey]['lineCount'] = $node->getEndLine() - $node->getStartLine() + 1;
+        $this->methodMetrics[$methodKey]['argCount'] = count($node->getParams());
+        $this->currentMethod = '';
     }
 
     private function checkNameSpaceOnLeaveNode(Node $node): void
@@ -308,7 +388,7 @@ class CognitiveMetricsVisitor extends NodeVisitorAbstract
 
     private function checkClassOnLeaveNode(Node $node): void
     {
-        if ($node instanceof Node\Stmt\Class_) {
+        if ($this->isClassOrTraitNode($node)) {
             $this->currentClassName = '';
         }
     }
@@ -323,6 +403,15 @@ class CognitiveMetricsVisitor extends NodeVisitorAbstract
 
     public function getMethodMetrics(): array
     {
-        return $this->methodMetrics;
+        // Filter out any incomplete metrics that might have slipped through
+        $completeMetrics = [];
+        foreach ($this->methodMetrics as $methodKey => $metrics) {
+            // Ensure the method key contains a class name and method name (not just ::method or ClassName::)
+            if (strpos($methodKey, '::') > 0 && !str_starts_with($methodKey, '::') && !str_ends_with($methodKey, '::')) {
+                $completeMetrics[$methodKey] = $metrics;
+            }
+        }
+
+        return $completeMetrics;
     }
 }

@@ -24,6 +24,7 @@ class CognitiveConfig
         public readonly float $scoreThreshold,
         public readonly bool $showHalsteadComplexity = false,
         public readonly bool $showCyclomaticComplexity = false,
+        public readonly bool $groupByClass = false,
     ) {
     }
 }

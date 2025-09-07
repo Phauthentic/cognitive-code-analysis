@@ -7,6 +7,7 @@ namespace Phauthentic\CognitiveCodeAnalysis\Command;
 use Exception;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Baseline;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsSorter;
 use Phauthentic\CognitiveCodeAnalysis\Business\MetricsFacade;
 use Phauthentic\CognitiveCodeAnalysis\Command\Handler\CognitiveMetricsReportHandler;
 use Phauthentic\CognitiveCodeAnalysis\Command\Presentation\CognitiveMetricTextRendererInterface;
@@ -30,13 +31,16 @@ class CognitiveMetricsCommand extends Command
     public const OPTION_REPORT_TYPE = 'report-type';
     public const OPTION_REPORT_FILE = 'report-file';
     public const OPTION_DEBUG = 'debug';
+    public const OPTION_SORT_BY = 'sort-by';
+    public const OPTION_SORT_ORDER = 'sort-order';
     private const ARGUMENT_PATH = 'path';
 
     public function __construct(
         readonly private MetricsFacade $metricsFacade,
         readonly private CognitiveMetricTextRendererInterface $renderer,
         readonly private Baseline $baselineService,
-        readonly private CognitiveMetricsReportHandler $reportHandler
+        readonly private CognitiveMetricsReportHandler $reportHandler,
+        readonly private CognitiveMetricsSorter $sorter
     ) {
         parent::__construct();
     }
@@ -77,6 +81,18 @@ class CognitiveMetricsCommand extends Command
                 description: 'File to write the report to.'
             )
             ->addOption(
+                name: self::OPTION_SORT_BY,
+                shortcut: 's',
+                mode: InputArgument::OPTIONAL,
+                description: 'Field to sort by (e.g., score, halstead, cyclomatic, class, method, etc.).',
+            )
+            ->addOption(
+                name: self::OPTION_SORT_ORDER,
+                mode: InputArgument::OPTIONAL,
+                description: 'Sort order: asc or desc (default: asc).',
+                default: 'asc'
+            )
+            ->addOption(
                 name: self::OPTION_DEBUG,
                 mode: InputArgument::OPTIONAL,
                 description: 'Enables debug output',
@@ -104,6 +120,20 @@ class CognitiveMetricsCommand extends Command
         $metricsCollection = $this->metricsFacade->getCognitiveMetrics($path);
 
         $this->handleBaseLine($input, $metricsCollection);
+
+        // Apply sorting if specified
+        $sortBy = $input->getOption(self::OPTION_SORT_BY);
+        $sortOrder = $input->getOption(self::OPTION_SORT_ORDER);
+
+        if ($sortBy !== null) {
+            try {
+                $metricsCollection = $this->sorter->sort($metricsCollection, $sortBy, $sortOrder);
+            } catch (\InvalidArgumentException $e) {
+                $output->writeln('<error>Sorting error: ' . $e->getMessage() . '</error>');
+                $output->writeln('<info>Available sort fields: ' . implode(', ', $this->sorter->getSortableFields()) . '</info>');
+                return Command::FAILURE;
+            }
+        }
 
         $reportType = $input->getOption(self::OPTION_REPORT_TYPE);
         $reportFile = $input->getOption(self::OPTION_REPORT_FILE);

@@ -10,11 +10,12 @@ use Countable;
 use InvalidArgumentException;
 use IteratorAggregate;
 use JsonSerializable;
+use Traversable;
 
 /**
  * CognitiveMetricsCollection class
  *
- * @implements IteratorAggregate<int, CognitiveMetrics>
+ * @implements IteratorAggregate<string, CognitiveMetrics>
  */
 class CognitiveMetricsCollection implements IteratorAggregate, Countable, JsonSerializable
 {
@@ -51,9 +52,10 @@ class CognitiveMetricsCollection implements IteratorAggregate, Countable, JsonSe
     /**
      * Get an iterator for the collection
      *
-     * @return ArrayIterator<int, CognitiveMetrics>
+     * @return Traversable<string, CognitiveMetrics>
      */
-    public function getIterator(): ArrayIterator
+    #[\ReturnTypeWillChange]
+    public function getIterator(): Traversable
     {
         return new ArrayIterator($this->metrics);
     }

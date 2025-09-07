@@ -110,4 +110,53 @@ class CognitiveMetricsCommandTest extends TestCase
             ]
         ];
     }
+
+    #[Test]
+    public function testAnalyseWithSorting(): void
+    {
+        $application = new Application();
+        $command = $application->getContainer()->get(CognitiveMetricsCommand::class);
+        $tester = new CommandTester($command);
+
+        $tester->execute([
+            'path' => __DIR__ . '/../../../src',
+            '--sort-by' => 'score',
+            '--sort-order' => 'desc',
+        ]);
+
+        $this->assertEquals(Command::SUCCESS, $tester->getStatusCode(), 'Command should succeed with sorting');
+    }
+
+    #[Test]
+    public function testAnalyseWithInvalidSortField(): void
+    {
+        $application = new Application();
+        $command = $application->getContainer()->get(CognitiveMetricsCommand::class);
+        $tester = new CommandTester($command);
+
+        $tester->execute([
+            'path' => __DIR__ . '/../../../src',
+            '--sort-by' => 'invalid-field',
+        ]);
+
+        $this->assertEquals(Command::FAILURE, $tester->getStatusCode(), 'Command should fail with invalid sort field');
+        $this->assertStringContainsString('Sorting error', $tester->getDisplay());
+    }
+
+    #[Test]
+    public function testAnalyseWithInvalidSortOrder(): void
+    {
+        $application = new Application();
+        $command = $application->getContainer()->get(CognitiveMetricsCommand::class);
+        $tester = new CommandTester($command);
+
+        $tester->execute([
+            'path' => __DIR__ . '/../../../src',
+            '--sort-by' => 'score',
+            '--sort-order' => 'invalid',
+        ]);
+
+        $this->assertEquals(Command::FAILURE, $tester->getStatusCode(), 'Command should fail with invalid sort order');
+        $this->assertStringContainsString('Sorting error', $tester->getDisplay());
+    }
 }
