@@ -30,7 +30,8 @@ class ConfigFactory
             showOnlyMethodsExceedingThreshold: $config['cognitive']['showOnlyMethodsExceedingThreshold'],
             scoreThreshold: $config['cognitive']['scoreThreshold'],
             showHalsteadComplexity: $config['cognitive']['showHalsteadComplexity'] ?? false,
-            showCyclomaticComplexity: $config['cognitive']['showCyclomaticComplexity'] ?? false
+            showCyclomaticComplexity: $config['cognitive']['showCyclomaticComplexity'] ?? false,
+            groupByClass: $config['cognitive']['groupByClass'] ?? true
         );
     }
 }

@@ -8,6 +8,7 @@ use Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChangeCounter\ChangeCounter
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChurnCalculator;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Baseline;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollector;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsSorter;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Events\FileProcessed;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Events\ParserFailed;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Events\SourceFilesFound;
@@ -95,6 +96,9 @@ class Application
             ->setPublic(true);
 
         $this->containerBuilder->register(Baseline::class, Baseline::class)
+            ->setPublic(true);
+
+        $this->containerBuilder->register(CognitiveMetricsSorter::class, CognitiveMetricsSorter::class)
             ->setPublic(true);
 
         $this->containerBuilder->register(Processor::class, Processor::class)
@@ -218,6 +222,7 @@ class Application
                 new Reference(CognitiveMetricTextRendererInterface::class),
                 new Reference(Baseline::class),
                 new Reference(CognitiveMetricsReportHandler::class),
+                new Reference(CognitiveMetricsSorter::class),
             ])
             ->setPublic(true);
 

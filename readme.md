@@ -51,6 +51,7 @@ bin/phpcca churn <path-to-folder>
   * [Metrics Collected](./docs/Cognitive-Complexity-Analysis.md#metrics-collected)
   * [Result Interpretation](./docs/Cognitive-Complexity-Analysis.md#result-interpretation)
   * [Churn - Finding Hotspots](./docs/Churn-Finding-Hotspots.md)
+  * [Sorting and Filtering](./docs/Sorting-and-Filtering.md)
   * [Configuration](./docs/Configuration.md#configuration)
     * [Tuning the calculation](./docs/Configuration.md#tuning-the-calculation) 
   * [Examples](#examples)

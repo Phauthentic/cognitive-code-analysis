@@ -87,6 +87,36 @@ class MetricsFacade
     }
 
     /**
+     * Get all ignored classes and methods from the last metrics collection.
+     *
+     * @return array<string, array<string, string>> Array with 'classes' and 'methods' keys
+     */
+    public function getIgnored(): array
+    {
+        return $this->cognitiveMetricsCollector->getIgnored();
+    }
+
+    /**
+     * Get ignored classes from the last metrics collection.
+     *
+     * @return array<string, string> Array of ignored class FQCNs
+     */
+    public function getIgnoredClasses(): array
+    {
+        return $this->cognitiveMetricsCollector->getIgnoredClasses();
+    }
+
+    /**
+     * Get ignored methods from the last metrics collection.
+     *
+     * @return array<string, string> Array of ignored method keys (ClassName::methodName)
+     */
+    public function getIgnoredMethods(): array
+    {
+        return $this->cognitiveMetricsCollector->getIgnoredMethods();
+    }
+
+    /**
      * @param array<string, array<string, mixed>> $classes
      * @throws CognitiveAnalysisException
      * @throws JsonException

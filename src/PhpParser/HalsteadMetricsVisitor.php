@@ -6,6 +6,7 @@ namespace Phauthentic\CognitiveCodeAnalysis\PhpParser;
 
 use PhpParser\Node;
 use PhpParser\Node\Stmt\Class_;
+use PhpParser\Node\Stmt\Trait_;
 use PhpParser\Node\Stmt\Namespace_;
 use PhpParser\NodeVisitorAbstract;
 
@@ -13,6 +14,7 @@ use PhpParser\NodeVisitorAbstract;
  * @SuppressWarnings(PHPMD.TooManyFields)
  * @SuppressWarnings(PHPMD.ShortVariable)
  * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
+ * @SuppressWarnings(PHPMD.CyclomaticComplexity)
  */
 class HalsteadMetricsVisitor extends NodeVisitorAbstract
 {
@@ -25,6 +27,19 @@ class HalsteadMetricsVisitor extends NodeVisitorAbstract
     private array $methodOperators = [];
     private array $methodOperands = [];
     private array $methodMetrics = [];
+
+    /**
+     * @var AnnotationVisitor|null The annotation visitor to check for ignored items
+     */
+    private ?AnnotationVisitor $annotationVisitor = null;
+
+    /**
+     * Set the annotation visitor to check for ignored items.
+     */
+    public function setAnnotationVisitor(AnnotationVisitor $annotationVisitor): void
+    {
+        $this->annotationVisitor = $annotationVisitor;
+    }
 
     /**
      * Processes each node in the abstract syntax tree (AST) as it is entered.
@@ -46,10 +61,27 @@ class HalsteadMetricsVisitor extends NodeVisitorAbstract
             $node instanceof Namespace_ => function () use ($node) {
                 $this->setCurrentNamespace($node);
             },
-            $node instanceof Class_ => function () use ($node) {
+            $node instanceof Class_ || $node instanceof Trait_ => function () use ($node) {
                 $this->setCurrentClassName($node);
+
+                // Check if this class should be ignored
+                if ($this->annotationVisitor !== null && $this->annotationVisitor->isClassIgnored($this->currentClassName)) {
+                    $this->currentClassName = null; // Clear the class name if ignored
+                }
             },
             $node instanceof Node\Stmt\ClassMethod => function () use ($node) {
+                // Skip methods that don't have a class or trait context (interfaces, global functions)
+                if (empty($this->currentClassName)) {
+                    return;
+                }
+
+                $methodKey = $this->currentClassName . '::' . $node->name->toString();
+
+                // Check if this method should be ignored
+                if ($this->annotationVisitor !== null && $this->annotationVisitor->isMethodIgnored($methodKey)) {
+                    return;
+                }
+
                 $this->currentMethodName = $node->name->toString();
                 $this->methodOperators = [];
                 $this->methodOperands = [];
@@ -79,7 +111,7 @@ class HalsteadMetricsVisitor extends NodeVisitorAbstract
         $this->currentNamespace = $node->name instanceof \PhpParser\Node\Name ? $node->name->toString() : '';
     }
 
-    private function setCurrentClassName(Class_ $node): void
+    private function setCurrentClassName(Node $node): void
     {
         $className = $node->name ? $node->name->toString() : '';
         // Always build FQCN as "namespace\class" (even if namespace is empty)

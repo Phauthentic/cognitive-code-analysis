@@ -16,6 +16,7 @@ use PhpParser\NodeVisitorAbstract;
  * - +1 for each logical operator (&&, ||, and, or, xor)
  *
  * @SuppressWarnings(TooManyFields)
+ * @SuppressWarnings(ExcessiveClassComplexity)
  */
 class CyclomaticComplexityVisitor extends NodeVisitorAbstract
 {
@@ -38,6 +39,11 @@ class CyclomaticComplexityVisitor extends NodeVisitorAbstract
     private string $currentClassName = '';
     private string $currentMethod = '';
 
+    /**
+     * @var AnnotationVisitor|null The annotation visitor to check for ignored items
+     */
+    private ?AnnotationVisitor $annotationVisitor = null;
+
     // Complexity counters for the current method
     private int $currentMethodComplexity = 1; // Base complexity
     private int $ifCount = 0;
@@ -55,6 +61,14 @@ class CyclomaticComplexityVisitor extends NodeVisitorAbstract
     private int $logicalOrCount = 0;
     private int $logicalXorCount = 0;
     private int $ternaryCount = 0;
+
+    /**
+     * Set the annotation visitor to check for ignored items.
+     */
+    public function setAnnotationVisitor(AnnotationVisitor $annotationVisitor): void
+    {
+        $this->annotationVisitor = $annotationVisitor;
+    }
 
     public function resetMethodCounters(): void
     {
@@ -103,11 +117,18 @@ class CyclomaticComplexityVisitor extends NodeVisitorAbstract
 
     private function setCurrentClassOnEnterNode(Node $node): void
     {
-        if ($node instanceof Node\Stmt\Class_) {
+        if ($node instanceof Node\Stmt\Class_ || $node instanceof Node\Stmt\Trait_) {
             if ($node->name !== null) {
                 $fqcn = $this->currentNamespace . '\\' . $node->name->toString();
                 $this->currentClassName = $this->normalizeFqcn($fqcn);
-                $this->classComplexity[$this->currentClassName] = 1; // Base complexity for class
+
+                // Check if this class should be ignored
+                if ($this->annotationVisitor !== null && $this->annotationVisitor->isClassIgnored($this->currentClassName)) {
+                    $this->currentClassName = ''; // Clear the class name if ignored
+                    return;
+                }
+
+                $this->classComplexity[$this->currentClassName] = 1; // Base complexity for class or trait
             }
         }
     }
@@ -120,6 +141,18 @@ class CyclomaticComplexityVisitor extends NodeVisitorAbstract
     private function handleClassMethodEnter(Node $node): void
     {
         if ($node instanceof Node\Stmt\ClassMethod) {
+            // Skip methods that don't have a class or trait context (interfaces, global functions)
+            if (empty($this->currentClassName)) {
+                return;
+            }
+
+            $methodKey = $this->currentClassName . '::' . $node->name->toString();
+
+            // Check if this method should be ignored
+            if ($this->annotationVisitor !== null && $this->annotationVisitor->isMethodIgnored($methodKey)) {
+                return;
+            }
+
             $this->currentMethod = $node->name->toString();
             $this->resetMethodCounters();
         }
@@ -233,6 +266,12 @@ class CyclomaticComplexityVisitor extends NodeVisitorAbstract
     private function handleClassMethodLeave(Node $node): void
     {
         if ($node instanceof Node\Stmt\ClassMethod) {
+            // Skip methods that don't have a class context (interfaces, traits, global functions)
+            if (empty($this->currentClassName)) {
+                $this->currentMethod = '';
+                return;
+            }
+
             $methodKey = "{$this->currentClassName}::{$this->currentMethod}";
 
             // Store method complexity
@@ -277,7 +316,7 @@ class CyclomaticComplexityVisitor extends NodeVisitorAbstract
 
     private function checkClassLeave(Node $node): void
     {
-        if ($node instanceof Node\Stmt\Class_) {
+        if ($node instanceof Node\Stmt\Class_ || $node instanceof Node\Stmt\Trait_) {
             $this->currentClassName = '';
         }
     }

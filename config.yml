@@ -5,6 +5,7 @@ cognitive:
   showOnlyMethodsExceedingThreshold: false
   showHalsteadComplexity: false
   showCyclomaticComplexity: false
+  groupByClass: true
   metrics:
     lineCount:
       threshold: 60
