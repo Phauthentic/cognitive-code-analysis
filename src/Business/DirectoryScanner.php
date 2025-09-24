@@ -81,10 +81,22 @@ class DirectoryScanner
             RecursiveIteratorIterator::LEAVES_ONLY
         );
 
+        // Collect all files first, then sort them for consistent order
+        $files = [];
         foreach ($iterator as $fileInfo) {
             if ($fileInfo->isFile() && !$this->isExcluded($fileInfo, $exclude)) {
-                yield $fileInfo;
+                $files[] = $fileInfo;
             }
+        }
+
+        // Sort files by their pathname to ensure consistent order across platforms
+        usort($files, function (SplFileInfo $a, SplFileInfo $b) {
+            return strcmp($a->getPathname(), $b->getPathname());
+        });
+
+        // Yield sorted files
+        foreach ($files as $fileInfo) {
+            yield $fileInfo;
         }
     }
 
