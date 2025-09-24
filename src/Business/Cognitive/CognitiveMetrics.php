@@ -96,7 +96,20 @@ class CognitiveMetrics implements JsonSerializable
     {
         $missingKeys = array_diff_key($this->metrics, $metrics);
         if (!empty($missingKeys)) {
-            throw new InvalidArgumentException('Missing required keys: ' . implode(', ', $missingKeys));
+            $class = $metrics['class'] ?? 'Unknown';
+            $method = $metrics['method'] ?? 'Unknown';
+            $file = $metrics['file'] ?? 'Unknown';
+            
+            $errorMessage = sprintf(
+                'Missing required keys for %s::%s in file %s: %s. Available keys: %s',
+                $class,
+                $method,
+                $file,
+                implode(', ', $missingKeys),
+                implode(', ', array_keys($metrics))
+            );
+            
+            throw new InvalidArgumentException($errorMessage);
         }
 
         // Not pretty to set each but more efficient than using a loop and $this->metrics
