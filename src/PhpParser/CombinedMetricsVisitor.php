@@ -27,6 +27,9 @@ class CombinedMetricsVisitor implements NodeVisitor
         $this->halsteadVisitor = new HalsteadMetricsVisitor();
     }
 
+    /**
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     */
     public function beforeTraverse(array $nodes): ?array
     {
         // Reset all visitors before traversal
@@ -67,6 +70,9 @@ class CombinedMetricsVisitor implements NodeVisitor
         return null;
     }
 
+    /**
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     */
     public function afterTraverse(array $nodes): ?array
     {
         return null;

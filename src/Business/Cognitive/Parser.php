@@ -15,6 +15,7 @@ use PhpParser\Parser as PhpParser;
 use PhpParser\NodeTraverser;
 use PhpParser\Error;
 use PhpParser\ParserFactory;
+use ReflectionClass;
 
 /**
  *
@@ -200,7 +201,7 @@ class Parser
     {
         try {
             /** @var class-string $className */
-            $reflection = new \ReflectionClass($className);
+            $reflection = new ReflectionClass($className);
             if ($reflection->hasProperty($propertyName)) {
                 $property = $reflection->getProperty($propertyName);
                 $property->setAccessible(true);
