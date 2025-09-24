@@ -6,8 +6,10 @@
 /.phpunit.cache/
 /tmp/
 /tools/
+/benchmarks/storage/
 .idea/
 .env
+.phpbench/
 infection.log
 phive.phar
 phpcca.phar

@@ -195,4 +195,13 @@ class AnnotationVisitor extends NodeVisitorAbstract
         $this->currentNamespace = '';
         $this->currentClassName = '';
     }
+
+    /**
+     * Reset only the current context (for between-file cleanup).
+     */
+    public function resetContext(): void
+    {
+        $this->currentNamespace = '';
+        $this->currentClassName = '';
+    }
 }

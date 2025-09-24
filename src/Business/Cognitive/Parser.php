@@ -9,11 +9,13 @@ use Phauthentic\CognitiveCodeAnalysis\PhpParser\AnnotationVisitor;
 use Phauthentic\CognitiveCodeAnalysis\PhpParser\CognitiveMetricsVisitor;
 use Phauthentic\CognitiveCodeAnalysis\PhpParser\CyclomaticComplexityVisitor;
 use Phauthentic\CognitiveCodeAnalysis\PhpParser\HalsteadMetricsVisitor;
+use Phauthentic\CognitiveCodeAnalysis\PhpParser\CombinedMetricsVisitor;
 use PhpParser\NodeTraverserInterface;
 use PhpParser\Parser as PhpParser;
 use PhpParser\NodeTraverser;
 use PhpParser\Error;
 use PhpParser\ParserFactory;
+use ReflectionClass;
 
 /**
  *
@@ -25,6 +27,7 @@ class Parser
     protected CognitiveMetricsVisitor $cognitiveMetricsVisitor;
     protected CyclomaticComplexityVisitor $cyclomaticComplexityVisitor;
     protected HalsteadMetricsVisitor $halsteadMetricsVisitor;
+    protected CombinedMetricsVisitor $combinedVisitor;
 
     public function __construct(
         ParserFactory $parserFactory,
@@ -47,6 +50,10 @@ class Parser
         $this->halsteadMetricsVisitor = new HalsteadMetricsVisitor();
         $this->halsteadMetricsVisitor->setAnnotationVisitor($this->annotationVisitor);
         $this->traverser->addVisitor($this->halsteadMetricsVisitor);
+
+        // Create the combined visitor for performance optimization
+        $this->combinedVisitor = new CombinedMetricsVisitor();
+        $this->combinedVisitor->setAnnotationVisitor();
     }
 
     /**
@@ -58,14 +65,35 @@ class Parser
         // First, scan for annotations to collect ignored items
         $this->scanForAnnotations($code);
 
-        // Then parse for metrics
-        $this->traverseAbstractSyntaxTree($code);
+        // Then parse for metrics using the combined visitor for better performance
+        $this->traverseAbstractSyntaxTreeWithCombinedVisitor($code);
 
-        $methodMetrics = $this->cognitiveMetricsVisitor->getMethodMetrics();
-        $this->cognitiveMetricsVisitor->resetValues();
+        // Get all metrics before resetting
+        $methodMetrics = $this->combinedVisitor->getMethodMetrics();
+        $cyclomaticMetrics = $this->combinedVisitor->getMethodComplexity();
+        $halsteadMetrics = $this->combinedVisitor->getHalsteadMethodMetrics();
 
-        $methodMetrics = $this->getCyclomaticComplexityVisitor($methodMetrics);
-        $methodMetrics = $this->getHalsteadMetricsVisitor($methodMetrics);
+        // Now reset the combined visitor
+        $this->combinedVisitor->resetAll();
+
+        // Add cyclomatic complexity to method metrics
+        foreach ($cyclomaticMetrics as $method => $complexityData) {
+            if (isset($methodMetrics[$method])) {
+                $complexity = $complexityData['complexity'] ?? $complexityData;
+                $riskLevel = $complexityData['risk_level'] ?? $this->getRiskLevel($complexity);
+                $methodMetrics[$method]['cyclomatic_complexity'] = [
+                    'complexity' => $complexity,
+                    'risk_level' => $riskLevel
+                ];
+            }
+        }
+
+        // Add Halstead metrics to method metrics
+        foreach ($halsteadMetrics as $method => $metrics) {
+            if (isset($methodMetrics[$method])) {
+                $methodMetrics[$method]['halstead'] = $metrics;
+            }
+        }
 
         return $methodMetrics;
     }
@@ -95,9 +123,10 @@ class Parser
     }
 
     /**
+     * Traverse the AST using the combined visitor for better performance.
      * @throws CognitiveAnalysisException
      */
-    private function traverseAbstractSyntaxTree(string $code): void
+    private function traverseAbstractSyntaxTreeWithCombinedVisitor(string $code): void
     {
         try {
             $ast = $this->parser->parse($code);
@@ -109,58 +138,12 @@ class Parser
             throw new CognitiveAnalysisException("Could not parse the code.");
         }
 
-        $this->traverser->traverse($ast);
+        // Create a new traverser for the combined visitor
+        $combinedTraverser = new NodeTraverser();
+        $combinedTraverser->addVisitor($this->combinedVisitor);
+        $combinedTraverser->traverse($ast);
     }
 
-    /**
-     * @param array<string, array<string, int>> $methodMetrics
-     * @return array<string, array<string, int>>
-     */
-    private function getHalsteadMetricsVisitor(array $methodMetrics): array
-    {
-        $halstead = $this->halsteadMetricsVisitor->getMetrics();
-        foreach ($halstead['methods'] as $method => $metrics) {
-            // Skip ignored methods
-            if ($this->annotationVisitor->isMethodIgnored($method)) {
-                continue;
-            }
-            // Skip malformed method keys (ClassName::)
-            if (str_ends_with($method, '::')) {
-                continue;
-            }
-            // Only add Halstead metrics to methods that were processed by CognitiveMetricsVisitor
-            if (isset($methodMetrics[$method])) {
-                $methodMetrics[$method]['halstead'] = $metrics;
-            }
-        }
-
-        return $methodMetrics;
-    }
-
-    /**
-     * @param array<string, array<string, int>> $methodMetrics
-     * @return array<string, array<string, int>>
-     */
-    private function getCyclomaticComplexityVisitor(array $methodMetrics): array
-    {
-        $cyclomatic = $this->cyclomaticComplexityVisitor->getComplexitySummary();
-        foreach ($cyclomatic['methods'] as $method => $complexity) {
-            // Skip ignored methods
-            if ($this->annotationVisitor->isMethodIgnored($method)) {
-                continue;
-            }
-            // Skip malformed method keys (ClassName::)
-            if (str_ends_with($method, '::')) {
-                continue;
-            }
-            // Only add cyclomatic complexity to methods that were processed by CognitiveMetricsVisitor
-            if (isset($methodMetrics[$method])) {
-                $methodMetrics[$method]['cyclomatic_complexity'] = $complexity;
-            }
-        }
-
-        return $methodMetrics;
-    }
 
     /**
      * Get all ignored classes and methods.
@@ -190,5 +173,55 @@ class Parser
     public function getIgnoredMethods(): array
     {
         return $this->annotationVisitor->getIgnoredMethods();
+    }
+
+    /**
+     * Clear static caches to prevent memory leaks during long-running processes.
+     */
+    public function clearStaticCaches(): void
+    {
+        // Clear FQCN caches from all visitors
+        $this->clearStaticProperty('Phauthentic\CognitiveCodeAnalysis\PhpParser\CognitiveMetricsVisitor', 'fqcnCache');
+        $this->clearStaticProperty('Phauthentic\CognitiveCodeAnalysis\PhpParser\CyclomaticComplexityVisitor', 'fqcnCache');
+        $this->clearStaticProperty('Phauthentic\CognitiveCodeAnalysis\PhpParser\HalsteadMetricsVisitor', 'fqcnCache');
+        $this->clearStaticProperty('Phauthentic\CognitiveCodeAnalysis\PhpParser\AnnotationVisitor', 'fqcnCache');
+
+        // Clear regex pattern caches
+        $this->clearStaticProperty('Phauthentic\CognitiveCodeAnalysis\Business\DirectoryScanner', 'compiledPatterns');
+        $this->clearStaticProperty('Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollector', 'compiledPatterns');
+
+        // Clear accumulated data in visitors
+        $this->combinedVisitor->resetAllBetweenFiles();
+    }
+
+    /**
+     * Clear a static property using reflection.
+     */
+    private function clearStaticProperty(string $className, string $propertyName): void
+    {
+        try {
+            /** @var class-string $className */
+            $reflection = new ReflectionClass($className);
+            if ($reflection->hasProperty($propertyName)) {
+                $property = $reflection->getProperty($propertyName);
+                $property->setAccessible(true);
+                $property->setValue(null, []);
+            }
+        } catch (\ReflectionException $e) {
+            // Ignore reflection errors
+        }
+    }
+
+    /**
+     * Calculate risk level based on cyclomatic complexity.
+     */
+    private function getRiskLevel(int $complexity): string
+    {
+        return match (true) {
+            $complexity <= 5 => 'low',
+            $complexity <= 10 => 'medium',
+            $complexity <= 15 => 'high',
+            default => 'very_high',
+        };
     }
 }

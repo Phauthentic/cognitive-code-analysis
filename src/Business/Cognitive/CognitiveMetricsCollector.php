@@ -81,6 +81,7 @@ class CognitiveMetricsCollector
     private function findMetrics(iterable $files): CognitiveMetricsCollection
     {
         $metricsCollection = new CognitiveMetricsCollection();
+        $fileCount = 0;
 
         foreach ($files as $file) {
             try {
@@ -90,6 +91,14 @@ class CognitiveMetricsCollector
 
                 // Store ignored items from the parser
                 $this->ignoredItems = $this->parser->getIgnored();
+
+                $fileCount++;
+
+                // Clear memory periodically to prevent memory leaks
+                if ($fileCount % 50 === 0) {
+                    $this->parser->clearStaticCaches();
+                    gc_collect_cycles();
+                }
             } catch (Throwable $exception) {
                 $this->messageBus->dispatch(new ParserFailed(
                     $file,

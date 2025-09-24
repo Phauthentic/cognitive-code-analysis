@@ -29,6 +29,11 @@ class HalsteadMetricsVisitor extends NodeVisitorAbstract
     private array $methodMetrics = [];
 
     /**
+     * @var array<string, string> Cache for normalized FQCNs
+     */
+    private static array $fqcnCache = [];
+
+    /**
      * @var AnnotationVisitor|null The annotation visitor to check for ignored items
      */
     private ?AnnotationVisitor $annotationVisitor = null;
@@ -134,7 +139,11 @@ class HalsteadMetricsVisitor extends NodeVisitorAbstract
      */
     private function normalizeFqcn(string $fqcn): string
     {
-        return str_starts_with($fqcn, '\\') ? $fqcn : '\\' . $fqcn;
+        if (!isset(self::$fqcnCache[$fqcn])) {
+            self::$fqcnCache[$fqcn] = str_starts_with($fqcn, '\\') ? $fqcn : '\\' . $fqcn;
+        }
+
+        return self::$fqcnCache[$fqcn];
     }
 
     private function addOperator(Node $node): void
@@ -213,9 +222,31 @@ class HalsteadMetricsVisitor extends NodeVisitorAbstract
 
     public function resetMetrics(): void
     {
+        // Clear current state, but keep accumulated metrics for retrieval
         $this->operators = [];
         $this->operands = [];
         $this->currentClassName = null;
+        $this->currentNamespace = null;
+        $this->currentMethodName = null;
+        $this->methodOperators = [];
+        $this->methodOperands = [];
+    }
+
+    /**
+     * Reset all accumulated data (for memory cleanup between files).
+     */
+    public function resetAll(): void
+    {
+        // Clear all accumulated data to prevent memory leaks
+        $this->operators = [];
+        $this->operands = [];
+        $this->currentClassName = null;
+        $this->currentNamespace = null;
+        $this->classMetrics = [];
+        $this->currentMethodName = null;
+        $this->methodOperators = [];
+        $this->methodOperands = [];
+        $this->methodMetrics = [];
     }
 
     private function calculateMetrics(): array
