@@ -16,12 +16,11 @@ use Symfony\Component\Console\Output\OutputInterface;
 class CognitiveMetricSummaryTextRenderer implements CognitiveMetricTextRendererInterface
 {
     public function __construct(
-        private readonly OutputInterface $output,
         private readonly ConfigService $configService,
     ) {
     }
 
-    public function render(CognitiveMetricsCollection $metricsCollection): void
+    public function render(CognitiveMetricsCollection $metricsCollection, OutputInterface $output): void
     {
         $highlighted = [];
         foreach ($metricsCollection as $metric) {
@@ -35,9 +34,9 @@ class CognitiveMetricSummaryTextRenderer implements CognitiveMetricTextRendererI
             static fn (CognitiveMetrics $alpha, CognitiveMetrics $beta) => $beta->getScore() <=> $alpha->getScore()
         );
 
-        $this->output->writeln('<info>Most Complex Methods</info>');
+        $output->writeln('<info>Most Complex Methods</info>');
 
-        $table = new Table($this->output);
+        $table = new Table($output);
         $table->setStyle('box');
         $table->setHeaders(['Method', 'Score']);
 
@@ -51,6 +50,6 @@ class CognitiveMetricSummaryTextRenderer implements CognitiveMetricTextRendererI
         }
 
         $table->render();
-        $this->output->writeln('');
+        $output->writeln('');
     }
 }

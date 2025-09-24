@@ -11,6 +11,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Tester\CommandTester;
 
 /**
@@ -158,5 +159,20 @@ class CognitiveMetricsCommandTest extends TestCase
 
         $this->assertEquals(Command::FAILURE, $tester->getStatusCode(), 'Command should fail with invalid sort order');
         $this->assertStringContainsString('Sorting error', $tester->getDisplay());
+    }
+
+    public function testOutputWithoutOptions(): void
+    {
+        $application = new Application();
+        $container = $application->getContainer();
+
+        $command = $container->get(CognitiveMetricsCommand::class);
+        $tester = new CommandTester($command);
+
+        $tester->execute([
+            'path' => __DIR__ . '/../../../tests/TestCode', // Smaller path for faster test
+        ]);
+
+        $this->assertStringEqualsFile(__DIR__ . '/OutputWithoutOptions.txt', $tester->getDisplay(true));
     }
 }

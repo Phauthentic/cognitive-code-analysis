@@ -25,7 +25,6 @@ class CognitiveMetricTextRenderer implements CognitiveMetricTextRendererInterfac
     private TableHeaderBuilder $headerBuilder;
 
     public function __construct(
-        private readonly OutputInterface $output,
         private readonly ConfigService $configService,
     ) {
         $config = $this->configService->getConfig();
@@ -43,26 +42,28 @@ class CognitiveMetricTextRenderer implements CognitiveMetricTextRendererInterfac
 
     /**
      * @param CognitiveMetricsCollection $metricsCollection
+     * @param OutputInterface $output
      * @throws CognitiveAnalysisException
      */
-    public function render(CognitiveMetricsCollection $metricsCollection): void
+    public function render(CognitiveMetricsCollection $metricsCollection, OutputInterface $output): void
     {
         $config = $this->configService->getConfig();
 
         if ($config->groupByClass) {
-            $this->renderGroupedByClass($metricsCollection, $config);
+            $this->renderGroupedByClass($metricsCollection, $config, $output);
             return;
         }
 
-        $this->renderAllMethodsInSingleTable($metricsCollection, $config);
+        $this->renderAllMethodsInSingleTable($metricsCollection, $config, $output);
     }
 
     /**
      * @param CognitiveMetricsCollection $metricsCollection
      * @param CognitiveConfig $config
+     * @param OutputInterface $output
      * @throws CognitiveAnalysisException
      */
-    private function renderGroupedByClass(CognitiveMetricsCollection $metricsCollection, CognitiveConfig $config): void
+    private function renderGroupedByClass(CognitiveMetricsCollection $metricsCollection, CognitiveConfig $config, OutputInterface $output): void
     {
         $groupedByClass = $metricsCollection->groupBy('class');
 
@@ -74,7 +75,7 @@ class CognitiveMetricTextRenderer implements CognitiveMetricTextRendererInterfac
             $rows = $this->buildRowsForClass($metrics, $config);
             if (count($rows) > 0) {
                 $filename = $this->getFilenameFromMetrics($metrics);
-                $this->renderTable((string)$className, $rows, $filename);
+                $this->renderTable((string)$className, $rows, $filename, $output);
             }
         }
     }
@@ -110,15 +111,16 @@ class CognitiveMetricTextRenderer implements CognitiveMetricTextRendererInterfac
     /**
      * @param CognitiveMetricsCollection $metricsCollection
      * @param CognitiveConfig $config
+     * @param OutputInterface $output
      * @throws CognitiveAnalysisException
      */
-    private function renderAllMethodsInSingleTable(CognitiveMetricsCollection $metricsCollection, CognitiveConfig $config): void
+    private function renderAllMethodsInSingleTable(CognitiveMetricsCollection $metricsCollection, CognitiveConfig $config, OutputInterface $output): void
     {
         $rows = $this->buildRowsForSingleTable($metricsCollection, $config);
         $totalMethods = count($rows);
 
         if ($totalMethods > 0) {
-            $this->renderSingleTable($rows, $totalMethods);
+            $this->renderSingleTable($rows, $totalMethods, $output);
         }
     }
 
@@ -143,38 +145,40 @@ class CognitiveMetricTextRenderer implements CognitiveMetricTextRendererInterfac
      * @param string $className
      * @param array<int, mixed> $rows
      * @param string $filename
+     * @param OutputInterface $output
      */
-    private function renderTable(string $className, array $rows, string $filename): void
+    private function renderTable(string $className, array $rows, string $filename, OutputInterface $output): void
     {
-        $table = new Table($this->output);
+        $table = new Table($output);
         $table->setStyle('box');
         $table->setHeaders($this->getTableHeaders());
 
-        $this->output->writeln("<info>Class: $className</info>");
-        $this->output->writeln("<info>File: $filename</info>");
+        $output->writeln("<info>Class: $className</info>");
+        $output->writeln("<info>File: $filename</info>");
 
         $table->setRows($rows);
         $table->render();
 
-        $this->output->writeln("");
+        $output->writeln("");
     }
 
     /**
      * @param array<int, mixed> $rows
      * @param int $totalMethods
+     * @param OutputInterface $output
      */
-    private function renderSingleTable(array $rows, int $totalMethods): void
+    private function renderSingleTable(array $rows, int $totalMethods, OutputInterface $output): void
     {
-        $table = new Table($this->output);
+        $table = new Table($output);
         $table->setStyle('box');
         $table->setHeaders($this->getSingleTableHeaders());
 
-        $this->output->writeln("<info>All Methods ($totalMethods total)</info>");
+        $output->writeln("<info>All Methods ($totalMethods total)</info>");
 
         $table->setRows($rows);
         $table->render();
 
-        $this->output->writeln("");
+        $output->writeln("");
     }
 
     /**
