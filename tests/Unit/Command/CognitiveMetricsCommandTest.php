@@ -11,6 +11,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Tester\CommandTester;
 
 /**
@@ -158,5 +159,83 @@ class CognitiveMetricsCommandTest extends TestCase
 
         $this->assertEquals(Command::FAILURE, $tester->getStatusCode(), 'Command should fail with invalid sort order');
         $this->assertStringContainsString('Sorting error', $tester->getDisplay());
+    }
+
+    public function testOutputWithoutOptions(): void
+    {
+        $application = new Application();
+        $container = $application->getContainer();
+
+        $command = $container->get(CognitiveMetricsCommand::class);
+        $tester = new CommandTester($command);
+
+        $tester->execute([
+            'path' => __DIR__ . '/../../../tests/TestCode',
+        ]);
+
+        $this->assertStringEqualsFile(__DIR__ . '/OutputWithoutOptions.txt', $tester->getDisplay(true));
+    }
+
+    #[\PHPUnit\Framework\Attributes\DataProvider('configurationOutputProvider')]
+    public function testConfigurationOutput(string $configFile, string $expectedOutputFile, string $description): void
+    {
+        $application = new Application();
+        $container = $application->getContainer();
+
+        $command = $container->get(CognitiveMetricsCommand::class);
+        $tester = new CommandTester($command);
+
+        $tester->execute([
+            'path' => __DIR__ . '/../../../tests/TestCode',
+            '--config' => __DIR__ . '/../../../tests/Fixtures/' . $configFile,
+        ]);
+
+        $this->assertStringEqualsFile(__DIR__ . '/' . $expectedOutputFile, $tester->getDisplay(true), $description);
+    }
+
+    /**
+     * Data provider for configuration output tests
+     *
+     * @return array<int, array{string, string, string}>
+     */
+    public static function configurationOutputProvider(): array
+    {
+        return [
+            'all metrics enabled' => [
+                'all-metrics-config.yml',
+                'OutputWithAllMetrics.txt',
+                'Should show all metrics including Halstead and Cyclomatic complexity'
+            ],
+            'halstead only' => [
+                'halstead-only-config.yml',
+                'OutputWithHalsteadOnly.txt',
+                'Should show only Halstead complexity metrics'
+            ],
+            'cyclomatic only' => [
+                'cyclomatic-only-config.yml',
+                'OutputWithCyclomaticOnly.txt',
+                'Should show only Cyclomatic complexity metrics'
+            ],
+            'no detailed metrics' => [
+                'no-detailed-metrics-config.yml',
+                'OutputWithoutDetailedMetrics.txt',
+                'Should show only basic metrics without detailed breakdown'
+            ],
+            'single table layout' => [
+                'single-table-config.yml',
+                'OutputWithSingleTable.txt',
+                'Should display all methods in a single table instead of grouped by class'
+            ],
+            'threshold filtering' => [
+                'threshold-config.yml',
+                'OutputWithThreshold.txt',
+                'Should only show methods exceeding the complexity threshold'
+            ],
+            'minimal configuration' => [
+                'minimal-config.yml',
+                'OutputWithMinimalConfig.txt',
+                'Should show only basic cognitive complexity with minimal columns'
+            ],
+        ];
     }
 }

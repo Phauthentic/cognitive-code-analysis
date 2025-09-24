@@ -107,10 +107,19 @@ class CognitiveMetricsCollector
                 continue;
             }
 
+            $filename = $file->getRealPath();
+
+            if (getenv('APP_ENV') === 'test') {
+                $projectRoot = $this->getProjectRoot();
+                if ($projectRoot && str_starts_with($filename, $projectRoot)) {
+                    $filename = substr($filename, strlen($projectRoot) + 1);
+                }
+            }
+
             $metricsCollection = $this->processMethodMetrics(
                 $metrics,
                 $metricsCollection,
-                $file->getRealPath()
+                $filename
             );
 
             $this->messageBus->dispatch(new FileProcessed(
@@ -210,5 +219,25 @@ class CognitiveMetricsCollector
     public function getIgnoredMethods(): array
     {
         return $this->ignoredItems['methods'] ?? [];
+    }
+
+    /**
+     * Get the project root directory path.
+     *
+     * @return string|null The project root path or null if not found
+     */
+    private function getProjectRoot(): ?string
+    {
+        // Start from the current file's directory and traverse up to find composer.json
+        $currentDir = __DIR__;
+
+        while ($currentDir !== dirname($currentDir)) {
+            if (file_exists($currentDir . DIRECTORY_SEPARATOR . 'composer.json')) {
+                return $currentDir;
+            }
+            $currentDir = dirname($currentDir);
+        }
+
+        return null;
     }
 }

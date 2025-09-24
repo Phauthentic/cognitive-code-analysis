@@ -1,0 +1,55 @@
+Class: \ClassOne
+File: tests/TestCode/FileWithTwoClasses.php
+┌─────────────┬────────────┐
+│ Method Name │ Cognitive  │
+│             │ Complexity │
+├─────────────┼────────────┤
+│ add         │ 0          │
+└─────────────┴────────────┘
+
+Class: \ClassTwo
+File: tests/TestCode/FileWithTwoClasses.php
+┌─────────────┬────────────┐
+│ Method Name │ Cognitive  │
+│             │ Complexity │
+├─────────────┼────────────┤
+│ add         │ 0          │
+└─────────────┴────────────┘
+
+Class: \Doctrine\ORM\Tools\Pagination\Paginator
+File: tests/TestCode/Paginator.php
+┌───────────────────────────────────────────┬────────────┐
+│ Method Name                               │ Cognitive  │
+│                                           │ Complexity │
+├───────────────────────────────────────────┼────────────┤
+│ __construct                               │ 0          │
+│ getQuery                                  │ 0          │
+│ getFetchJoinCollection                    │ 0          │
+│ getUseOutputWalkers                       │ 0          │
+│ setUseOutputWalkers                       │ 0          │
+│ count                                     │ 0          │
+│ getIterator                               │ 2.079      │
+│ cloneQuery                                │ 0          │
+│ useOutputWalker                           │ 0          │
+│ appendTreeWalker                          │ 0          │
+│ getCountQuery                             │ 0          │
+│ unbindUnusedQueryParams                   │ 0.336      │
+│ convertWhereInIdentifiersToDatabaseValues │ 0.182      │
+└───────────────────────────────────────────┴────────────┘
+
+Class: \WP_Debug_Data
+File: tests/TestCode/WpDebugData.php
+┌───────────────────┬────────────┐
+│ Method Name       │ Cognitive  │
+│                   │ Complexity │
+├───────────────────┼────────────┤
+│ check_for_updates │ 0          │
+│ debug_data        │ 16.267     │
+│ get_wp_constants  │ 4.874      │
+│ get_wp_filesystem │ 0.693      │
+│ get_mysql_var     │ 0          │
+│ format            │ 3.584      │
+│ get_database_size │ 0          │
+│ get_sizes         │ 6.628      │
+└───────────────────┴────────────┘
+
