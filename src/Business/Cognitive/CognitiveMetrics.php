@@ -84,12 +84,7 @@ class CognitiveMetrics implements JsonSerializable
         }
 
         if (isset($metrics['cyclomatic_complexity'])) {
-            $complexityData = $metrics['cyclomatic_complexity'];
-            if (is_array($complexityData)) {
-                $this->cyclomatic = new CyclomaticMetrics($complexityData);
-            } else {
-                $this->cyclomatic = new CyclomaticMetrics(['complexity' => $complexityData]);
-            }
+            $this->cyclomatic = new CyclomaticMetrics($metrics['cyclomatic_complexity']);
         }
     }
 
