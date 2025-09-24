@@ -101,24 +101,6 @@ class Parser
     }
 
     /**
-     * @throws CognitiveAnalysisException
-     */
-    private function traverseAbstractSyntaxTree(string $code): void
-    {
-        try {
-            $ast = $this->parser->parse($code);
-        } catch (Error $e) {
-            throw new CognitiveAnalysisException("Parse error: {$e->getMessage()}", 0, $e);
-        }
-
-        if ($ast === null) {
-            throw new CognitiveAnalysisException("Could not parse the code.");
-        }
-
-        $this->traverser->traverse($ast);
-    }
-
-    /**
      * Traverse the AST using the combined visitor for better performance.
      * @throws CognitiveAnalysisException
      */
@@ -245,6 +227,7 @@ class Parser
     private function clearStaticProperty(string $className, string $propertyName): void
     {
         try {
+            /** @var class-string $className */
             $reflection = new \ReflectionClass($className);
             if ($reflection->hasProperty($propertyName)) {
                 $property = $reflection->getProperty($propertyName);
