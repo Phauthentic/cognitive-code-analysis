@@ -1,0 +1,9 @@
+cognitive:
+  excludeFilePatterns:
+  excludePatterns:
+  scoreThreshold: 0.5
+  showOnlyMethodsExceedingThreshold: false
+  showHalsteadComplexity: false
+  showCyclomaticComplexity: false
+  showDetailedCognitiveMetrics: false
+  groupByClass: true
