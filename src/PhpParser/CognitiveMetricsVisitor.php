@@ -26,6 +26,11 @@ class CognitiveMetricsVisitor extends NodeVisitorAbstract
     private int $currentReturnCount = 0;
 
     /**
+     * @var array<string, string> Cache for normalized FQCNs
+     */
+    private static array $fqcnCache = [];
+
+    /**
      * @var AnnotationVisitor|null The annotation visitor to check for ignored items
      */
     private ?AnnotationVisitor $annotationVisitor = null;
@@ -71,6 +76,19 @@ class CognitiveMetricsVisitor extends NodeVisitorAbstract
         $this->maxIfNestingLevel = 0;
         $this->elseCount = 0;
         $this->ifCount = 0;
+    }
+
+    /**
+     * Reset all data including method metrics (for memory cleanup between files).
+     */
+    public function resetAll(): void
+    {
+        // Clear all accumulated data to prevent memory leaks
+        $this->methodMetrics = [];
+        $this->currentNamespace = '';
+        $this->currentClassName = '';
+        $this->currentMethod = '';
+        $this->resetValues();
     }
 
     /**
@@ -237,10 +255,15 @@ class CognitiveMetricsVisitor extends NodeVisitorAbstract
 
     /**
      * Ensures the FQCN always starts with a backslash.
+     * Uses caching to avoid repeated string operations.
      */
     private function normalizeFqcn(string $fqcn): string
     {
-        return str_starts_with($fqcn, '\\') ? $fqcn : '\\' . $fqcn;
+        if (!isset(self::$fqcnCache[$fqcn])) {
+            self::$fqcnCache[$fqcn] = str_starts_with($fqcn, '\\') ? $fqcn : '\\' . $fqcn;
+        }
+
+        return self::$fqcnCache[$fqcn];
     }
 
     public function enterNode(Node $node): int|Node|null

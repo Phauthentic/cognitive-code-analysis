@@ -9,6 +9,7 @@ use Phauthentic\CognitiveCodeAnalysis\PhpParser\AnnotationVisitor;
 use Phauthentic\CognitiveCodeAnalysis\PhpParser\CognitiveMetricsVisitor;
 use Phauthentic\CognitiveCodeAnalysis\PhpParser\CyclomaticComplexityVisitor;
 use Phauthentic\CognitiveCodeAnalysis\PhpParser\HalsteadMetricsVisitor;
+use Phauthentic\CognitiveCodeAnalysis\PhpParser\CombinedMetricsVisitor;
 use PhpParser\NodeTraverserInterface;
 use PhpParser\Parser as PhpParser;
 use PhpParser\NodeTraverser;
@@ -25,6 +26,7 @@ class Parser
     protected CognitiveMetricsVisitor $cognitiveMetricsVisitor;
     protected CyclomaticComplexityVisitor $cyclomaticComplexityVisitor;
     protected HalsteadMetricsVisitor $halsteadMetricsVisitor;
+    protected CombinedMetricsVisitor $combinedVisitor;
 
     public function __construct(
         ParserFactory $parserFactory,
@@ -47,6 +49,10 @@ class Parser
         $this->halsteadMetricsVisitor = new HalsteadMetricsVisitor();
         $this->halsteadMetricsVisitor->setAnnotationVisitor($this->annotationVisitor);
         $this->traverser->addVisitor($this->halsteadMetricsVisitor);
+
+        // Create the combined visitor for performance optimization
+        $this->combinedVisitor = new CombinedMetricsVisitor();
+        $this->combinedVisitor->setAnnotationVisitor();
     }
 
     /**
@@ -58,11 +64,11 @@ class Parser
         // First, scan for annotations to collect ignored items
         $this->scanForAnnotations($code);
 
-        // Then parse for metrics
-        $this->traverseAbstractSyntaxTree($code);
+        // Then parse for metrics using the combined visitor for better performance
+        $this->traverseAbstractSyntaxTreeWithCombinedVisitor($code);
 
-        $methodMetrics = $this->cognitiveMetricsVisitor->getMethodMetrics();
-        $this->cognitiveMetricsVisitor->resetValues();
+        $methodMetrics = $this->combinedVisitor->getMethodMetrics();
+        $this->combinedVisitor->resetAll();
 
         $methodMetrics = $this->getCyclomaticComplexityVisitor($methodMetrics);
         $methodMetrics = $this->getHalsteadMetricsVisitor($methodMetrics);
@@ -110,6 +116,28 @@ class Parser
         }
 
         $this->traverser->traverse($ast);
+    }
+
+    /**
+     * Traverse the AST using the combined visitor for better performance.
+     * @throws CognitiveAnalysisException
+     */
+    private function traverseAbstractSyntaxTreeWithCombinedVisitor(string $code): void
+    {
+        try {
+            $ast = $this->parser->parse($code);
+        } catch (Error $e) {
+            throw new CognitiveAnalysisException("Parse error: {$e->getMessage()}", 0, $e);
+        }
+
+        if ($ast === null) {
+            throw new CognitiveAnalysisException("Could not parse the code.");
+        }
+
+        // Create a new traverser for the combined visitor
+        $combinedTraverser = new NodeTraverser();
+        $combinedTraverser->addVisitor($this->combinedVisitor);
+        $combinedTraverser->traverse($ast);
     }
 
     /**
@@ -190,5 +218,41 @@ class Parser
     public function getIgnoredMethods(): array
     {
         return $this->annotationVisitor->getIgnoredMethods();
+    }
+
+    /**
+     * Clear static caches to prevent memory leaks during long-running processes.
+     */
+    public function clearStaticCaches(): void
+    {
+        // Clear FQCN caches from all visitors
+        $this->clearStaticProperty('Phauthentic\CognitiveCodeAnalysis\PhpParser\CognitiveMetricsVisitor', 'fqcnCache');
+        $this->clearStaticProperty('Phauthentic\CognitiveCodeAnalysis\PhpParser\CyclomaticComplexityVisitor', 'fqcnCache');
+        $this->clearStaticProperty('Phauthentic\CognitiveCodeAnalysis\PhpParser\HalsteadMetricsVisitor', 'fqcnCache');
+        $this->clearStaticProperty('Phauthentic\CognitiveCodeAnalysis\PhpParser\AnnotationVisitor', 'fqcnCache');
+
+        // Clear regex pattern caches
+        $this->clearStaticProperty('Phauthentic\CognitiveCodeAnalysis\Business\DirectoryScanner', 'compiledPatterns');
+        $this->clearStaticProperty('Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollector', 'compiledPatterns');
+
+        // Clear accumulated data in visitors
+        $this->combinedVisitor->resetAllBetweenFiles();
+    }
+
+    /**
+     * Clear a static property using reflection.
+     */
+    private function clearStaticProperty(string $className, string $propertyName): void
+    {
+        try {
+            $reflection = new \ReflectionClass($className);
+            if ($reflection->hasProperty($propertyName)) {
+                $property = $reflection->getProperty($propertyName);
+                $property->setAccessible(true);
+                $property->setValue(null, []);
+            }
+        } catch (\ReflectionException $e) {
+            // Ignore reflection errors
+        }
     }
 }
