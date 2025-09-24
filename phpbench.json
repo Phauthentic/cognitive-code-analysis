@@ -1,0 +1,7 @@
+{
+    "$schema": "https://phpbench.readthedocs.io/en/latest/_static/phpbench.json",
+    "runner.bootstrap": "vendor/autoload.php",
+    "runner.path": "benchmarks",
+    "runner.time_unit": "milliseconds",
+    "runner.progress": "dots"
+}
