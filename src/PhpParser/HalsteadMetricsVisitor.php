@@ -65,7 +65,11 @@ class HalsteadMetricsVisitor extends NodeVisitorAbstract
                 $this->setCurrentClassName($node);
 
                 // Check if this class should be ignored
-                if ($this->annotationVisitor !== null && $this->annotationVisitor->isClassIgnored($this->currentClassName)) {
+                if (
+                    $this->currentClassName !== null
+                    && $this->annotationVisitor !== null
+                    && $this->annotationVisitor->isClassIgnored($this->currentClassName)
+                ) {
                     $this->currentClassName = null; // Clear the class name if ignored
                 }
             },
@@ -113,7 +117,13 @@ class HalsteadMetricsVisitor extends NodeVisitorAbstract
 
     private function setCurrentClassName(Node $node): void
     {
-        $className = $node->name ? $node->name->toString() : '';
+        // Skip anonymous classes - they don't have a proper class name
+        if ($node->name === null) {
+            $this->currentClassName = null;
+            return;
+        }
+
+        $className = $node->name->toString();
         // Always build FQCN as "namespace\class" (even if namespace is empty)
         $fqcn = ($this->currentNamespace !== '' ? $this->currentNamespace . '\\' : '') . $className;
         $this->currentClassName = $this->normalizeFqcn($fqcn);

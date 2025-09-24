@@ -99,7 +99,7 @@ class CognitiveMetrics implements JsonSerializable
             $class = $metrics['class'] ?? 'Unknown';
             $method = $metrics['method'] ?? 'Unknown';
             $file = $metrics['file'] ?? 'Unknown';
-            
+
             $errorMessage = sprintf(
                 'Missing required keys for %s::%s in file %s: %s. Available keys: %s',
                 $class,
@@ -108,7 +108,7 @@ class CognitiveMetrics implements JsonSerializable
                 implode(', ', $missingKeys),
                 implode(', ', array_keys($metrics))
             );
-            
+
             throw new InvalidArgumentException($errorMessage);
         }
 

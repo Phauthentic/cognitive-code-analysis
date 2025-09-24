@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Phauthentic\CognitiveCodeAnalysis\PhpParser;
 
 use PhpParser\Node;
+use PhpParser\NodeTraverser;
+use PhpParser\NodeVisitor;
 use PhpParser\NodeVisitorAbstract;
 
 /**
@@ -217,6 +219,7 @@ class CognitiveMetricsVisitor extends NodeVisitorAbstract
         }
 
         if ($node->name === null) {
+            // Skip anonymous classes - they don't have a proper class name
             return false;
         }
 
@@ -240,11 +243,12 @@ class CognitiveMetricsVisitor extends NodeVisitorAbstract
         return str_starts_with($fqcn, '\\') ? $fqcn : '\\' . $fqcn;
     }
 
-    public function enterNode(Node $node): void
+    public function enterNode(Node $node): int|Node|null
     {
         $this->setCurrentNamespaceOnEnterNode($node);
         if (!$this->setCurrentClassOnEnterNode($node)) {
-            return;
+            // Skip the entire subtree for anonymous classes or ignored classes
+            return NodeVisitor::DONT_TRAVERSE_CHILDREN;
         }
 
         $this->classMethodOnEnterNode($node);
@@ -252,6 +256,8 @@ class CognitiveMetricsVisitor extends NodeVisitorAbstract
         if ($this->currentMethod) {
             $this->gatherMetrics($node);
         }
+
+        return null;
     }
 
     private function gatherMetrics(Node $node): void
@@ -389,6 +395,11 @@ class CognitiveMetricsVisitor extends NodeVisitorAbstract
     private function checkClassOnLeaveNode(Node $node): void
     {
         if ($this->isClassOrTraitNode($node)) {
+            if (!empty($this->currentMethod)) {
+                // Don't clear the class context if we're still processing a method
+                return;
+            }
+
             $this->currentClassName = '';
         }
     }
