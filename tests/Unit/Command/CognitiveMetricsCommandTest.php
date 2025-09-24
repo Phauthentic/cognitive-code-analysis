@@ -176,7 +176,8 @@ class CognitiveMetricsCommandTest extends TestCase
         $this->assertStringEqualsFile(__DIR__ . '/OutputWithoutOptions.txt', $tester->getDisplay(true));
     }
 
-    public function testOutputWithAllMetrics(): void
+    #[\PHPUnit\Framework\Attributes\DataProvider('configurationOutputProvider')]
+    public function testConfigurationOutput(string $configFile, string $expectedOutputFile, string $description): void
     {
         $application = new Application();
         $container = $application->getContainer();
@@ -186,9 +187,55 @@ class CognitiveMetricsCommandTest extends TestCase
 
         $tester->execute([
             'path' => __DIR__ . '/../../../tests/TestCode',
-            '--config' => __DIR__ . '/../../../tests/Fixtures/all-metrics-config.yml',
+            '--config' => __DIR__ . '/../../../tests/Fixtures/' . $configFile,
         ]);
 
-        $this->assertStringEqualsFile(__DIR__ . '/OutputWithAllMetrics.txt', $tester->getDisplay(true));
+        $this->assertStringEqualsFile(__DIR__ . '/' . $expectedOutputFile, $tester->getDisplay(true), $description);
+    }
+
+    /**
+     * Data provider for configuration output tests
+     *
+     * @return array<int, array{string, string, string}>
+     */
+    public static function configurationOutputProvider(): array
+    {
+        return [
+            'all metrics enabled' => [
+                'all-metrics-config.yml',
+                'OutputWithAllMetrics.txt',
+                'Should show all metrics including Halstead and Cyclomatic complexity'
+            ],
+            'halstead only' => [
+                'halstead-only-config.yml',
+                'OutputWithHalsteadOnly.txt',
+                'Should show only Halstead complexity metrics'
+            ],
+            'cyclomatic only' => [
+                'cyclomatic-only-config.yml',
+                'OutputWithCyclomaticOnly.txt',
+                'Should show only Cyclomatic complexity metrics'
+            ],
+            'no detailed metrics' => [
+                'no-detailed-metrics-config.yml',
+                'OutputWithoutDetailedMetrics.txt',
+                'Should show only basic metrics without detailed breakdown'
+            ],
+            'single table layout' => [
+                'single-table-config.yml',
+                'OutputWithSingleTable.txt',
+                'Should display all methods in a single table instead of grouped by class'
+            ],
+            'threshold filtering' => [
+                'threshold-config.yml',
+                'OutputWithThreshold.txt',
+                'Should only show methods exceeding the complexity threshold'
+            ],
+            'minimal configuration' => [
+                'minimal-config.yml',
+                'OutputWithMinimalConfig.txt',
+                'Should show only basic cognitive complexity with minimal columns'
+            ],
+        ];
     }
 }

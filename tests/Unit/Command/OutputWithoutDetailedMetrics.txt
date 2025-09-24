@@ -1,0 +1,55 @@
+Class: \ClassOne
+File: tests/TestCode/FileWithTwoClasses.php
+┌─────────────┬────────────┬──────────┬────────────┬──────────┬────────────┐
+│ Method Name │ Cognitive  │ Halstead │ Halstead   │ Halstead │ Cyclomatic │
+│             │ Complexity │ Volume   │ Difficulty │ Effort   │ Complexity │
+├─────────────┼────────────┼──────────┼────────────┼──────────┼────────────┤
+│ add         │ 0          │ 7.925    │ 1          │ 7.925    │ 1 (low)    │
+└─────────────┴────────────┴──────────┴────────────┴──────────┴────────────┘
+
+Class: \ClassTwo
+File: tests/TestCode/FileWithTwoClasses.php
+┌─────────────┬────────────┬──────────┬────────────┬──────────┬────────────┐
+│ Method Name │ Cognitive  │ Halstead │ Halstead   │ Halstead │ Cyclomatic │
+│             │ Complexity │ Volume   │ Difficulty │ Effort   │ Complexity │
+├─────────────┼────────────┼──────────┼────────────┼──────────┼────────────┤
+│ add         │ 0          │ 7.925    │ 1          │ 7.925    │ 1 (low)    │
+└─────────────┴────────────┴──────────┴────────────┴──────────┴────────────┘
+
+Class: \Doctrine\ORM\Tools\Pagination\Paginator
+File: tests/TestCode/Paginator.php
+┌───────────────────────────────────────────┬────────────┬──────────┬────────────┬──────────┬────────────┐
+│ Method Name                               │ Cognitive  │ Halstead │ Halstead   │ Halstead │ Cyclomatic │
+│                                           │ Complexity │ Volume   │ Difficulty │ Effort   │ Complexity │
+├───────────────────────────────────────────┼────────────┼──────────┼────────────┼──────────┼────────────┤
+│ __construct                               │ 0          │ 23.219   │ 2.333      │ 54.178   │ 2 (low)    │
+│ getQuery                                  │ 0          │ 0        │ 0          │ 0        │ 1 (low)    │
+│ getFetchJoinCollection                    │ 0          │ 0        │ 0          │ 0        │ 1 (low)    │
+│ getUseOutputWalkers                       │ 0          │ 0        │ 0          │ 0        │ 1 (low)    │
+│ setUseOutputWalkers                       │ 0          │ 7.925    │ 1          │ 7.925    │ 1 (low)    │
+│ count                                     │ 0          │ 39.303   │ 4.667      │ 183.414  │ 3 (low)    │
+│ getIterator                               │ 2.079      │ 376.047  │ 13.909     │ 5230.466 │ 4 (low)    │
+│ cloneQuery                                │ 0          │ 49.114   │ 3.25       │ 159.621  │ 2 (low)    │
+│ useOutputWalker                           │ 0          │ 14       │ 2          │ 28       │ 2 (low)    │
+│ appendTreeWalker                          │ 0          │ 41.359   │ 5          │ 206.797  │ 2 (low)    │
+│ getCountQuery                             │ 0          │ 136.307  │ 3.571      │ 486.81   │ 3 (low)    │
+│ unbindUnusedQueryParams                   │ 0.336      │ 107.242  │ 5.714      │ 612.814  │ 3 (low)    │
+│ convertWhereInIdentifiersToDatabaseValues │ 0.182      │ 85.588   │ 3.75       │ 320.955  │ 1 (low)    │
+└───────────────────────────────────────────┴────────────┴──────────┴────────────┴──────────┴────────────┘
+
+Class: \WP_Debug_Data
+File: tests/TestCode/WpDebugData.php
+┌───────────────────┬────────────┬───────────┬────────────┬────────────┬─────────────────┐
+│ Method Name       │ Cognitive  │ Halstead  │ Halstead   │ Halstead   │ Cyclomatic      │
+│                   │ Complexity │ Volume    │ Difficulty │ Effort     │ Complexity      │
+├───────────────────┼────────────┼───────────┼────────────┼────────────┼─────────────────┤
+│ check_for_updates │ 0          │ 0         │ 0          │ 0          │ 1 (low)         │
+│ debug_data        │ 16.267     │ 20072.135 │ 16.1       │ 323161.378 │ 112 (very_high) │
+│ get_wp_constants  │ 4.874      │ 1279.602  │ 6.214      │ 7951.811   │ 26 (very_high)  │
+│ get_wp_filesystem │ 0.693      │ 761.098   │ 4.042      │ 3076.104   │ 16 (very_high)  │
+│ get_mysql_var     │ 0          │ 53.889    │ 4.8        │ 258.666    │ 2 (low)         │
+│ format            │ 3.584      │ 593.878   │ 8.323      │ 4942.595   │ 14 (high)       │
+│ get_database_size │ 0          │ 75.284    │ 4          │ 301.137    │ 3 (low)         │
+│ get_sizes         │ 6.628      │ 1066.795  │ 16.41      │ 17506.377  │ 12 (high)       │
+└───────────────────┴────────────┴───────────┴────────────┴────────────┴─────────────────┘
+
