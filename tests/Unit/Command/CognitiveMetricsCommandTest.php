@@ -170,7 +170,7 @@ class CognitiveMetricsCommandTest extends TestCase
         $tester = new CommandTester($command);
 
         $tester->execute([
-            'path' => __DIR__ . '/../../../tests/TestCode', // Smaller path for faster test
+            'path' => __DIR__ . '/../../../tests/TestCode',
         ]);
 
         $this->assertStringEqualsFile(__DIR__ . '/OutputWithoutOptions.txt', $tester->getDisplay(true));

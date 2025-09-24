@@ -1,5 +1,5 @@
 Class: \ClassOne
-File: /home/florian/projects/cognitive-code-analysis/tests/TestCode/FileWithTwoClasses.php
+File: tests/TestCode/FileWithTwoClasses.php
 ┌─────────────┬───────┬───────────┬─────────┬───────────┬──────────┬───────┬────────────┬───────┬────────────┐
 │ Method Name │ Lines │ Arguments │ Returns │ Variables │ Property │ If    │ If Nesting │ Else  │ Cognitive  │
 │             │       │           │         │           │ Accesses │       │ Level      │       │ Complexity │
@@ -8,7 +8,7 @@ File: /home/florian/projects/cognitive-code-analysis/tests/TestCode/FileWithTwoC
 └─────────────┴───────┴───────────┴─────────┴───────────┴──────────┴───────┴────────────┴───────┴────────────┘
 
 Class: \ClassTwo
-File: /home/florian/projects/cognitive-code-analysis/tests/TestCode/FileWithTwoClasses.php
+File: tests/TestCode/FileWithTwoClasses.php
 ┌─────────────┬───────┬───────────┬─────────┬───────────┬──────────┬───────┬────────────┬───────┬────────────┐
 │ Method Name │ Lines │ Arguments │ Returns │ Variables │ Property │ If    │ If Nesting │ Else  │ Cognitive  │
 │             │       │           │         │           │ Accesses │       │ Level      │       │ Complexity │
@@ -17,7 +17,7 @@ File: /home/florian/projects/cognitive-code-analysis/tests/TestCode/FileWithTwoC
 └─────────────┴───────┴───────────┴─────────┴───────────┴──────────┴───────┴────────────┴───────┴────────────┘
 
 Class: \Doctrine\ORM\Tools\Pagination\Paginator
-File: /home/florian/projects/cognitive-code-analysis/tests/TestCode/Paginator.php
+File: tests/TestCode/Paginator.php
 ┌───────────────────────────────────────────┬────────┬───────────┬─────────┬───────────┬──────────┬───────┬────────────┬───────────┬────────────┐
 │ Method Name                               │ Lines  │ Arguments │ Returns │ Variables │ Property │ If    │ If Nesting │ Else      │ Cognitive  │
 │                                           │        │           │         │           │ Accesses │       │ Level      │           │ Complexity │
@@ -38,7 +38,7 @@ File: /home/florian/projects/cognitive-code-analysis/tests/TestCode/Paginator.ph
 └───────────────────────────────────────────┴────────┴───────────┴─────────┴───────────┴──────────┴───────┴────────────┴───────────┴────────────┘
 
 Class: \WP_Debug_Data
-File: /home/florian/projects/cognitive-code-analysis/tests/TestCode/WpDebugData.php
+File: tests/TestCode/WpDebugData.php
 ┌───────────────────┬──────────────┬───────────┬─────────┬─────────────┬────────────┬────────────┬────────────┬────────────┬────────────┐
 │ Method Name       │ Lines        │ Arguments │ Returns │ Variables   │ Property   │ If         │ If Nesting │ Else       │ Cognitive  │
 │                   │              │           │         │             │ Accesses   │            │ Level      │            │ Complexity │
