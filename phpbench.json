@@ -3,5 +3,7 @@
     "runner.bootstrap": "vendor/autoload.php",
     "runner.path": "benchmarks",
     "runner.time_unit": "milliseconds",
-    "runner.progress": "dots"
+    "runner.progress": "dots",
+    "storage.driver": "xml",
+    "storage.xml_storage_path": "benchmarks/storage"
 }
