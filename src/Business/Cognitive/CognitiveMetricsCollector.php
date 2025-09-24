@@ -128,7 +128,9 @@ class CognitiveMetricsCollector
                 continue;
             }
 
+
             [$class, $method] = explode('::', $classAndMethod);
+
 
             $metricsArray = array_merge($metrics, [
                 'class' => $class,

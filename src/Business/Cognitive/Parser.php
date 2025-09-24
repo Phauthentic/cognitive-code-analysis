@@ -128,7 +128,10 @@ class Parser
             if (str_ends_with($method, '::')) {
                 continue;
             }
-            $methodMetrics[$method]['halstead'] = $metrics;
+            // Only add Halstead metrics to methods that were processed by CognitiveMetricsVisitor
+            if (isset($methodMetrics[$method])) {
+                $methodMetrics[$method]['halstead'] = $metrics;
+            }
         }
 
         return $methodMetrics;
@@ -150,7 +153,10 @@ class Parser
             if (str_ends_with($method, '::')) {
                 continue;
             }
-            $methodMetrics[$method]['cyclomatic_complexity'] = $complexity;
+            // Only add cyclomatic complexity to methods that were processed by CognitiveMetricsVisitor
+            if (isset($methodMetrics[$method])) {
+                $methodMetrics[$method]['cyclomatic_complexity'] = $complexity;
+            }
         }
 
         return $methodMetrics;
