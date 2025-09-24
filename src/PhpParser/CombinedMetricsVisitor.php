@@ -107,7 +107,8 @@ class CombinedMetricsVisitor implements NodeVisitor
      */
     public function getMethodComplexity(): array
     {
-        return $this->cyclomaticVisitor->getMethodComplexity();
+        $summary = $this->cyclomaticVisitor->getComplexitySummary();
+        return $summary['methods'] ?? [];
     }
 
     /**
@@ -115,7 +116,8 @@ class CombinedMetricsVisitor implements NodeVisitor
      */
     public function getHalsteadMethodMetrics(): array
     {
-        return $this->halsteadVisitor->getMethodMetrics();
+        $metrics = $this->halsteadVisitor->getMetrics();
+        return $metrics['methods'] ?? [];
     }
 
     /**

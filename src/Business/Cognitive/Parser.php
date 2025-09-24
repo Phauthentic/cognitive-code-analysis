@@ -67,11 +67,32 @@ class Parser
         // Then parse for metrics using the combined visitor for better performance
         $this->traverseAbstractSyntaxTreeWithCombinedVisitor($code);
 
+        // Get all metrics before resetting
         $methodMetrics = $this->combinedVisitor->getMethodMetrics();
+        $cyclomaticMetrics = $this->combinedVisitor->getMethodComplexity();
+        $halsteadMetrics = $this->combinedVisitor->getHalsteadMethodMetrics();
+
+        // Now reset the combined visitor
         $this->combinedVisitor->resetAll();
 
-        $methodMetrics = $this->getCyclomaticComplexityVisitor($methodMetrics);
-        $methodMetrics = $this->getHalsteadMetricsVisitor($methodMetrics);
+        // Add cyclomatic complexity to method metrics
+        foreach ($cyclomaticMetrics as $method => $complexityData) {
+            if (isset($methodMetrics[$method])) {
+                $complexity = $complexityData['complexity'] ?? $complexityData;
+                $riskLevel = $complexityData['risk_level'] ?? $this->getRiskLevel($complexity);
+                $methodMetrics[$method]['cyclomatic_complexity'] = [
+                    'complexity' => $complexity,
+                    'risk_level' => $riskLevel
+                ];
+            }
+        }
+
+        // Add Halstead metrics to method metrics
+        foreach ($halsteadMetrics as $method => $metrics) {
+            if (isset($methodMetrics[$method])) {
+                $methodMetrics[$method]['halstead'] = $metrics;
+            }
+        }
 
         return $methodMetrics;
     }
@@ -122,55 +143,6 @@ class Parser
         $combinedTraverser->traverse($ast);
     }
 
-    /**
-     * @param array<string, array<string, int>> $methodMetrics
-     * @return array<string, array<string, int>>
-     */
-    private function getHalsteadMetricsVisitor(array $methodMetrics): array
-    {
-        $halstead = $this->halsteadMetricsVisitor->getMetrics();
-        foreach ($halstead['methods'] as $method => $metrics) {
-            // Skip ignored methods
-            if ($this->annotationVisitor->isMethodIgnored($method)) {
-                continue;
-            }
-            // Skip malformed method keys (ClassName::)
-            if (str_ends_with($method, '::')) {
-                continue;
-            }
-            // Only add Halstead metrics to methods that were processed by CognitiveMetricsVisitor
-            if (isset($methodMetrics[$method])) {
-                $methodMetrics[$method]['halstead'] = $metrics;
-            }
-        }
-
-        return $methodMetrics;
-    }
-
-    /**
-     * @param array<string, array<string, int>> $methodMetrics
-     * @return array<string, array<string, int>>
-     */
-    private function getCyclomaticComplexityVisitor(array $methodMetrics): array
-    {
-        $cyclomatic = $this->cyclomaticComplexityVisitor->getComplexitySummary();
-        foreach ($cyclomatic['methods'] as $method => $complexity) {
-            // Skip ignored methods
-            if ($this->annotationVisitor->isMethodIgnored($method)) {
-                continue;
-            }
-            // Skip malformed method keys (ClassName::)
-            if (str_ends_with($method, '::')) {
-                continue;
-            }
-            // Only add cyclomatic complexity to methods that were processed by CognitiveMetricsVisitor
-            if (isset($methodMetrics[$method])) {
-                $methodMetrics[$method]['cyclomatic_complexity'] = $complexity;
-            }
-        }
-
-        return $methodMetrics;
-    }
 
     /**
      * Get all ignored classes and methods.
@@ -237,5 +209,18 @@ class Parser
         } catch (\ReflectionException $e) {
             // Ignore reflection errors
         }
+    }
+
+    /**
+     * Calculate risk level based on cyclomatic complexity.
+     */
+    private function getRiskLevel(int $complexity): string
+    {
+        return match (true) {
+            $complexity <= 5 => 'low',
+            $complexity <= 10 => 'medium',
+            $complexity <= 15 => 'high',
+            default => 'very_high',
+        };
     }
 }
