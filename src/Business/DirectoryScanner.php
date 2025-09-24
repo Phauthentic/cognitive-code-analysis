@@ -81,7 +81,36 @@ class DirectoryScanner
             RecursiveIteratorIterator::LEAVES_ONLY
         );
 
-        // Collect all files first, then sort them for consistent order
+        $files = $this->getFilesFromIterator($iterator, $exclude);
+        $this->sortFilesByPathname($files);
+
+        // Yield sorted files
+        foreach ($files as $fileInfo) {
+            yield $fileInfo;
+        }
+    }
+
+    /**
+     * Sort files by their pathname to ensure consistent order across platforms.
+     *
+     * @param array<SplFileInfo> $files Array of SplFileInfo objects to sort
+     */
+    private function sortFilesByPathname(array &$files): void
+    {
+        usort($files, function (SplFileInfo $alpha, SplFileInfo $beta) {
+            return strcmp($alpha->getPathname(), $beta->getPathname());
+        });
+    }
+
+    /**
+     * Collect files from an iterator, applying exclusion filters.
+     *
+     * @param \Iterator<SplFileInfo> $iterator Iterator to collect files from
+     * @param array<string> $exclude Array of regex patterns to exclude files
+     * @return array<SplFileInfo> Array of SplFileInfo objects
+     */
+    private function getFilesFromIterator(\Iterator $iterator, array $exclude): array
+    {
         $files = [];
         foreach ($iterator as $fileInfo) {
             if ($fileInfo->isFile() && !$this->isExcluded($fileInfo, $exclude)) {
@@ -89,15 +118,7 @@ class DirectoryScanner
             }
         }
 
-        // Sort files by their pathname to ensure consistent order across platforms
-        usort($files, function (SplFileInfo $a, SplFileInfo $b) {
-            return strcmp($a->getPathname(), $b->getPathname());
-        });
-
-        // Yield sorted files
-        foreach ($files as $fileInfo) {
-            yield $fileInfo;
-        }
+        return $files;
     }
 
     /**
