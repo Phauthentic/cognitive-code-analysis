@@ -27,10 +27,7 @@ class CognitiveMetricTextRenderer implements CognitiveMetricTextRendererInterfac
     public function __construct(
         private readonly ConfigService $configService,
     ) {
-        $config = $this->configService->getConfig();
-        $this->formatter = new MetricFormatter($config);
-        $this->rowBuilder = new TableRowBuilder($this->formatter, $config);
-        $this->headerBuilder = new TableHeaderBuilder($config);
+        // Don't initialize components here - they'll be created with current config when rendering
     }
 
     private function metricExceedsThreshold(CognitiveMetrics $metric, CognitiveConfig $config): bool
@@ -48,6 +45,11 @@ class CognitiveMetricTextRenderer implements CognitiveMetricTextRendererInterfac
     public function render(CognitiveMetricsCollection $metricsCollection, OutputInterface $output): void
     {
         $config = $this->configService->getConfig();
+
+        // Recreate components with current configuration
+        $this->formatter = new MetricFormatter($config);
+        $this->rowBuilder = new TableRowBuilder($this->formatter, $config);
+        $this->headerBuilder = new TableHeaderBuilder($config);
 
         if ($config->groupByClass) {
             $this->renderGroupedByClass($metricsCollection, $config, $output);

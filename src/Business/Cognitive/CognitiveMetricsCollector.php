@@ -221,14 +221,14 @@ class CognitiveMetricsCollector
     {
         // Start from the current file's directory and traverse up to find composer.json
         $currentDir = __DIR__;
-        
+
         while ($currentDir !== dirname($currentDir)) {
             if (file_exists($currentDir . DIRECTORY_SEPARATOR . 'composer.json')) {
                 return $currentDir;
             }
             $currentDir = dirname($currentDir);
         }
-        
+
         return null;
     }
 }

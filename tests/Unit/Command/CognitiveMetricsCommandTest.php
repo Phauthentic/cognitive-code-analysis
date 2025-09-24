@@ -175,4 +175,20 @@ class CognitiveMetricsCommandTest extends TestCase
 
         $this->assertStringEqualsFile(__DIR__ . '/OutputWithoutOptions.txt', $tester->getDisplay(true));
     }
+
+    public function testOutputWithAllMetrics(): void
+    {
+        $application = new Application();
+        $container = $application->getContainer();
+
+        $command = $container->get(CognitiveMetricsCommand::class);
+        $tester = new CommandTester($command);
+
+        $tester->execute([
+            'path' => __DIR__ . '/../../../tests/TestCode',
+            '--config' => __DIR__ . '/../../../tests/Fixtures/all-metrics-config.yml',
+        ]);
+
+        $this->assertStringEqualsFile(__DIR__ . '/OutputWithAllMetrics.txt', $tester->getDisplay(true));
+    }
 }
