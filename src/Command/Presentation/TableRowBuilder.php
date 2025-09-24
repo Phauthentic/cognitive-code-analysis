@@ -66,16 +66,22 @@ class TableRowBuilder
     {
         $fields = [
             'methodName' => $metrics->getMethod(),
-            'lineCount' => $metrics->getLineCount(),
-            'argCount' => $metrics->getArgCount(),
-            'returnCount' => $metrics->getReturnCount(),
-            'variableCount' => $metrics->getVariableCount(),
-            'propertyCallCount' => $metrics->getPropertyCallCount(),
-            'ifCount' => $metrics->getIfCount(),
-            'ifNestingLevel' => $metrics->getIfNestingLevel(),
-            'elseCount' => $metrics->getElseCount(),
-            'score' => $this->formatter->formatScore($metrics->getScore()),
         ];
+
+        if ($this->config->showDetailedCognitiveMetrics) {
+            $fields = array_merge($fields, [
+                'lineCount' => $metrics->getLineCount(),
+                'argCount' => $metrics->getArgCount(),
+                'returnCount' => $metrics->getReturnCount(),
+                'variableCount' => $metrics->getVariableCount(),
+                'propertyCallCount' => $metrics->getPropertyCallCount(),
+                'ifCount' => $metrics->getIfCount(),
+                'ifNestingLevel' => $metrics->getIfNestingLevel(),
+                'elseCount' => $metrics->getElseCount(),
+            ]);
+        }
+
+        $fields['score'] = $this->formatter->formatScore($metrics->getScore());
 
         $fields = $this->addHalsteadFields($fields, $metrics->getHalstead());
         $fields = $this->addCyclomaticFields($fields, $metrics->getCyclomatic());
@@ -93,16 +99,22 @@ class TableRowBuilder
         $fields = [
             'className' => $metrics->getClass(),
             'methodName' => $metrics->getMethod(),
-            'lineCount' => $metrics->getLineCount(),
-            'argCount' => $metrics->getArgCount(),
-            'returnCount' => $metrics->getReturnCount(),
-            'variableCount' => $metrics->getVariableCount(),
-            'propertyCallCount' => $metrics->getPropertyCallCount(),
-            'ifCount' => $metrics->getIfCount(),
-            'ifNestingLevel' => $metrics->getIfNestingLevel(),
-            'elseCount' => $metrics->getElseCount(),
-            'score' => $this->formatter->formatScore($metrics->getScore()),
         ];
+
+        if ($this->config->showDetailedCognitiveMetrics) {
+            $fields = array_merge($fields, [
+                'lineCount' => $metrics->getLineCount(),
+                'argCount' => $metrics->getArgCount(),
+                'returnCount' => $metrics->getReturnCount(),
+                'variableCount' => $metrics->getVariableCount(),
+                'propertyCallCount' => $metrics->getPropertyCallCount(),
+                'ifCount' => $metrics->getIfCount(),
+                'ifNestingLevel' => $metrics->getIfNestingLevel(),
+                'elseCount' => $metrics->getElseCount(),
+            ]);
+        }
+
+        $fields['score'] = $this->formatter->formatScore($metrics->getScore());
 
         $fields = $this->addHalsteadFields($fields, $metrics->getHalstead());
         $fields = $this->addCyclomaticFields($fields, $metrics->getCyclomatic());
@@ -193,6 +205,10 @@ class TableRowBuilder
      */
     private function getKeys(): array
     {
+        if (!$this->config->showDetailedCognitiveMetrics) {
+            return [];
+        }
+
         return [
             'lineCount',
             'argCount',

@@ -25,16 +25,22 @@ class TableHeaderBuilder
     {
         $fields = [
             "Method Name",
-            "Lines",
-            "Arguments",
-            "Returns",
-            "Variables",
-            "Property\nAccesses",
-            "If",
-            "If Nesting\nLevel",
-            "Else",
-            "Cognitive\nComplexity",
         ];
+
+        if ($this->config->showDetailedCognitiveMetrics) {
+            $fields = array_merge($fields, [
+                "Lines",
+                "Arguments",
+                "Returns",
+                "Variables",
+                "Property\nAccesses",
+                "If",
+                "If Nesting\nLevel",
+                "Else",
+            ]);
+        }
+
+        $fields[] = "Cognitive\nComplexity";
 
         $fields = $this->addHalsteadHeaders($fields);
         $fields = $this->addCyclomaticHeaders($fields);
@@ -52,16 +58,22 @@ class TableHeaderBuilder
         $fields = [
             "Class",
             "Method Name",
-            "Lines",
-            "Arguments",
-            "Returns",
-            "Variables",
-            "Property\nAccesses",
-            "If",
-            "If Nesting\nLevel",
-            "Else",
-            "Cognitive\nComplexity",
         ];
+
+        if ($this->config->showDetailedCognitiveMetrics) {
+            $fields = array_merge($fields, [
+                "Lines",
+                "Arguments",
+                "Returns",
+                "Variables",
+                "Property\nAccesses",
+                "If",
+                "If Nesting\nLevel",
+                "Else",
+            ]);
+        }
+
+        $fields[] = "Cognitive\nComplexity";
 
         $fields = $this->addHalsteadHeaders($fields);
         $fields = $this->addCyclomaticHeaders($fields);
