@@ -25,6 +25,7 @@ class CognitiveConfig
         public readonly bool $showHalsteadComplexity = false,
         public readonly bool $showCyclomaticComplexity = false,
         public readonly bool $groupByClass = false,
+        public readonly bool $showDetailedCognitiveMetrics = true,
     ) {
     }
 }
