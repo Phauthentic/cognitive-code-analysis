@@ -327,4 +327,32 @@ class CognitiveMetricsCollectorTest extends TestCase
             }
         }
     }
+
+    #[Test]
+    public function testCollectFromPaths(): void
+    {
+        $paths = [
+            './tests/TestCode/Paginator.php',
+            './tests/TestCode/FileWithTwoClasses.php'
+        ];
+
+        $metricsCollection = $this->metricsCollector->collectFromPaths($paths, $this->configService->getConfig());
+
+        $this->assertInstanceOf(CognitiveMetricsCollection::class, $metricsCollection);
+        $this->assertGreaterThan(2, $metricsCollection->count(), 'Should have metrics from both files');
+    }
+
+    #[Test]
+    public function testCollectFromPathsWithMixedTypes(): void
+    {
+        $paths = [
+            './tests/TestCode',  // Directory
+            './tests/TestCode/Paginator.php'  // File
+        ];
+
+        $metricsCollection = $this->metricsCollector->collectFromPaths($paths, $this->configService->getConfig());
+
+        $this->assertInstanceOf(CognitiveMetricsCollection::class, $metricsCollection);
+        $this->assertGreaterThan(0, $metricsCollection->count(), 'Should have metrics from directory and file');
+    }
 }

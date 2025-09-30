@@ -49,6 +49,21 @@ class CognitiveMetricsCommandTest extends TestCase
     }
 
     #[Test]
+    #[DataProvider('multiplePathsDataProvider')]
+    public function testAnalyseWithMultiplePaths(string $path, string $description): void
+    {
+        $application = new Application();
+        $command = $application->getContainer()->get(CognitiveMetricsCommand::class);
+        $tester = new CommandTester($command);
+
+        $tester->execute([
+            'path' => $path,
+        ]);
+
+        $this->assertEquals(Command::SUCCESS, $tester->getStatusCode(), $description);
+    }
+
+    #[Test]
     #[DataProvider('reportDataProvider')]
     public function testAnalyseWithJsonReport(array $input, int $returnCode): void
     {
@@ -176,7 +191,7 @@ class CognitiveMetricsCommandTest extends TestCase
         $this->assertStringEqualsFile(__DIR__ . '/OutputWithoutOptions.txt', $tester->getDisplay(true));
     }
 
-    #[\PHPUnit\Framework\Attributes\DataProvider('configurationOutputProvider')]
+    #[DataProvider('configurationOutputProvider')]
     public function testConfigurationOutput(string $configFile, string $expectedOutputFile, string $description): void
     {
         $application = new Application();
@@ -235,6 +250,37 @@ class CognitiveMetricsCommandTest extends TestCase
                 'minimal-config.yml',
                 'OutputWithMinimalConfig.txt',
                 'Should show only basic cognitive complexity with minimal columns'
+            ],
+        ];
+    }
+
+    /**
+     * Data provider for multiple paths tests
+     *
+     * @return array<int, array{string, string}>
+     */
+    public static function multiplePathsDataProvider(): array
+    {
+        return [
+            'multiple files' => [
+                __DIR__ . '/../../../src/Command/CognitiveMetricsCommand.php,' . __DIR__ . '/../../../src/Business/MetricsFacade.php',
+                'Command should succeed with multiple files'
+            ],
+            'multiple files with spaces' => [
+                __DIR__ . '/../../../src/Command/CognitiveMetricsCommand.php, ' . __DIR__ . '/../../../src/Business/MetricsFacade.php, ' . __DIR__ . '/../../../src/Business/DirectoryScanner.php',
+                'Command should succeed with multiple files and spaces'
+            ],
+            'multiple directories' => [
+                __DIR__ . '/../../../src/Command,' . __DIR__ . '/../../../src/Business',
+                'Command should succeed with multiple directories'
+            ],
+            'mixed paths' => [
+                __DIR__ . '/../../../src/Command,' . __DIR__ . '/../../../src/Business/MetricsFacade.php',
+                'Command should succeed with mixed directories and files'
+            ],
+            'mixed paths with spaces' => [
+                __DIR__ . '/../../../src/Command, ' . __DIR__ . '/../../../src/Business/MetricsFacade.php, ' . __DIR__ . '/../../../src/Business/DirectoryScanner.php',
+                'Command should succeed with mixed paths and spaces'
             ],
         ];
     }

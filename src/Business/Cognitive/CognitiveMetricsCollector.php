@@ -44,17 +44,29 @@ class CognitiveMetricsCollector
      */
     public function collect(string $path, CognitiveConfig $config): CognitiveMetricsCollection
     {
-        $files = $this->findSourceFiles($path, $config->excludeFilePatterns);
+        return $this->collectFromPaths([$path], $config);
+    }
 
-        /** @var SplFileInfo[] $clonedFiles */
-        $clonedFiles = [];
-        foreach ($files as $file) {
-            $clonedFiles[] = $file;
+    /**
+     * Collect cognitive metrics from multiple paths and merge them into a single collection
+     *
+     * @param array<string> $paths Array of paths to process
+     * @param CognitiveConfig $config
+     * @return CognitiveMetricsCollection Merged collection of metrics from all paths
+     * @throws CognitiveAnalysisException|ExceptionInterface
+     */
+    public function collectFromPaths(array $paths, CognitiveConfig $config): CognitiveMetricsCollection
+    {
+        $allFiles = [];
+
+        foreach ($paths as $path) {
+            $files = $this->findSourceFiles($path, $config->excludeFilePatterns);
+            $allFiles = array_merge($allFiles, iterator_to_array($files));
         }
 
-        $this->messageBus->dispatch(new SourceFilesFound($clonedFiles));
+        $this->messageBus->dispatch(new SourceFilesFound($allFiles));
 
-        return $this->findMetrics($clonedFiles);
+        return $this->findMetrics($allFiles);
     }
 
     /**

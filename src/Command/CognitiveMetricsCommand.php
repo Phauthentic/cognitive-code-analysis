@@ -54,7 +54,7 @@ class CognitiveMetricsCommand extends Command
             ->addArgument(
                 name: self::ARGUMENT_PATH,
                 mode: InputArgument::REQUIRED,
-                description: 'Path to PHP files or directories to parse.'
+                description: 'Path to PHP files or directories to parse. Can be a single path or comma-separated list of paths.'
             )
             ->addOption(
                 name: self::OPTION_CONFIG_FILE,
@@ -110,14 +110,15 @@ class CognitiveMetricsCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $path = $input->getArgument(self::ARGUMENT_PATH);
+        $pathInput = $input->getArgument(self::ARGUMENT_PATH);
+        $paths = $this->parsePaths($pathInput);
 
         $configFile = $input->getOption(self::OPTION_CONFIG_FILE);
         if ($configFile && !$this->loadConfiguration($configFile, $output)) {
             return Command::FAILURE;
         }
 
-        $metricsCollection = $this->metricsFacade->getCognitiveMetrics($path);
+        $metricsCollection = $this->metricsFacade->getCognitiveMetricsFromPaths($paths);
 
         $this->handleBaseLine($input, $metricsCollection);
 
@@ -145,6 +146,20 @@ class CognitiveMetricsCommand extends Command
         $this->renderer->render($metricsCollection, $output);
 
         return Command::SUCCESS;
+    }
+
+    /**
+     * Parses the path input to handle both single paths and comma-separated multiple paths.
+     *
+     * @param string $pathInput The input path(s) from the command argument
+     * @return array<string> Array of paths to process
+     */
+    private function parsePaths(string $pathInput): array
+    {
+        $paths = array_map('trim', explode(',', $pathInput));
+        return array_filter($paths, function ($path) {
+            return !empty($path);
+        });
     }
 
     /**

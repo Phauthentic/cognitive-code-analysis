@@ -53,6 +53,23 @@ class MetricsFacade
     }
 
     /**
+     * Collects and returns cognitive metrics for multiple paths.
+     *
+     * @param array<string> $paths Array of file or directory paths to collect metrics from.
+     * @return CognitiveMetricsCollection The collected cognitive metrics from all paths.
+     */
+    public function getCognitiveMetricsFromPaths(array $paths): CognitiveMetricsCollection
+    {
+        $metricsCollection = $this->cognitiveMetricsCollector->collectFromPaths($paths, $this->configService->getConfig());
+
+        foreach ($metricsCollection as $metric) {
+            $this->scoreCalculator->calculate($metric, $this->configService->getConfig());
+        }
+
+        return $metricsCollection;
+    }
+
+    /**
      * @return array<string, array<string, mixed>>
      */
     public function calculateChurn(string $path, string $vcsType = 'git', string $since = '1900-01-01'): array
