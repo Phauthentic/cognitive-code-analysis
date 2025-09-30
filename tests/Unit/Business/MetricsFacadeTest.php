@@ -35,6 +35,20 @@ class MetricsFacadeTest extends TestCase
     }
 
     #[Test]
+    public function testGetCognitiveMetricsFromPaths(): void
+    {
+        $paths = [
+            $this->testCodePath . '/Paginator.php',
+            $this->testCodePath . '/FileWithTwoClasses.php'
+        ];
+
+        $cognitiveMetrics = $this->metricsFacade->getCognitiveMetricsFromPaths($paths);
+
+        $this->assertNotEmpty($cognitiveMetrics);
+        $this->assertGreaterThan(0, $cognitiveMetrics->count());
+    }
+
+    #[Test]
     public function testLoadConfig(): void
     {
         // Load a valid configuration file
