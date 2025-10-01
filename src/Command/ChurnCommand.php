@@ -29,6 +29,7 @@ class ChurnCommand extends Command
     public const OPTION_DEBUG = 'debug';
     public const OPTION_REPORT_TYPE = 'report-type';
     public const OPTION_REPORT_FILE = 'report-file';
+    public const OPTION_COVERAGE_COBERTURA = 'coverage-cobertura';
 
     /**
      * Constructor to initialize dependencies.
@@ -89,6 +90,11 @@ class ChurnCommand extends Command
                 mode: InputArgument::OPTIONAL,
                 description: 'File to write the report to.'
             )
+            ->addOption(
+                name: self::OPTION_COVERAGE_COBERTURA,
+                mode: InputArgument::OPTIONAL,
+                description: 'Path to Cobertura XML coverage file to display coverage data.'
+            )
         ;
     }
 
@@ -110,13 +116,15 @@ class ChurnCommand extends Command
 
         $reportType = $input->getOption(self::OPTION_REPORT_TYPE);
         $reportFile = $input->getOption(self::OPTION_REPORT_FILE);
+        $coverageFile = $input->getOption(self::OPTION_COVERAGE_COBERTURA);
 
         if ($reportType !== null || $reportFile !== null) {
             return $this->report->exportToFile($classes, $reportType, $reportFile);
         }
 
         $this->renderer->renderChurnTable(
-            classes: $classes
+            classes: $classes,
+            coverageFile: $coverageFile
         );
 
         return self::SUCCESS;
