@@ -56,14 +56,6 @@ class ChurnTextRenderer
     {
         $coverageReader = null;
         if ($coverageFile !== null) {
-            if (!file_exists($coverageFile)) {
-                $this->output->writeln(sprintf(
-                    '<error>Coverage file not found: %s</error>',
-                    $coverageFile
-                ));
-                return;
-            }
-
             try {
                 $coverageReader = new CoberturaReader($coverageFile);
             } catch (\RuntimeException $e) {

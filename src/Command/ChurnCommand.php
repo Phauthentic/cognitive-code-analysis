@@ -108,6 +108,11 @@ class ChurnCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        $coverageFile = $input->getOption(self::OPTION_COVERAGE_COBERTURA);
+        if (!$this->coverageFileExists($coverageFile, $output)) {
+            return self::FAILURE;
+        }
+
         $classes = $this->metricsFacade->calculateChurn(
             path: $input->getArgument(self::ARGUMENT_PATH),
             vcsType: $input->getOption(self::OPTION_VCS),
@@ -116,7 +121,6 @@ class ChurnCommand extends Command
 
         $reportType = $input->getOption(self::OPTION_REPORT_TYPE);
         $reportFile = $input->getOption(self::OPTION_REPORT_FILE);
-        $coverageFile = $input->getOption(self::OPTION_COVERAGE_COBERTURA);
 
         if ($reportType !== null || $reportFile !== null) {
             return $this->report->exportToFile($classes, $reportType, $reportFile);
@@ -128,5 +132,19 @@ class ChurnCommand extends Command
         );
 
         return self::SUCCESS;
+    }
+
+    private function coverageFileExists(?string $coverageFile, OutputInterface $output): bool
+    {
+        if ($coverageFile !== null && file_exists($coverageFile)) {
+            return true;
+        }
+
+        $output->writeln(sprintf(
+            '<error>Coverage file not found: %s</error>',
+            $coverageFile
+        ));
+
+        return false;
     }
 }
