@@ -2,8 +2,8 @@ cognitive:
   excludeFilePatterns:
   excludePatterns:
   scoreThreshold: 0.5
-  showOnlyMethodsExceedingThreshold: false
+  showOnlyMethodsExceedingThreshold: true
   showHalsteadComplexity: true
   showCyclomaticComplexity: true
-  showDetailedCognitiveMetrics: true
-  groupByClass: true
+  showDetailedCognitiveMetrics: false
+  groupByClass: false
