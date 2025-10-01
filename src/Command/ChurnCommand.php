@@ -136,10 +136,17 @@ class ChurnCommand extends Command
 
     private function coverageFileExists(?string $coverageFile, OutputInterface $output): bool
     {
-        if ($coverageFile !== null && file_exists($coverageFile)) {
+        // If no coverage file is provided, validation passes (backward compatibility)
+        if ($coverageFile === null) {
             return true;
         }
 
+        // If coverage file is provided, check if it exists
+        if (file_exists($coverageFile)) {
+            return true;
+        }
+
+        // Coverage file was provided but doesn't exist - show error
         $output->writeln(sprintf(
             '<error>Coverage file not found: %s</error>',
             $coverageFile
