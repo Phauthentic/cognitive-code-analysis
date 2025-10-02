@@ -56,7 +56,7 @@ class CognitiveMetricsReportHandler
 
     private function isValidReportType(?string $reportType): bool
     {
-        return in_array($reportType, ['json', 'csv', 'html']);
+        return in_array($reportType, ['json', 'csv', 'html', 'markdown']);
     }
 
     /**
@@ -80,7 +80,7 @@ class CognitiveMetricsReportHandler
     public function handleInvalidReporType(?string $reportType): int
     {
         $this->output->writeln(sprintf(
-            '<error>Invalid report type `%s` provided. Only `json`, `csv`, and `html` are accepted.</error>',
+            '<error>Invalid report type `%s` provided. Only `json`, `csv`, `html`, and `markdown` are accepted.</error>',
             $reportType
         ));
 

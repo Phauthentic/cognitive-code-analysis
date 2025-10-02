@@ -13,6 +13,7 @@ use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollect
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter\CsvExporter;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter\HtmlExporter;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter\JsonExporter;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter\MarkdownExporter;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\ScoreCalculator;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
@@ -171,10 +172,13 @@ class MetricsFacade
         string $reportType,
         string $filename
     ): void {
+        $config = $this->configService->getConfig();
+
         match ($reportType) {
             'json' => (new JsonExporter())->export($metricsCollection, $filename),
             'csv'  => (new CsvExporter())->export($metricsCollection, $filename),
             'html' => (new HtmlExporter())->export($metricsCollection, $filename),
+            'markdown' => (new MarkdownExporter($config))->export($metricsCollection, $filename),
             default => null,
         };
     }
