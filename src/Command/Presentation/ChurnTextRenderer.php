@@ -30,8 +30,10 @@ class ChurnTextRenderer
         'Class',
         'Score',
         'Churn',
+        'Risk Churn',
         'Times Changed',
         'Coverage',
+        'Risk Level',
     ];
 
     public function __construct(
@@ -49,26 +51,15 @@ class ChurnTextRenderer
 
     /**
      * @param array<string, mixed> $classes An associative array where keys are class names and values are arrays
-     * containing 'score', 'churn', and 'timesChanged'.
-     * @param string|null $coverageFile Path to Cobertura XML coverage file
+     * containing 'score', 'churn', 'timesChanged', and optionally 'coverage', 'riskChurn', 'riskLevel'.
      */
-    public function renderChurnTable(array $classes, ?string $coverageFile = null): void
+    public function renderChurnTable(array $classes): void
     {
-        $coverageReader = null;
-        if ($coverageFile !== null) {
-            try {
-                $coverageReader = new CoberturaReader($coverageFile);
-            } catch (\RuntimeException $e) {
-                $this->output->writeln(sprintf(
-                    '<error>Failed to load coverage file: %s</error>',
-                    $e->getMessage()
-                ));
-                return;
-            }
-        }
+        // Determine if coverage data is available
+        $hasCoverageData = $this->hasCoverageData($classes);
 
         $table = new Table($this->output);
-        $table->setHeaders($coverageReader !== null ? $this->churnTableHeaderWithCoverage : $this->churnTableHeader);
+        $table->setHeaders($hasCoverageData ? $this->churnTableHeaderWithCoverage : $this->churnTableHeader);
 
         foreach ($classes as $className => $data) {
             if ($data['score'] == 0 || $data['churn'] == 0) {
@@ -78,20 +69,40 @@ class ChurnTextRenderer
             $row = [
                 $className,
                 $data['score'],
-                $data['churn'] ?? 0,
-                $data['timesChanged'],
+                round($data['churn'], 3),
             ];
 
-            if ($coverageReader !== null) {
-                // Remove leading backslash for coverage lookup if present
-                $lookupClassName = ltrim($className, '\\');
-                $coverage = $coverageReader->getLineCoverage($lookupClassName);
-                $row[] = $coverage !== null ? sprintf('%.2f%%', $coverage * 100) : 'N/A';
+            if ($hasCoverageData) {
+                $row[] = $data['riskChurn'] !== null ? round($data['riskChurn'], 3) : 'N/A';
+            }
+
+            $row[] = $data['timesChanged'];
+
+            if ($hasCoverageData) {
+                $row[] = $data['coverage'] !== null ? sprintf('%.2f%%', $data['coverage'] * 100) : 'N/A';
+                $row[] = $data['riskLevel'] ?? 'N/A';
             }
 
             $table->addRow($row);
         }
 
         $table->render();
+    }
+
+    /**
+     * Check if any class has coverage data
+     *
+     * @param array<string, mixed> $classes
+     * @return bool
+     */
+    private function hasCoverageData(array $classes): bool
+    {
+        foreach ($classes as $data) {
+            if (array_key_exists('coverage', $data) && $data['coverage'] !== null) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

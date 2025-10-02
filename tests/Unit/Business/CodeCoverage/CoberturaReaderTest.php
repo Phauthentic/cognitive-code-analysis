@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\CodeCoverage;
 
 use Phauthentic\CognitiveCodeAnalysis\Business\CodeCoverage\CoberturaReader;
+use Phauthentic\CognitiveCodeAnalysis\Business\CodeCoverage\CoverageDetails;
+use Phauthentic\CognitiveCodeAnalysis\Business\CodeCoverage\MethodCoverage;
+use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 use PHPUnit\Framework\TestCase;
-use RuntimeException;
 
 class CoberturaReaderTest extends TestCase
 {
@@ -32,7 +34,7 @@ class CoberturaReaderTest extends TestCase
 
     public function testConstructorThrowsExceptionForNonExistentFile(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(CognitiveAnalysisException::class);
         $this->expectExceptionMessage('Coverage file not found');
 
         new CoberturaReader('/non/existent/file.xml');
@@ -43,7 +45,7 @@ class CoberturaReaderTest extends TestCase
         $invalidFile = tempnam(sys_get_temp_dir(), 'invalid_xml');
         file_put_contents($invalidFile, 'This is not valid XML');
 
-        $this->expectException(RuntimeException::class);
+        $this->expectException(CognitiveAnalysisException::class);
         $this->expectExceptionMessage('Failed to parse coverage XML file');
 
         try {
@@ -102,7 +104,7 @@ class CoberturaReaderTest extends TestCase
     {
         $details = $this->reader->getCoverageDetails('App\TestClass');
 
-        $this->assertInstanceOf(\Phauthentic\CognitiveCodeAnalysis\Business\CodeCoverage\CoverageDetails::class, $details);
+        $this->assertInstanceOf(CoverageDetails::class, $details);
         $this->assertEquals('App\TestClass', $details->getName());
         $this->assertEquals('src/TestClass.php', $details->getFilename());
         $this->assertEquals(0.85, $details->getLineRate());
@@ -137,7 +139,7 @@ class CoberturaReaderTest extends TestCase
         $this->assertIsArray($methods);
         $this->assertArrayHasKey('testMethod', $methods);
         $method = $methods['testMethod'];
-        $this->assertInstanceOf(\Phauthentic\CognitiveCodeAnalysis\Business\CodeCoverage\MethodCoverage::class, $method);
+        $this->assertInstanceOf(MethodCoverage::class, $method);
         $this->assertEquals(1.0, $method->getLineRate());
         $this->assertEquals(0.5, $method->getBranchRate());
         $this->assertEquals(3, $method->getComplexity());

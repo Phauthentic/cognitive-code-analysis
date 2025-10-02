@@ -44,7 +44,7 @@ interface CoverageReportReaderInterface
     /**
      * Get all covered classes
      *
-     * @return array List of FQCNs
+     * @return array<string> List of FQCNs
      */
     public function getAllClasses(): array;
 }

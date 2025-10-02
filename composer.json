@@ -44,7 +44,8 @@
         "bin-dir": "bin",
         "allow-plugins": {
             "infection/extension-installer": true
-        }
+        },
+        "process-timeout": 0
     },
     "bin": [
       "bin/phpcca"
@@ -57,10 +58,10 @@
             "infection"
         ],
         "test-coverage": [
-            "phpunit --coverage-text"
+            "phpunit --coverage-text --path-coverage"
         ],
         "test-coverage-html": [
-            "phpunit --coverage-html tmp/coverage/"
+            "phpunit --coverage-html tmp/coverage/ --path-coverage"
         ],
         "cscheck": [
             "phpcs src/ tests/ -s"

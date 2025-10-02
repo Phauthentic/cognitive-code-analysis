@@ -7,7 +7,7 @@ namespace Phauthentic\CognitiveCodeAnalysis\Business\CodeCoverage;
 use DOMDocument;
 use DOMElement;
 use DOMXPath;
-use RuntimeException;
+use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 
 /**
  * Reads Cobertura XML coverage reports and provides coverage information by class
@@ -16,17 +16,18 @@ class CoberturaReader implements CoverageReportReaderInterface
 {
     private DOMDocument $document;
     private DOMXPath $xpath;
+    /** @var array<string, DOMElement|null> */
     private array $cache = [];
 
     public function __construct(string $filePath)
     {
         if (!file_exists($filePath)) {
-            throw new RuntimeException("Coverage file not found: {$filePath}");
+            throw new CognitiveAnalysisException("Coverage file not found: {$filePath}");
         }
 
         $this->document = new DOMDocument();
         if (!@$this->document->load($filePath)) {
-            throw new RuntimeException("Failed to parse coverage XML file: {$filePath}");
+            throw new CognitiveAnalysisException("Failed to parse coverage XML file: {$filePath}");
         }
 
         $this->xpath = new DOMXPath($this->document);
@@ -112,15 +113,21 @@ class CoberturaReader implements CoverageReportReaderInterface
     /**
      * Get all covered classes
      *
-     * @return array List of FQCNs
+     * @return array<string> List of FQCNs
      */
     public function getAllClasses(): array
     {
         $classes = $this->xpath->query('//class');
         $fqcns = [];
 
+        if ($classes === false) {
+            return [];
+        }
+
         foreach ($classes as $class) {
-            $fqcns[] = $class->getAttribute('name');
+            if ($class instanceof DOMElement) {
+                $fqcns[] = $class->getAttribute('name');
+            }
         }
 
         return $fqcns;
@@ -144,7 +151,13 @@ class CoberturaReader implements CoverageReportReaderInterface
             return null;
         }
 
-        $this->cache[$fqcn] = $nodes->item(0);
+        $node = $nodes->item(0);
+        if (!$node instanceof DOMElement) {
+            $this->cache[$fqcn] = null;
+            return null;
+        }
+
+        $this->cache[$fqcn] = $node;
 
         return $this->cache[$fqcn];
     }
@@ -159,14 +172,20 @@ class CoberturaReader implements CoverageReportReaderInterface
         $methods = [];
         $methodNodes = $this->xpath->query('.//method', $classNode);
 
+        if ($methodNodes === false) {
+            return [];
+        }
+
         foreach ($methodNodes as $methodNode) {
-            $methodName = $methodNode->getAttribute('name');
-            $methods[$methodName] = new MethodCoverage(
-                name: $methodName,
-                lineRate: (float)$methodNode->getAttribute('line-rate'),
-                branchRate: (float)$methodNode->getAttribute('branch-rate'),
-                complexity: (int)$methodNode->getAttribute('complexity'),
-            );
+            if ($methodNode instanceof DOMElement) {
+                $methodName = $methodNode->getAttribute('name');
+                $methods[$methodName] = new MethodCoverage(
+                    name: $methodName,
+                    lineRate: (float)$methodNode->getAttribute('line-rate'),
+                    branchRate: (float)$methodNode->getAttribute('branch-rate'),
+                    complexity: (int)$methodNode->getAttribute('complexity'),
+                );
+            }
         }
 
         return $methods;
