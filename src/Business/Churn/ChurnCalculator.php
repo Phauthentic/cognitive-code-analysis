@@ -55,20 +55,19 @@ class ChurnCalculator
             $classes[$className]['churn'] = $data['timesChanged'] * $data['score'];
 
             // Add coverage information if available
+            $coverage = null;
+            $riskChurn = null;
+            $riskLevel = null;
+
             if ($coverageReader !== null) {
                 $coverage = $this->getCoverageForClass($className, $coverageReader);
-                $classes[$className]['coverage'] = $coverage;
-                $classes[$className]['riskChurn'] = $data['timesChanged'] * $data['score'] * (1 - $coverage);
-                $classes[$className]['riskLevel'] = $this->calculateRiskLevel(
-                    $classes[$className]['churn'],
-                    $coverage
-                );
-            } else {
-                // Backward compatibility: no coverage data
-                $classes[$className]['coverage'] = null;
-                $classes[$className]['riskChurn'] = null;
-                $classes[$className]['riskLevel'] = null;
+                $riskChurn = $data['timesChanged'] * $data['score'] * (1 - $coverage);
+                $riskLevel = $this->calculateRiskLevel($classes[$className]['churn'], $coverage);
             }
+
+            $classes[$className]['coverage'] = $coverage;
+            $classes[$className]['riskChurn'] = $riskChurn;
+            $classes[$className]['riskLevel'] = $riskLevel;
         }
 
         return $classes;
