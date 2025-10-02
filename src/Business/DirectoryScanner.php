@@ -10,7 +10,6 @@ use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use SplFileInfo;
-use RuntimeException;
 
 /**
  * Class DirectoryScanner
@@ -25,7 +24,7 @@ class DirectoryScanner
      * @param array<string> $paths Array of file or directory paths to scan
      * @param array<string> $exclude Array of regex patterns to exclude files
      * @return Generator<SplFileInfo> Generator yielding SplFileInfo objects
-     * @throws RuntimeException|CognitiveAnalysisException
+     * @throws CognitiveAnalysisException
      */
     public function scan(array $paths, array $exclude = []): Generator
     {

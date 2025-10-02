@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Command\Presentation;
 
+use Phauthentic\CognitiveCodeAnalysis\Business\CodeCoverage\CoberturaReader;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -22,6 +23,19 @@ class ChurnTextRenderer
         'Times Changed',
     ];
 
+    /**
+     * @var array<string>
+     */
+    private array $churnTableHeaderWithCoverage = [
+        'Class',
+        'Score',
+        'Churn',
+        'Risk Churn',
+        'Times Changed',
+        'Coverage',
+        'Risk Level',
+    ];
+
     public function __construct(
         private readonly OutputInterface $output
     ) {
@@ -37,26 +51,58 @@ class ChurnTextRenderer
 
     /**
      * @param array<string, mixed> $classes An associative array where keys are class names and values are arrays
-     * containing 'score', 'churn', and 'timesChanged'.
+     * containing 'score', 'churn', 'timesChanged', and optionally 'coverage', 'riskChurn', 'riskLevel'.
      */
     public function renderChurnTable(array $classes): void
     {
+        // Determine if coverage data is available
+        $hasCoverageData = $this->hasCoverageData($classes);
+
         $table = new Table($this->output);
-        $table->setHeaders($this->churnTableHeader);
+        $table->setHeaders($hasCoverageData ? $this->churnTableHeaderWithCoverage : $this->churnTableHeader);
 
         foreach ($classes as $className => $data) {
             if ($data['score'] == 0 || $data['churn'] == 0) {
                 continue;
             }
 
-            $table->addRow([
+            $row = [
                 $className,
                 $data['score'],
-                $data['churn'] ?? 0,
-                $data['timesChanged'],
-            ]);
+                round($data['churn'], 3),
+            ];
+
+            if ($hasCoverageData) {
+                $row[] = $data['riskChurn'] !== null ? round($data['riskChurn'], 3) : 'N/A';
+            }
+
+            $row[] = $data['timesChanged'];
+
+            if ($hasCoverageData) {
+                $row[] = $data['coverage'] !== null ? sprintf('%.2f%%', $data['coverage'] * 100) : 'N/A';
+                $row[] = $data['riskLevel'] ?? 'N/A';
+            }
+
+            $table->addRow($row);
         }
 
         $table->render();
+    }
+
+    /**
+     * Check if any class has coverage data
+     *
+     * @param array<string, mixed> $classes
+     * @return bool
+     */
+    private function hasCoverageData(array $classes): bool
+    {
+        foreach ($classes as $data) {
+            if (array_key_exists('coverage', $data) && $data['coverage'] !== null) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

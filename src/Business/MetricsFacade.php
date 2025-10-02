@@ -7,6 +7,7 @@ namespace Phauthentic\CognitiveCodeAnalysis\Business;
 use JsonException;
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChangeCounter\ChangeCounterFactory;
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChurnCalculator;
+use Phauthentic\CognitiveCodeAnalysis\Business\CodeCoverage\CoverageReportReaderInterface;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollector;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter\CsvExporter;
@@ -70,10 +71,18 @@ class MetricsFacade
     }
 
     /**
+     * @param string $path
+     * @param string $vcsType
+     * @param string $since
+     * @param CoverageReportReaderInterface|null $coverageReader
      * @return array<string, array<string, mixed>>
      */
-    public function calculateChurn(string $path, string $vcsType = 'git', string $since = '1900-01-01'): array
-    {
+    public function calculateChurn(
+        string $path,
+        string $vcsType = 'git',
+        string $since = '1900-01-01',
+        ?CoverageReportReaderInterface $coverageReader = null
+    ): array {
         $metricsCollection = $this->getCognitiveMetrics($path);
 
         $counter = $this->changeCounterFactory->create($vcsType);
@@ -84,7 +93,7 @@ class MetricsFacade
             ));
         }
 
-        return $this->churnCalculator->calculate($metricsCollection);
+        return $this->churnCalculator->calculate($metricsCollection, $coverageReader);
     }
 
     /**
