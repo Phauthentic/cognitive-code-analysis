@@ -31,6 +31,7 @@ class CognitiveMetrics implements JsonSerializable
     private string $class;
     private string $method;
     private string $file;
+    private int $line;
     private ?int $timesChanged = null;
 
     private int $lineCount = 0;
@@ -75,6 +76,7 @@ class CognitiveMetrics implements JsonSerializable
         $this->method = $metrics['method'];
         $this->class = $metrics['class'];
         $this->file = $metrics['file'] ?? null;
+        $this->line = $metrics['line'] ?? 0;
 
         $this->setRequiredMetricProperties($metrics);
         $this->setOptionalMetricProperties($metrics);
@@ -388,6 +390,11 @@ class CognitiveMetrics implements JsonSerializable
         return $this->file;
     }
 
+    public function getLine(): int
+    {
+        return $this->line;
+    }
+
     public function equals(self $metrics): bool
     {
         return $metrics->getClass() === $this->class
@@ -403,6 +410,7 @@ class CognitiveMetrics implements JsonSerializable
             'class' => $this->class,
             'method' => $this->method,
             'file' => $this->file,
+            'line' => $this->line,
             'lineCount' => $this->lineCount,
             'argCount' => $this->argCount,
             'returnCount' => $this->returnCount,
