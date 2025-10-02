@@ -156,6 +156,7 @@ class MetricsFacade
             'json' => (new Churn\Exporter\JsonExporter())->export($classes, $filename),
             'csv' => (new Churn\Exporter\CsvExporter())->export($classes, $filename),
             'html' => (new Churn\Exporter\HtmlExporter())->export($classes, $filename),
+            'markdown' => (new Churn\Exporter\MarkdownExporter())->export($classes, $filename),
             'svg' => (new Churn\Exporter\SvgTreemapExporter())->export($classes, $filename),
             default => null,
         };
