@@ -97,6 +97,7 @@ class CognitiveMetricsVisitor extends NodeVisitorAbstract
     private function createMetricsArray(Node\Stmt\ClassMethod $node): array
     {
         return [
+            'line' => $node->getStartLine(),
             'lineCount' => $this->calculateLineCount($node),
             'argCount' => $this->countMethodArguments($node),
             'returnCount' => 0,

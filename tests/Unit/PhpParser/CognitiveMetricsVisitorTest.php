@@ -55,6 +55,7 @@ class CognitiveMetricsVisitorTest extends TestCase
         $this->assertArrayHasKey('\\MyNamespace\\MyClass::myMethod', $methodMetrics);
 
         $metrics = $methodMetrics['\\MyNamespace\\MyClass::myMethod'];
+        $this->assertEquals(8, $metrics['line']);
         $this->assertEquals(12, $metrics['lineCount']);
         $this->assertEquals(2, $metrics['argCount']);
         $this->assertEquals(3, $metrics['returnCount']);
@@ -150,7 +151,7 @@ class CognitiveMetricsVisitorTest extends TestCase
         // Verify that all metrics have the required keys
         foreach ($methodMetrics as $methodKey => $metrics) {
             $requiredKeys = [
-                'lineCount', 'argCount', 'returnCount', 'variableCount',
+                'line', 'lineCount', 'argCount', 'returnCount', 'variableCount',
                 'propertyCallCount', 'ifCount', 'ifNestingLevel', 'elseCount'
             ];
 
@@ -228,7 +229,7 @@ class CognitiveMetricsVisitorTest extends TestCase
         // Verify that the metrics have all required keys
         $metrics = $methodMetrics['\\TestNamespace\\TestClass::methodWithMultipleAnonymousClasses'];
         $requiredKeys = [
-            'lineCount', 'argCount', 'returnCount', 'variableCount',
+            'line', 'lineCount', 'argCount', 'returnCount', 'variableCount',
             'propertyCallCount', 'ifCount', 'ifNestingLevel', 'elseCount'
         ];
 

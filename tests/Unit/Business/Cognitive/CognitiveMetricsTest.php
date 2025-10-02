@@ -24,6 +24,7 @@ class CognitiveMetricsTest extends TestCase
             'class' => 'TestClass',
             'method' => 'testMethod',
             'file' => 'TestClass.php',
+            'line' => 42,
             'lineCount' => 10,
             'argCount' => 2,
             'returnCount' => 1,
@@ -42,6 +43,7 @@ class CognitiveMetricsTest extends TestCase
 
         $this->assertSame('TestClass', $metrics->getClass());
         $this->assertSame('testMethod', $metrics->getMethod());
+        $this->assertSame(42, $metrics->getLine());
         $this->assertSame(10, $metrics->getLineCount());
         $this->assertSame(2, $metrics->getArgCount());
         $this->assertSame(1, $metrics->getReturnCount());
@@ -67,6 +69,7 @@ class CognitiveMetricsTest extends TestCase
 
         $this->assertSame('TestClass', $metrics->getClass());
         $this->assertSame('testMethod', $metrics->getMethod());
+        $this->assertSame(42, $metrics->getLine());
         $this->assertSame(10, $metrics->getLineCount());
         $this->assertSame(2, $metrics->getArgCount());
         $this->assertSame(1, $metrics->getReturnCount());
@@ -94,6 +97,7 @@ class CognitiveMetricsTest extends TestCase
             'class' => 'TestClass',
             'method' => 'testMethod',
             'file' => 'TestClass.php',
+            'line' => 42,
             'lineCount' => 10,
             'argCount' => 2,
             'returnCount' => 1,
@@ -132,6 +136,7 @@ class CognitiveMetricsTest extends TestCase
             'class' => 'TestClass',
             'method' => 'testMethod',
             'file' => 'TestClass.php',
+            'line' => 42,
             'lineCount' => 10,
             'argCount' => 2,
             'returnCount' => 1,
@@ -169,6 +174,7 @@ class CognitiveMetricsTest extends TestCase
             'class' => 'TestClass',
             'method' => 'testMethod',
             'file' => 'TestClass.php',
+            'line' => 42,
             'lineCount' => 10,
             'argCount' => 2,
             'returnCount' => 1,
@@ -194,6 +200,7 @@ class CognitiveMetricsTest extends TestCase
             'class' => 'TestClass',
             'method' => 'testMethod',
             'file' => 'TestClass.php',
+            'line' => 42,
             'lineCount' => 10,
             'argCount' => 2,
             'returnCount' => 1,
