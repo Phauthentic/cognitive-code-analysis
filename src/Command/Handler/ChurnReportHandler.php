@@ -60,7 +60,7 @@ class ChurnReportHandler
 
     private function isValidReportType(?string $reportType): bool
     {
-        return in_array($reportType, ['json', 'csv', 'html', 'svg-treemap'], true);
+        return in_array($reportType, ['json', 'csv', 'html', 'markdown', 'svg-treemap'], true);
     }
 
     /**
@@ -84,7 +84,7 @@ class ChurnReportHandler
     private function handleInvalidReportType(?string $reportType): int
     {
         $this->output->writeln(sprintf(
-            '<error>Invalid report type `%s` provided. Only `json`, `csv`, and `html` are accepted.</error>',
+            '<error>Invalid report type `%s` provided. Only `json`, `csv`, `html`, and `markdown` are accepted.</error>',
             $reportType
         ));
 
