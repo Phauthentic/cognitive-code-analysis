@@ -1,0 +1,28 @@
+# Cognitive Metrics Report
+
+**Generated:** 2023-10-01 12:00:00
+
+**Total Classes:** 2
+
+**Note:** Only showing methods exceeding threshold of 0.100
+
+---
+
+* **Class:** TestClass
+* **File:** TestClass.php
+
+| Method | Lines | Args | Returns | Variables | Property Calls | If | If Nesting | Else | Cognitive Complexity | Halstead Volume | Halstead Difficulty | Halstead Effort | Cyclomatic Complexity |
+|--------|--------|--------|--------|--------|--------|--------|--------|--------|--------|--------|--------|--------|--------|
+| testMethod | 10 (0.500) | 2 (0.300) | 1 (0.200) | 5 (0.400) | 3 (0.300) | 4 (0.600) | 2 (0.500) | 1 (0.200) | 0.300 | 573.211 | 12.500 | 7,165.138 | 5 (low) |
+
+---
+
+* **Class:** AnotherClass
+* **File:** AnotherClass.php
+
+| Method | Lines | Args | Returns | Variables | Property Calls | If | If Nesting | Else | Cognitive Complexity | Halstead Volume | Halstead Difficulty | Halstead Effort | Cyclomatic Complexity |
+|--------|--------|--------|--------|--------|--------|--------|--------|--------|--------|--------|--------|--------|--------|
+| complexMethod | 20 (1.000) | 4 (0.600) | 3 (0.500) | 10 (0.800) | 5 (0.500) | 8 (1.200) | 3 (1.000) | 4 (0.600) | 0.800 | 1,357.824 | 25.000 | 33,945.600 | 12 (medium) |
+
+---
+
