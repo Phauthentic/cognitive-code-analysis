@@ -9,17 +9,6 @@ use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 abstract class AbstractExporter implements DataExporterInterface
 {
     /**
-     * @var array<string>
-     */
-    private array $header = [
-        'Class',
-        'File',
-        'Score',
-        'Churn',
-        'Times Changed',
-    ];
-
-    /**
      * @throws CognitiveAnalysisException
      */
     protected function writeFile(string $filename, string $content): void

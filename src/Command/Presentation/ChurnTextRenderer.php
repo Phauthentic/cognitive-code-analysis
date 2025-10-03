@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phauthentic\CognitiveCodeAnalysis\Command\Presentation;
 
 use Phauthentic\CognitiveCodeAnalysis\Business\CodeCoverage\CoberturaReader;
+use Phauthentic\CognitiveCodeAnalysis\Business\Traits\CoverageDataDetector;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -13,6 +14,8 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class ChurnTextRenderer
 {
+    use CoverageDataDetector;
+
     /**
      * @var array<string>
      */
@@ -87,22 +90,5 @@ class ChurnTextRenderer
         }
 
         $table->render();
-    }
-
-    /**
-     * Check if any class has coverage data
-     *
-     * @param array<string, mixed> $classes
-     * @return bool
-     */
-    private function hasCoverageData(array $classes): bool
-    {
-        foreach ($classes as $data) {
-            if (array_key_exists('coverage', $data) && $data['coverage'] !== null) {
-                return true;
-            }
-        }
-
-        return false;
     }
 }

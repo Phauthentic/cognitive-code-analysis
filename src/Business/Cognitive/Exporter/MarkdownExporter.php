@@ -7,6 +7,7 @@ namespace Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetrics;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Delta;
+use Phauthentic\CognitiveCodeAnalysis\Business\Exporter\MarkdownFormatterTrait;
 use Phauthentic\CognitiveCodeAnalysis\Business\Utility\Datetime;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
@@ -16,6 +17,8 @@ use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
  */
 class MarkdownExporter implements DataExporterInterface
 {
+    use MarkdownFormatterTrait;
+
     private CognitiveConfig $config;
 
     public function __construct(CognitiveConfig $config)
@@ -44,15 +47,7 @@ class MarkdownExporter implements DataExporterInterface
      */
     private function escape(string $string): string
     {
-        return str_replace(['\\', '|'], ['\\\\', '\\|'], $string);
-    }
-
-    /**
-     * Format a number to 3 decimal places.
-     */
-    private function formatNumber(float $number): string
-    {
-        return number_format($number, 3);
+        return $this->escapeMarkdown($string);
     }
 
     /**

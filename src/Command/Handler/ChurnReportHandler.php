@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phauthentic\CognitiveCodeAnalysis\Command\Handler;
 
 use Exception;
+use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Exporter\ChurnExporterFactory;
 use Phauthentic\CognitiveCodeAnalysis\Business\MetricsFacade;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -14,10 +15,13 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class ChurnReportHandler
 {
+    private ChurnExporterFactory $exporterFactory;
+
     public function __construct(
         private MetricsFacade $metricsFacade,
         private OutputInterface $output
     ) {
+        $this->exporterFactory = new ChurnExporterFactory();
     }
 
     /**
@@ -60,7 +64,10 @@ class ChurnReportHandler
 
     private function isValidReportType(?string $reportType): bool
     {
-        return in_array($reportType, ['json', 'csv', 'html', 'markdown', 'svg-treemap'], true);
+        if ($reportType === null) {
+            return false;
+        }
+        return $this->exporterFactory->isSupported($reportType);
     }
 
     /**
@@ -83,9 +90,11 @@ class ChurnReportHandler
      */
     private function handleInvalidReportType(?string $reportType): int
     {
+        $supportedTypes = implode('`, `', $this->exporterFactory->getSupportedTypes());
         $this->output->writeln(sprintf(
-            '<error>Invalid report type `%s` provided. Only `json`, `csv`, `html`, and `markdown` are accepted.</error>',
-            $reportType
+            '<error>Invalid report type `%s` provided. Supported types: `%s`</error>',
+            $reportType,
+            $supportedTypes
         ));
 
         return Command::FAILURE;

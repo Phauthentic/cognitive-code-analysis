@@ -7,13 +7,11 @@ namespace Phauthentic\CognitiveCodeAnalysis\Business;
 use JsonException;
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChangeCounter\ChangeCounterFactory;
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChurnCalculator;
+use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Exporter\ChurnExporterFactory;
 use Phauthentic\CognitiveCodeAnalysis\Business\CodeCoverage\CoverageReportReaderInterface;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollector;
-use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter\CsvExporter;
-use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter\HtmlExporter;
-use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter\JsonExporter;
-use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter\MarkdownExporter;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter\CognitiveExporterFactory;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\ScoreCalculator;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
@@ -24,6 +22,9 @@ use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
  */
 class MetricsFacade
 {
+    private ?ChurnExporterFactory $churnExporterFactory = null;
+    private ?CognitiveExporterFactory $cognitiveExporterFactory = null;
+
     /**
      * Constructor initializes the metrics collectors, score calculator, and config service.
      */
@@ -35,6 +36,28 @@ class MetricsFacade
         private readonly ChangeCounterFactory $changeCounterFactory
     ) {
         $this->loadConfig(__DIR__ . '/../../config.yml');
+    }
+
+    /**
+     * Get or create the churn exporter factory.
+     */
+    private function getChurnExporterFactory(): ChurnExporterFactory
+    {
+        if ($this->churnExporterFactory === null) {
+            $this->churnExporterFactory = new ChurnExporterFactory();
+        }
+        return $this->churnExporterFactory;
+    }
+
+    /**
+     * Get or create the cognitive exporter factory.
+     */
+    private function getCognitiveExporterFactory(): CognitiveExporterFactory
+    {
+        if ($this->cognitiveExporterFactory === null) {
+            $this->cognitiveExporterFactory = new CognitiveExporterFactory($this->configService->getConfig());
+        }
+        return $this->cognitiveExporterFactory;
     }
 
     /**
@@ -145,41 +168,24 @@ class MetricsFacade
 
     /**
      * @param array<string, array<string, mixed>> $classes
-     * @throws CognitiveAnalysisException
-     * @throws JsonException
      */
     public function exportChurnReport(
         array $classes,
         string $reportType,
         string $filename
     ): void {
-        match ($reportType) {
-            'json' => (new Churn\Exporter\JsonExporter())->export($classes, $filename),
-            'csv' => (new Churn\Exporter\CsvExporter())->export($classes, $filename),
-            'html' => (new Churn\Exporter\HtmlExporter())->export($classes, $filename),
-            'markdown' => (new Churn\Exporter\MarkdownExporter())->export($classes, $filename),
-            'svg' => (new Churn\Exporter\SvgTreemapExporter())->export($classes, $filename),
-            default => null,
-        };
+        $exporter = $this->getChurnExporterFactory()->create($reportType);
+        $exporter->export($classes, $filename);
     }
 
     /**
-     * @throws CognitiveAnalysisException
-     * @throws JsonException
      */
     public function exportMetricsReport(
         CognitiveMetricsCollection $metricsCollection,
         string $reportType,
         string $filename
     ): void {
-        $config = $this->configService->getConfig();
-
-        match ($reportType) {
-            'json' => (new JsonExporter())->export($metricsCollection, $filename),
-            'csv'  => (new CsvExporter())->export($metricsCollection, $filename),
-            'html' => (new HtmlExporter())->export($metricsCollection, $filename),
-            'markdown' => (new MarkdownExporter($config))->export($metricsCollection, $filename),
-            default => null,
-        };
+        $exporter = $this->getCognitiveExporterFactory()->create($reportType);
+        $exporter->export($metricsCollection, $filename);
     }
 }

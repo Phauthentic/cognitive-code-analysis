@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Business\Churn\Exporter;
 
+use Phauthentic\CognitiveCodeAnalysis\Business\Exporter\MarkdownFormatterTrait;
+use Phauthentic\CognitiveCodeAnalysis\Business\Traits\CoverageDataDetector;
 use Phauthentic\CognitiveCodeAnalysis\Business\Utility\Datetime;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 
@@ -12,6 +14,9 @@ use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
  */
 class MarkdownExporter extends AbstractExporter
 {
+    use MarkdownFormatterTrait;
+    use CoverageDataDetector;
+
     /**
      * @var array<string>
      */
@@ -63,8 +68,8 @@ class MarkdownExporter extends AbstractExporter
         $markdown .= "Total Classes: " . count($classes) . "\n\n";
 
         // Create table header
-        $markdown .= "| " . implode(" | ", $header) . " |\n";
-        $markdown .= "|" . str_repeat(" --- |", count($header)) . "\n";
+        $markdown .= $this->buildMarkdownTableHeader($header) . "\n";
+        $markdown .= $this->buildMarkdownTableSeparator(count($header)) . "\n";
 
         // Add rows
         foreach ($classes as $className => $data) {
@@ -106,34 +111,5 @@ class MarkdownExporter extends AbstractExporter
         }
 
         return "| " . implode(" | ", $row) . " |\n";
-    }
-
-    /**
-     * Check if any class has coverage data
-     *
-     * @param array<string, mixed> $classes
-     * @return bool
-     */
-    private function hasCoverageData(array $classes): bool
-    {
-        foreach ($classes as $data) {
-            if (array_key_exists('coverage', $data) && $data['coverage'] !== null) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * Escape special markdown characters in strings
-     *
-     * @param string $string
-     * @return string
-     */
-    private function escapeMarkdown(string $string): string
-    {
-        // Escape pipe characters which would break table formatting
-        return str_replace('|', '\\|', $string);
     }
 }
