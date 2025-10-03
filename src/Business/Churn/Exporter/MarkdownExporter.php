@@ -10,7 +10,7 @@ use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 /**
  * MarkdownExporter for Churn metrics.
  */
-class MarkdownExporter implements DataExporterInterface
+class MarkdownExporter extends AbstractExporter
 {
     /**
      * @var array<string>
@@ -42,11 +42,11 @@ class MarkdownExporter implements DataExporterInterface
      */
     public function export(array $classes, string $filename): void
     {
+        $this->assertFileIsWritable($filename);
+
         $markdown = $this->generateMarkdown($classes);
 
-        if (file_put_contents($filename, $markdown) === false) {
-            throw new CognitiveAnalysisException("Unable to write to file: $filename");
-        }
+        $this->writeFile($filename, $markdown);
     }
 
     /**
@@ -72,27 +72,40 @@ class MarkdownExporter implements DataExporterInterface
                 continue;
             }
 
-            $row = [
-                $this->escapeMarkdown($className),
-                (string)$data['score'],
-                (string)round($data['churn'], 3),
-            ];
-
-            if ($hasCoverageData) {
-                $row[] = $data['riskChurn'] !== null ? (string)round($data['riskChurn'], 3) : 'N/A';
-            }
-
-            $row[] = (string)$data['timesChanged'];
-
-            if ($hasCoverageData) {
-                $row[] = $data['coverage'] !== null ? sprintf('%.2f%%', $data['coverage'] * 100) : 'N/A';
-                $row[] = $data['riskLevel'] ?? 'N/A';
-            }
-
-            $markdown .= "| " . implode(" | ", $row) . " |\n";
+            $markdown .= $this->addRow($className, $data, $hasCoverageData);
         }
 
         return $markdown;
+    }
+
+    /**
+     * Add a single row to the markdown table
+     *
+     * @param string $className
+     * @param array<string, mixed> $data
+     * @param bool $hasCoverageData
+     * @return string
+     */
+    private function addRow(string $className, array $data, bool $hasCoverageData): string
+    {
+        $row = [
+            $this->escapeMarkdown($className),
+            (string)$data['score'],
+            (string)round((float)$data['churn'], 3),
+        ];
+
+        if ($hasCoverageData) {
+            $row[] = $data['riskChurn'] !== null ? (string)round((float)$data['riskChurn'], 3) : 'N/A';
+        }
+
+        $row[] = (string)$data['timesChanged'];
+
+        if ($hasCoverageData) {
+            $row[] = $data['coverage'] !== null ? sprintf('%.2f%%', $data['coverage'] * 100) : 'N/A';
+            $row[] = $data['riskLevel'] ?? 'N/A';
+        }
+
+        return "| " . implode(" | ", $row) . " |\n";
     }
 
     /**

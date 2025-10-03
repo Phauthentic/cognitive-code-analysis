@@ -8,10 +8,7 @@ use JsonException;
 use Phauthentic\CognitiveCodeAnalysis\Business\Utility\Datetime;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 
-/**
- *
- */
-class JsonExporter implements DataExporterInterface
+class JsonExporter extends AbstractExporter
 {
     /**
      * @param array<string, array<string, mixed>> $classes
@@ -19,6 +16,8 @@ class JsonExporter implements DataExporterInterface
      */
     public function export(array $classes, string $filename): void
     {
+        $this->assertFileIsWritable($filename);
+
         $data = [
             'createdAt' => (new DateTime())->format('Y-m-d H:i:s'),
             'classes' => $classes,
@@ -26,8 +25,6 @@ class JsonExporter implements DataExporterInterface
 
         $jsonData = json_encode($data, JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR);
 
-        if (file_put_contents($filename, $jsonData) === false) {
-            throw new CognitiveAnalysisException("Unable to write to file: $filename");
-        }
+        $this->writeFile($filename, $jsonData);
     }
 }

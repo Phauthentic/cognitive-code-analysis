@@ -15,7 +15,7 @@ use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
  *
  * @SuppressWarnings("PHPMD.ShortVariable")
  */
-class SvgTreemapExporter implements DataExporterInterface
+class SvgTreemapExporter extends AbstractExporter
 {
     private const SVG_WIDTH = 1200;
     private const SVG_HEIGHT = 800;
@@ -35,6 +35,8 @@ class SvgTreemapExporter implements DataExporterInterface
      */
     public function export(array $classes, string $filename): void
     {
+        $this->assertFileIsWritable($filename);
+
         $svg = $this->generateSvgTreemap(classes: $classes);
 
         if (file_put_contents($filename, $svg) === false) {
