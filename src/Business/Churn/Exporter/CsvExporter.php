@@ -9,7 +9,7 @@ use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 /**
  * CsvExporter for Churn metrics.
  */
-class CsvExporter implements DataExporterInterface
+class CsvExporter extends AbstractExporter
 {
     /**
      * @var array<string>
@@ -21,21 +21,6 @@ class CsvExporter implements DataExporterInterface
         'Churn',
         'Times Changed',
     ];
-
-    /**
-     * @throws CognitiveAnalysisException
-     */
-    private function assertFileIsWritable(string $filename): void
-    {
-        if (file_exists($filename) && !is_writable($filename)) {
-            throw new CognitiveAnalysisException(sprintf('File %s is not writable', $filename));
-        }
-
-        $dir = dirname($filename);
-        if (!is_dir($dir) || !is_writable($dir)) {
-            throw new CognitiveAnalysisException(sprintf('Directory %s does not exist for file %s', $dir, $filename));
-        }
-    }
 
     /**
      * @param array<string, array<string, mixed>> $classes

@@ -4,14 +4,19 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Business\Churn\Exporter;
 
+use Phauthentic\CognitiveCodeAnalysis\Business\Exporter\MarkdownFormatterTrait;
+use Phauthentic\CognitiveCodeAnalysis\Business\Traits\CoverageDataDetector;
 use Phauthentic\CognitiveCodeAnalysis\Business\Utility\Datetime;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 
 /**
  * MarkdownExporter for Churn metrics.
  */
-class MarkdownExporter implements DataExporterInterface
+class MarkdownExporter extends AbstractExporter
 {
+    use MarkdownFormatterTrait;
+    use CoverageDataDetector;
+
     /**
      * @var array<string>
      */
@@ -42,11 +47,11 @@ class MarkdownExporter implements DataExporterInterface
      */
     public function export(array $classes, string $filename): void
     {
+        $this->assertFileIsWritable($filename);
+
         $markdown = $this->generateMarkdown($classes);
 
-        if (file_put_contents($filename, $markdown) === false) {
-            throw new CognitiveAnalysisException("Unable to write to file: $filename");
-        }
+        $this->writeFile($filename, $markdown);
     }
 
     /**
@@ -63,8 +68,8 @@ class MarkdownExporter implements DataExporterInterface
         $markdown .= "Total Classes: " . count($classes) . "\n\n";
 
         // Create table header
-        $markdown .= "| " . implode(" | ", $header) . " |\n";
-        $markdown .= "|" . str_repeat(" --- |", count($header)) . "\n";
+        $markdown .= $this->buildMarkdownTableHeader($header) . "\n";
+        $markdown .= $this->buildMarkdownTableSeparator(count($header)) . "\n";
 
         // Add rows
         foreach ($classes as $className => $data) {
@@ -72,55 +77,39 @@ class MarkdownExporter implements DataExporterInterface
                 continue;
             }
 
-            $row = [
-                $this->escapeMarkdown($className),
-                (string)$data['score'],
-                (string)round($data['churn'], 3),
-            ];
-
-            if ($hasCoverageData) {
-                $row[] = $data['riskChurn'] !== null ? (string)round($data['riskChurn'], 3) : 'N/A';
-            }
-
-            $row[] = (string)$data['timesChanged'];
-
-            if ($hasCoverageData) {
-                $row[] = $data['coverage'] !== null ? sprintf('%.2f%%', $data['coverage'] * 100) : 'N/A';
-                $row[] = $data['riskLevel'] ?? 'N/A';
-            }
-
-            $markdown .= "| " . implode(" | ", $row) . " |\n";
+            $markdown .= $this->addRow($className, $data, $hasCoverageData);
         }
 
         return $markdown;
     }
 
     /**
-     * Check if any class has coverage data
+     * Add a single row to the markdown table
      *
-     * @param array<string, mixed> $classes
-     * @return bool
-     */
-    private function hasCoverageData(array $classes): bool
-    {
-        foreach ($classes as $data) {
-            if (array_key_exists('coverage', $data) && $data['coverage'] !== null) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * Escape special markdown characters in strings
-     *
-     * @param string $string
+     * @param string $className
+     * @param array<string, mixed> $data
+     * @param bool $hasCoverageData
      * @return string
      */
-    private function escapeMarkdown(string $string): string
+    private function addRow(string $className, array $data, bool $hasCoverageData): string
     {
-        // Escape pipe characters which would break table formatting
-        return str_replace('|', '\\|', $string);
+        $row = [
+            $this->escapeMarkdown($className),
+            (string)$data['score'],
+            (string)round((float)$data['churn'], 3),
+        ];
+
+        if ($hasCoverageData) {
+            $row[] = $data['riskChurn'] !== null ? (string)round((float)$data['riskChurn'], 3) : 'N/A';
+        }
+
+        $row[] = (string)$data['timesChanged'];
+
+        if ($hasCoverageData) {
+            $row[] = $data['coverage'] !== null ? sprintf('%.2f%%', $data['coverage'] * 100) : 'N/A';
+            $row[] = $data['riskLevel'] ?? 'N/A';
+        }
+
+        return "| " . implode(" | ", $row) . " |\n";
     }
 }

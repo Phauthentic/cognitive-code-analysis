@@ -9,7 +9,7 @@ use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 /**
  * HtmlExporter for Churn metrics.
  */
-class HtmlExporter implements DataExporterInterface
+class HtmlExporter extends AbstractExporter
 {
     /**
      * @var array<string>
@@ -27,11 +27,11 @@ class HtmlExporter implements DataExporterInterface
      */
     public function export(array $classes, string $filename): void
     {
+        $this->assertFileIsWritable($filename);
+
         $html = $this->generateHtml($classes);
 
-        if (file_put_contents($filename, $html) === false) {
-            throw new CognitiveAnalysisException('Could not write to file');
-        }
+        $this->writeFile($filename, $html);
     }
 
     private function escape(string $string): string
