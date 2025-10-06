@@ -23,6 +23,15 @@ class ConfigFactory
             );
         }, $config['cognitive']['metrics']);
 
+        $cacheConfig = null;
+        if (isset($config['cache'])) {
+                $cacheConfig = new CacheConfig(
+                    enabled: $config['cache']['enabled'] ?? true,
+                    directory: $config['cache']['directory'] ?? './.phpcca.cache',
+                    compression: $config['cache']['compression'] ?? true,
+                );
+        }
+
         return new CognitiveConfig(
             excludeFilePatterns: $config['cognitive']['excludeFilePatterns'],
             excludePatterns: $config['cognitive']['excludePatterns'],
@@ -32,7 +41,8 @@ class ConfigFactory
             showHalsteadComplexity: $config['cognitive']['showHalsteadComplexity'] ?? false,
             showCyclomaticComplexity: $config['cognitive']['showCyclomaticComplexity'] ?? false,
             groupByClass: $config['cognitive']['groupByClass'] ?? true,
-            showDetailedCognitiveMetrics: $config['cognitive']['showDetailedCognitiveMetrics'] ?? true
+            showDetailedCognitiveMetrics: $config['cognitive']['showDetailedCognitiveMetrics'] ?? true,
+            cache: $cacheConfig
         );
     }
 }

@@ -188,4 +188,34 @@ class MetricsFacade
         $exporter = $this->getCognitiveExporterFactory()->create($reportType);
         $exporter->export($metricsCollection, $filename);
     }
+
+    /**
+     * Clear all cached analysis results
+     */
+    public function clearCache(): void
+    {
+        // This would need to be implemented to clear the cache
+        // For now, we'll add a placeholder
+        throw new \RuntimeException('Cache clearing not yet implemented');
+    }
+
+    /**
+     * Set cache directory override
+     */
+    public function setCacheDirectory(string $cacheDir): void
+    {
+        // This would need to be implemented to override cache directory
+        // For now, we'll add a placeholder
+        throw new \RuntimeException('Cache directory override not yet implemented');
+    }
+
+    /**
+     * Disable caching for this run
+     */
+    public function disableCache(): void
+    {
+        // This would need to be implemented to disable caching
+        // For now, we'll add a placeholder
+        throw new \RuntimeException('Cache disabling not yet implemented');
+    }
 }

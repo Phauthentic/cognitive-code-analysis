@@ -26,6 +26,7 @@ class CognitiveConfig
         public readonly bool $showCyclomaticComplexity = false,
         public readonly bool $groupByClass = false,
         public readonly bool $showDetailedCognitiveMetrics = true,
+        public readonly ?CacheConfig $cache = null,
     ) {
     }
 }

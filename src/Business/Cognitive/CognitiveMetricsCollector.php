@@ -15,6 +15,7 @@ use SplFileInfo;
 use Symfony\Component\Messenger\Exception\ExceptionInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Throwable;
+use Psr\Cache\CacheItemPoolInterface;
 
 /**
  * CognitiveMetricsCollector class that collects cognitive metrics from source files
@@ -31,6 +32,7 @@ class CognitiveMetricsCollector
         protected readonly DirectoryScanner $directoryScanner,
         protected readonly ConfigService $configService,
         protected readonly MessageBusInterface $messageBus,
+        protected readonly ?CacheItemPoolInterface $cachePool = null,
     ) {
     }
 
@@ -94,29 +96,60 @@ class CognitiveMetricsCollector
     {
         $metricsCollection = new CognitiveMetricsCollection();
         $fileCount = 0;
+        $config = $this->configService->getConfig();
+        $configHash = $this->generateConfigHash($config);
 
         foreach ($files as $file) {
-            try {
-                $metrics = $this->parser->parse(
-                    $this->getCodeFromFile($file)
-                );
+            $metrics = null;
+            $useCache = $this->cachePool !== null && $config->cache?->enabled === true;
+            $cacheItem = null;
 
-                // Store ignored items from the parser
-                $this->ignoredItems = $this->parser->getIgnored();
 
-                $fileCount++;
-
-                // Clear memory periodically to prevent memory leaks
-                if ($fileCount % 50 === 0) {
-                    $this->parser->clearStaticCaches();
-                    gc_collect_cycles();
+            if ($useCache) {
+                $cacheKey = $this->generateCacheKey($file, $configHash);
+                $cacheItem = $this->cachePool->getItem($cacheKey);
+                
+                if ($cacheItem->isHit()) {
+                    // Use cached result
+                    $cachedData = $cacheItem->get();
+                    $metrics = $cachedData['analysis_result'];
+                    $this->ignoredItems = $cachedData['ignored_items'];
+                    
+                    $this->messageBus->dispatch(new FileProcessed($file));
                 }
-            } catch (Throwable $exception) {
-                $this->messageBus->dispatch(new ParserFailed(
-                    $file,
-                    $exception
-                ));
-                continue;
+            }
+
+            if ($metrics === null) {
+                // Parse file and cache result
+                try {
+                    $metrics = $this->parser->parse(
+                        $this->getCodeFromFile($file)
+                    );
+
+                    // Store ignored items from the parser
+                    $this->ignoredItems = $this->parser->getIgnored();
+
+                    $fileCount++;
+
+                    // Clear memory periodically to prevent memory leaks
+                    if ($fileCount % 50 === 0) {
+                        $this->parser->clearStaticCaches();
+                        gc_collect_cycles();
+                    }
+
+                    // Cache the result if caching is enabled
+                    if ($useCache && $cacheItem !== null) {
+                        $this->cacheResult($cacheItem, $file, $metrics, $configHash);
+                    }
+                } catch (Throwable $exception) {
+                    $this->messageBus->dispatch(new ParserFailed(
+                        $file,
+                        $exception
+                    ));
+                    continue;
+                }
+                
+                $this->messageBus->dispatch(new FileProcessed($file));
             }
 
             $filename = $file->getRealPath();
@@ -133,10 +166,6 @@ class CognitiveMetricsCollector
                 $metricsCollection,
                 $filename
             );
-
-            $this->messageBus->dispatch(new FileProcessed(
-                $file,
-            ));
         }
 
         return $metricsCollection;
@@ -254,5 +283,69 @@ class CognitiveMetricsCollector
         }
 
         return null;
+    }
+
+    /**
+     * Generate cache key for a file based on path, modification time, and config hash
+     */
+    private function generateCacheKey(SplFileInfo $file, string $configHash): string
+    {
+        $filePath = $file->getRealPath();
+        $fileMtime = $file->getMTime();
+        
+        return 'phpcca_' . md5($filePath . '|' . $fileMtime . '|' . $configHash);
+    }
+
+    /**
+     * Generate configuration hash for cache invalidation
+     */
+    private function generateConfigHash(CognitiveConfig $config): string
+    {
+        return md5(serialize($this->getConfigAsArray($config)));
+    }
+
+    /**
+     * Cache the analysis result for a file
+     */
+    private function cacheResult($cacheItem, SplFileInfo $file, array $metrics, string $configHash): void
+    {
+        if (!$this->cachePool) {
+            return;
+        }
+
+        $data = [
+            'version' => '1.0',
+            'file_path' => $file->getRealPath(),
+            'file_mtime' => $file->getMTime(),
+            'config_hash' => $configHash,
+            'analysis_result' => $metrics,
+            'ignored_items' => $this->ignoredItems,
+            'cached_at' => time()
+        ];
+        
+        $cacheItem->set($data);
+        $this->cachePool->save($cacheItem);
+    }
+
+    /**
+     * Get configuration as array for serialization
+     */
+    private function getConfigAsArray(CognitiveConfig $config): array
+    {
+        return [
+            'excludeFilePatterns' => $config->excludeFilePatterns,
+            'excludePatterns' => $config->excludePatterns,
+            'scoreThreshold' => $config->scoreThreshold,
+            'showOnlyMethodsExceedingThreshold' => $config->showOnlyMethodsExceedingThreshold,
+            'showHalsteadComplexity' => $config->showHalsteadComplexity,
+            'showCyclomaticComplexity' => $config->showCyclomaticComplexity,
+            'groupByClass' => $config->groupByClass,
+            'showDetailedCognitiveMetrics' => $config->showDetailedCognitiveMetrics,
+            'cache' => $config->cache ? [
+                'enabled' => $config->cache->enabled,
+                'directory' => $config->cache->directory,
+                'compression' => $config->cache->compression,
+            ] : null,
+        ];
     }
 }

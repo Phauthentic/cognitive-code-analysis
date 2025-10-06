@@ -15,6 +15,7 @@ use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
@@ -33,6 +34,9 @@ class CognitiveMetricsCommand extends Command
     public const OPTION_DEBUG = 'debug';
     public const OPTION_SORT_BY = 'sort-by';
     public const OPTION_SORT_ORDER = 'sort-order';
+    public const OPTION_CLEAR_CACHE = 'clear-cache';
+    public const OPTION_NO_CACHE = 'no-cache';
+    public const OPTION_CACHE_DIR = 'cache-dir';
     private const ARGUMENT_PATH = 'path';
 
     public function __construct(
@@ -97,6 +101,21 @@ class CognitiveMetricsCommand extends Command
                 mode: InputArgument::OPTIONAL,
                 description: 'Enables debug output',
                 default: false
+            )
+            ->addOption(
+                name: self::OPTION_CLEAR_CACHE,
+                mode: InputOption::VALUE_NONE,
+                description: 'Clear all cached analysis results'
+            )
+            ->addOption(
+                name: self::OPTION_NO_CACHE,
+                mode: InputOption::VALUE_NONE,
+                description: 'Disable caching for this run'
+            )
+            ->addOption(
+                name: self::OPTION_CACHE_DIR,
+                mode: InputArgument::OPTIONAL,
+                description: 'Override default cache directory',
             );
     }
 
@@ -113,9 +132,32 @@ class CognitiveMetricsCommand extends Command
         $pathInput = $input->getArgument(self::ARGUMENT_PATH);
         $paths = $this->parsePaths($pathInput);
 
+        // Handle cache options
+        if ($input->getOption(self::OPTION_CLEAR_CACHE)) {
+            try {
+                $this->metricsFacade->clearCache();
+                $output->writeln('<info>Cache cleared successfully.</info>');
+            } catch (Exception $e) {
+                $output->writeln('<error>Failed to clear cache: ' . $e->getMessage() . '</error>');
+            }
+            return Command::SUCCESS;
+        }
+
         $configFile = $input->getOption(self::OPTION_CONFIG_FILE);
         if ($configFile && !$this->loadConfiguration($configFile, $output)) {
             return Command::FAILURE;
+        }
+
+        // Handle cache directory override
+        $cacheDir = $input->getOption(self::OPTION_CACHE_DIR);
+        if ($cacheDir) {
+            $this->metricsFacade->setCacheDirectory($cacheDir);
+        }
+
+        // Handle no-cache option
+        $noCache = $input->getOption(self::OPTION_NO_CACHE);
+        if ($noCache) {
+            $this->metricsFacade->disableCache();
         }
 
         $metricsCollection = $this->metricsFacade->getCognitiveMetricsFromPaths($paths);
@@ -195,4 +237,5 @@ class CognitiveMetricsCommand extends Command
             return false;
         }
     }
+
 }

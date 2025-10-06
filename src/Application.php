@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis;
 
+use Phauthentic\CognitiveCodeAnalysis\Business\Cache\FileCacheService;
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChangeCounter\ChangeCounterFactory;
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChurnCalculator;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Baseline;
@@ -44,6 +45,7 @@ use Symfony\Component\Messenger\Handler\HandlersLocator;
 use Symfony\Component\Messenger\MessageBus;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Messenger\Middleware\HandleMessageMiddleware;
+use Psr\Cache\CacheItemPoolInterface;
 
 /**
  *
@@ -81,6 +83,12 @@ class Application
 
         $this->containerBuilder->register(ConfigService::class, ConfigService::class)
             ->setPublic(true);
+
+            $this->containerBuilder->register(CacheItemPoolInterface::class, FileCacheService::class)
+                ->setArguments([
+                    './.phpcca.cache' // Default cache directory, can be overridden by config
+                ])
+                ->setPublic(true);
 
         $this->containerBuilder->register(ChurnTextRenderer::class, ChurnTextRenderer::class)
             ->setArguments([
@@ -165,7 +173,8 @@ class Application
                 new Reference(Parser::class),
                 new Reference(DirectoryScanner::class),
                 new Reference(ConfigService::class),
-                new Reference(MessageBusInterface::class)
+                new Reference(MessageBusInterface::class),
+                new Reference(CacheItemPoolInterface::class)
             ])
             ->setPublic(true);
     }

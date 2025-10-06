@@ -131,6 +131,19 @@ class ConfigLoader implements ConfigurationInterface
                         ->end()
                     ->end()
                 ->end()
+                ->arrayNode('cache')
+                    ->children()
+                        ->booleanNode('enabled')
+                            ->defaultValue(true)
+                        ->end()
+                        ->scalarNode('directory')
+                            ->defaultValue('./.phpcca.cache')
+                        ->end()
+                        ->booleanNode('compression')
+                            ->defaultValue(true)
+                        ->end()
+                    ->end()
+                ->end()
             ->end();
 
         return $treeBuilder;
