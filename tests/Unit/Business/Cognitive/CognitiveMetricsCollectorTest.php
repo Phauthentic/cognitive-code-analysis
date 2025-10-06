@@ -9,6 +9,7 @@ use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollect
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Parser;
 use Phauthentic\CognitiveCodeAnalysis\Business\DirectoryScanner;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
+use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
 use Phauthentic\CognitiveCodeAnalysis\Config\ConfigLoader;
 use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
 use PhpParser\NodeTraverser;
@@ -354,5 +355,45 @@ class CognitiveMetricsCollectorTest extends TestCase
 
         $this->assertInstanceOf(CognitiveMetricsCollection::class, $metricsCollection);
         $this->assertGreaterThan(0, $metricsCollection->count(), 'Should have metrics from directory and file');
+    }
+
+    #[Test]
+    public function testFindSourceFilesExcludePatternsNotMergedProperly(): void
+    {
+        $configService = new ConfigService(
+            new Processor(),
+            new ConfigLoader(),
+        );
+
+        $metricsCollector = new CognitiveMetricsCollector(
+            new Parser(
+                new ParserFactory(),
+                new NodeTraverser(),
+            ),
+            new DirectoryScanner(),
+            $configService,
+            $this->messageBus
+        );
+
+        $excludePatterns = ['Paginator\.php$', 'FileWithTwoClasses\.php$'];
+
+        $config = new CognitiveConfig(
+            excludeFilePatterns: $excludePatterns,
+            excludePatterns: [],
+            metrics: [],
+            showOnlyMethodsExceedingThreshold: false,
+            scoreThreshold: 0.0
+        );
+
+        $metricsCollection = $metricsCollector->collect('./tests/TestCode', $config);
+
+        $allFiles = [];
+        foreach ($metricsCollection as $metric) {
+            $allFiles[] = $metric->getFileName();
+        }
+
+        $this->assertNotContains('tests/TestCode/Paginator.php', $allFiles, 'Paginator.php should be excluded');
+        $this->assertNotContains('tests/TestCode/FileWithTwoClasses.php', $allFiles, 'FileWithTwoClasses.php should be excluded');
+        $this->assertContains('tests/TestCode/WpDebugData.php', $allFiles, 'WpDebugData.php should not be excluded');
     }
 }

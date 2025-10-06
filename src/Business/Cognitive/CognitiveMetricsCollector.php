@@ -200,7 +200,10 @@ class CognitiveMetricsCollector
      */
     private function findSourceFiles(string $path, array $exclude = []): iterable
     {
-        return $this->directoryScanner->scan([$path], ['^(?!.*\.php$).+'] + $exclude);
+        return $this->directoryScanner->scan(
+            [$path],
+            array_merge(['^(?!.*\.php$).+'], $exclude)
+        );
     }
 
     /**
