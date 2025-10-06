@@ -24,11 +24,11 @@ class ConfigFactory
         }, $config['cognitive']['metrics']);
 
         $cacheConfig = null;
-        if (isset($config['cache'])) {
+        if (isset($config['cognitive']['cache'])) {
                 $cacheConfig = new CacheConfig(
-                    enabled: $config['cache']['enabled'] ?? true,
-                    directory: $config['cache']['directory'] ?? './.phpcca.cache',
-                    compression: $config['cache']['compression'] ?? true,
+                    enabled: $config['cognitive']['cache']['enabled'] ?? true,
+                    directory: $config['cognitive']['cache']['directory'] ?? './.phpcca.cache',
+                    compression: $config['cognitive']['cache']['compression'] ?? true,
                 );
         }
 

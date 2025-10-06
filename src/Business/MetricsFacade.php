@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Business;
 
-use JsonException;
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChangeCounter\ChangeCounterFactory;
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChurnCalculator;
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Exporter\ChurnExporterFactory;
@@ -13,9 +12,9 @@ use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollect
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollector;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter\CognitiveExporterFactory;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\ScoreCalculator;
-use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
 use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
+use Psr\Cache\CacheItemPoolInterface;
 
 /**
  * Facade class for collecting and managing code quality metrics.
@@ -33,7 +32,8 @@ class MetricsFacade
         private readonly ScoreCalculator $scoreCalculator,
         private readonly ConfigService $configService,
         private readonly ChurnCalculator $churnCalculator,
-        private readonly ChangeCounterFactory $changeCounterFactory
+        private readonly ChangeCounterFactory $changeCounterFactory,
+        private readonly ?CacheItemPoolInterface $cachePool = null
     ) {
         $this->loadConfig(__DIR__ . '/../../config.yml');
     }
@@ -85,10 +85,12 @@ class MetricsFacade
      */
     public function getCognitiveMetricsFromPaths(array $paths): CognitiveMetricsCollection
     {
-        $metricsCollection = $this->cognitiveMetricsCollector->collectFromPaths($paths, $this->configService->getConfig());
+        $config = $this->configService->getConfig();
+
+        $metricsCollection = $this->cognitiveMetricsCollector->collectFromPaths($paths, $config);
 
         foreach ($metricsCollection as $metric) {
-            $this->scoreCalculator->calculate($metric, $this->configService->getConfig());
+            $this->scoreCalculator->calculate($metric, $config);
         }
 
         return $metricsCollection;
@@ -157,16 +159,6 @@ class MetricsFacade
     }
 
     /**
-     * Get ignored methods from the last metrics collection.
-     *
-     * @return array<string, string> Array of ignored method keys (ClassName::methodName)
-     */
-    public function getIgnoredMethods(): array
-    {
-        return $this->cognitiveMetricsCollector->getIgnoredMethods();
-    }
-
-    /**
      * @param array<string, array<string, mixed>> $classes
      */
     public function exportChurnReport(
@@ -174,8 +166,9 @@ class MetricsFacade
         string $reportType,
         string $filename
     ): void {
-        $exporter = $this->getChurnExporterFactory()->create($reportType);
-        $exporter->export($classes, $filename);
+        $this->getChurnExporterFactory()
+            ->create($reportType)
+            ->export($classes, $filename);
     }
 
     /**
@@ -194,9 +187,12 @@ class MetricsFacade
      */
     public function clearCache(): void
     {
-        // This would need to be implemented to clear the cache
-        // For now, we'll add a placeholder
-        throw new \RuntimeException('Cache clearing not yet implemented');
+        if (!$this->cachePool) {
+            throw new \RuntimeException('Cache is not available');
+        }
+
+        // Clear all cache items
+        $this->cachePool->clear();
     }
 
     /**
@@ -204,9 +200,7 @@ class MetricsFacade
      */
     public function setCacheDirectory(string $cacheDir): void
     {
-        // This would need to be implemented to override cache directory
-        // For now, we'll add a placeholder
-        throw new \RuntimeException('Cache directory override not yet implemented');
+        $this->configService->getConfig()->cache->directory = $cacheDir;
     }
 
     /**
@@ -214,8 +208,6 @@ class MetricsFacade
      */
     public function disableCache(): void
     {
-        // This would need to be implemented to disable caching
-        // For now, we'll add a placeholder
-        throw new \RuntimeException('Cache disabling not yet implemented');
+        $this->configService->getConfig()->cache->enabled = false;
     }
 }

@@ -10,9 +10,9 @@ namespace Phauthentic\CognitiveCodeAnalysis\Config;
 class CacheConfig
 {
     public function __construct(
-        public readonly bool $enabled,
-        public readonly string $directory,
-        public readonly bool $compression,
+        public bool $enabled,
+        public string $directory,
+        public bool $compression,
     ) {
     }
 }

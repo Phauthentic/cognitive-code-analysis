@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis;
 
-use Phauthentic\CognitiveCodeAnalysis\Business\Cache\FileCacheService;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cache\FileCache;
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChangeCounter\ChangeCounterFactory;
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChurnCalculator;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Baseline;
@@ -84,7 +84,7 @@ class Application
         $this->containerBuilder->register(ConfigService::class, ConfigService::class)
             ->setPublic(true);
 
-            $this->containerBuilder->register(CacheItemPoolInterface::class, FileCacheService::class)
+            $this->containerBuilder->register(CacheItemPoolInterface::class, FileCache::class)
                 ->setArguments([
                     './.phpcca.cache' // Default cache directory, can be overridden by config
                 ])
@@ -218,6 +218,7 @@ class Application
                 new Reference(ConfigService::class),
                 new Reference(ChurnCalculator::class),
                 new Reference(ChangeCounterFactory::class),
+                new Reference(CacheItemPoolInterface::class),
             ])
             ->setPublic(true);
     }

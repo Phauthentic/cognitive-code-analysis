@@ -2,7 +2,7 @@ cognitive:
   excludeFilePatterns:
   excludePatterns:
   scoreThreshold: 0.5
-  showOnlyMethodsExceedingThreshold: true
+  showOnlyMethodsExceedingThreshold: false
   showHalsteadComplexity: false
   showCyclomaticComplexity: false
   showDetailedCognitiveMetrics: true
@@ -40,8 +40,7 @@ cognitive:
       threshold: 1
       scale: 1.0
       enabled: true
-
-cache:
-  enabled: true
-  directory: './.phpcca.cache'
-  compression: true
+  cache:
+    enabled: true
+    directory: './.phpcca.cache'
+    compression: true
