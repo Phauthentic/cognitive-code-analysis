@@ -33,7 +33,7 @@ class MetricsFacade
         private readonly ConfigService $configService,
         private readonly ChurnCalculator $churnCalculator,
         private readonly ChangeCounterFactory $changeCounterFactory,
-        private readonly ?CacheItemPoolInterface $cachePool = null
+        private readonly CacheItemPoolInterface $cachePool
     ) {
         $this->loadConfig(__DIR__ . '/../../config.yml');
     }
@@ -182,32 +182,8 @@ class MetricsFacade
         $exporter->export($metricsCollection, $filename);
     }
 
-    /**
-     * Clear all cached analysis results
-     */
     public function clearCache(): void
     {
-        if (!$this->cachePool) {
-            throw new \RuntimeException('Cache is not available');
-        }
-
-        // Clear all cache items
         $this->cachePool->clear();
-    }
-
-    /**
-     * Set cache directory override
-     */
-    public function setCacheDirectory(string $cacheDir): void
-    {
-        $this->configService->getConfig()->cache->directory = $cacheDir;
-    }
-
-    /**
-     * Disable caching for this run
-     */
-    public function disableCache(): void
-    {
-        $this->configService->getConfig()->cache->enabled = false;
     }
 }
