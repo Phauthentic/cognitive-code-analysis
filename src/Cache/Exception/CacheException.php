@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CognitiveCodeAnalysis\Business\Cache\Exception;
+namespace Phauthentic\CognitiveCodeAnalysis\Cache\Exception;
 
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 

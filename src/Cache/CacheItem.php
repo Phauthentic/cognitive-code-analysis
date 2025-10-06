@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CognitiveCodeAnalysis\Business\Cache;
+namespace Phauthentic\CognitiveCodeAnalysis\Cache;
 
 use Psr\Cache\CacheItemInterface;
 

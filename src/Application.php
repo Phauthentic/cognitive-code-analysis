@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis;
 
-use Phauthentic\CognitiveCodeAnalysis\Business\Cache\FileCache;
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChangeCounter\ChangeCounterFactory;
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChurnCalculator;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Baseline;
@@ -17,6 +16,7 @@ use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Parser;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\ScoreCalculator;
 use Phauthentic\CognitiveCodeAnalysis\Business\DirectoryScanner;
 use Phauthentic\CognitiveCodeAnalysis\Business\MetricsFacade;
+use Phauthentic\CognitiveCodeAnalysis\Cache\FileCache;
 use Phauthentic\CognitiveCodeAnalysis\Command\ChurnCommand;
 use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsCommand;
 use Phauthentic\CognitiveCodeAnalysis\Command\EventHandler\ParserErrorHandler;
@@ -32,6 +32,7 @@ use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
 use PhpParser\NodeTraverser;
 use PhpParser\NodeTraverserInterface;
 use PhpParser\ParserFactory;
+use Psr\Cache\CacheItemPoolInterface;
 use Symfony\Component\Config\Definition\Processor;
 use Symfony\Component\Console\Application as SymfonyApplication;
 use Symfony\Component\Console\Input\ArgvInput;
@@ -45,7 +46,6 @@ use Symfony\Component\Messenger\Handler\HandlersLocator;
 use Symfony\Component\Messenger\MessageBus;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Messenger\Middleware\HandleMessageMiddleware;
-use Psr\Cache\CacheItemPoolInterface;
 
 /**
  *

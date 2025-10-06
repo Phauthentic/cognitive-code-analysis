@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CognitiveCodeAnalysis\Business\Cache;
+namespace Phauthentic\CognitiveCodeAnalysis\Cache;
 
-use Phauthentic\CognitiveCodeAnalysis\Business\Cache\Exception\CacheException;
+use Phauthentic\CognitiveCodeAnalysis\Cache\Exception\CacheException;
 use Psr\Cache\CacheItemInterface;
 use Psr\Cache\CacheItemPoolInterface;
 

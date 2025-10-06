@@ -12,9 +12,11 @@ use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollect
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollector;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter\CognitiveExporterFactory;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\ScoreCalculator;
+use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
 use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
 use Psr\Cache\CacheItemPoolInterface;
+use Symfony\Component\Messenger\Exception\ExceptionInterface;
 
 /**
  * Facade class for collecting and managing code quality metrics.
@@ -65,6 +67,8 @@ class MetricsFacade
      *
      * @param string $path The file or directory path to collect metrics from.
      * @return CognitiveMetricsCollection The collected cognitive metrics.
+     * @throws CognitiveAnalysisException
+     * @throws ExceptionInterface
      */
     public function getCognitiveMetrics(string $path): CognitiveMetricsCollection
     {
@@ -82,6 +86,8 @@ class MetricsFacade
      *
      * @param array<string> $paths Array of file or directory paths to collect metrics from.
      * @return CognitiveMetricsCollection The collected cognitive metrics from all paths.
+     * @throws CognitiveAnalysisException
+     * @throws ExceptionInterface
      */
     public function getCognitiveMetricsFromPaths(array $paths): CognitiveMetricsCollection
     {
@@ -102,6 +108,8 @@ class MetricsFacade
      * @param string $since
      * @param CoverageReportReaderInterface|null $coverageReader
      * @return array<string, array<string, mixed>>
+     * @throws CognitiveAnalysisException
+     * @throws ExceptionInterface
      */
     public function calculateChurn(
         string $path,
@@ -136,26 +144,6 @@ class MetricsFacade
     public function getConfig(): CognitiveConfig
     {
         return $this->configService->getConfig();
-    }
-
-    /**
-     * Get all ignored classes and methods from the last metrics collection.
-     *
-     * @return array<string, array<string, string>> Array with 'classes' and 'methods' keys
-     */
-    public function getIgnored(): array
-    {
-        return $this->cognitiveMetricsCollector->getIgnored();
-    }
-
-    /**
-     * Get ignored classes from the last metrics collection.
-     *
-     * @return array<string, string> Array of ignored class FQCNs
-     */
-    public function getIgnoredClasses(): array
-    {
-        return $this->cognitiveMetricsCollector->getIgnoredClasses();
     }
 
     /**
