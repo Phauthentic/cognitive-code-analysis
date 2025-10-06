@@ -150,13 +150,13 @@ class CognitiveMetricsCommand extends Command
 
         // Handle cache directory override
         $cacheDir = $input->getOption(self::OPTION_CACHE_DIR);
-        if ($cacheDir) {
-            $this->metricsFacade->getConfig()->cache->director = $cacheDir;
+        if ($cacheDir && $this->metricsFacade->getConfig()->cache !== null) {
+            $this->metricsFacade->getConfig()->cache->directory = $cacheDir;
         }
 
         // Handle no-cache option
         $noCache = $input->getOption(self::OPTION_NO_CACHE);
-        if ($noCache) {
+        if ($noCache && $this->metricsFacade->getConfig()->cache !== null) {
             $this->metricsFacade->getConfig()->cache->enabled = false;
         }
 
@@ -237,5 +237,4 @@ class CognitiveMetricsCommand extends Command
             return false;
         }
     }
-
 }

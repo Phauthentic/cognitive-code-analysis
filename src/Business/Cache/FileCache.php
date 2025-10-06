@@ -14,6 +14,7 @@ use Psr\Cache\CacheItemPoolInterface;
 class FileCache implements CacheItemPoolInterface
 {
     private string $cacheDirectory;
+    /** @var array<CacheItemInterface> */
     private array $deferred = [];
 
     public function __construct(string $cacheDirectory = './.phpcca.cache')
@@ -25,19 +26,20 @@ class FileCache implements CacheItemPoolInterface
     public function getItem(string $key): CacheItemInterface
     {
         $filePath = $this->getCacheFilePath($key);
-        
+
         if (!file_exists($filePath)) {
             return new CacheItem($key, null, false);
         }
-        
+
         $data = $this->loadCacheData($filePath);
         if ($data === null) {
             return new CacheItem($key, null, false);
         }
-        
+
         return new CacheItem($key, $data, true);
     }
 
+    /** @return array<string, CacheItemInterface> */
     public function getItems(array $keys = []): iterable
     {
         $items = [];
@@ -67,11 +69,11 @@ class FileCache implements CacheItemPoolInterface
     public function deleteItem(string $key): bool
     {
         $filePath = $this->getCacheFilePath($key);
-        
+
         if (file_exists($filePath)) {
             return unlink($filePath);
         }
-        
+
         return true;
     }
 
@@ -91,14 +93,14 @@ class FileCache implements CacheItemPoolInterface
         if (!$item instanceof CacheItem) {
             return false;
         }
-        
+
         $filePath = $this->getCacheFilePath($item->getKey());
         $data = $item->get();
-        
+
         if ($data === null) {
             return $this->deleteItem($item->getKey());
         }
-        
+
         return $this->saveCacheData($filePath, $data);
     }
 
@@ -107,7 +109,7 @@ class FileCache implements CacheItemPoolInterface
         if (!$item instanceof CacheItem) {
             return false;
         }
-        
+
         $this->deferred[] = $item;
         return true;
     }
@@ -139,53 +141,55 @@ class FileCache implements CacheItemPoolInterface
         $hash = md5($key);
         $subDir = substr($hash, 0, 2);
         $dir = $this->cacheDirectory . '/' . $subDir;
-        
+
         if (!is_dir($dir)) {
             if (!mkdir($dir, 0755, true)) {
                 throw new CacheException("Failed to create cache subdirectory: {$dir}");
             }
         }
-        
+
         return $dir . '/' . $hash . '.cache';
     }
 
+    /** @return array<string, mixed>|null */
     private function loadCacheData(string $filePath): ?array
     {
         $content = file_get_contents($filePath);
         if ($content === false) {
             return null;
         }
-        
+
         $data = json_decode($content, true);
         if ($data === null) {
             return null;
         }
-        
+
         // Data is stored without compression for now
-        
+
         return $data;
     }
 
+    /** @param array<string, mixed> $data */
     private function saveCacheData(string $filePath, array $data): bool
     {
         // Store data without compression for now (compression can be added later)
         // This ensures cache works reliably
-        
+
         // Sanitize data to ensure valid UTF-8 encoding
         $data = $this->sanitizeUtf8($data);
-        
+
         $json = json_encode($data, JSON_PRETTY_PRINT);
         if ($json === false) {
             return false;
         }
-        
+
         $dir = dirname($filePath);
         if (!is_dir($dir)) {
             if (!mkdir($dir, 0755, true)) {
                 return false;
             }
         }
-        
+
         $result = file_put_contents($filePath, $json);
         return $result !== false;
     }
@@ -199,7 +203,7 @@ class FileCache implements CacheItemPoolInterface
             // Remove or replace invalid UTF-8 characters
             return mb_convert_encoding($data, 'UTF-8', 'UTF-8');
         }
-        
+
         if (is_array($data)) {
             $sanitized = [];
             foreach ($data as $key => $value) {
@@ -208,14 +212,14 @@ class FileCache implements CacheItemPoolInterface
             }
             return $sanitized;
         }
-        
+
         if (is_object($data)) {
             // Convert objects to arrays for sanitization
             $array = (array) $data;
             $sanitized = $this->sanitizeUtf8($array);
             return (object) $sanitized;
         }
-        
+
         return $data;
     }
 
@@ -224,7 +228,7 @@ class FileCache implements CacheItemPoolInterface
         if (!is_dir($dir)) {
             return;
         }
-        
+
         $files = array_diff(scandir($dir), ['.', '..']);
         foreach ($files as $file) {
             $path = $dir . '/' . $file;

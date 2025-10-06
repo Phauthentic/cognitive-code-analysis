@@ -16,6 +16,7 @@ use Symfony\Component\Messenger\Exception\ExceptionInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Throwable;
 use Psr\Cache\CacheItemPoolInterface;
+use Psr\Cache\CacheItemInterface;
 
 /**
  * CognitiveMetricsCollector class that collects cognitive metrics from source files
@@ -105,16 +106,16 @@ class CognitiveMetricsCollector
             $cacheItem = null;
 
 
-            if ($useCache) {
+            if ($useCache && $this->cachePool !== null) {
                 $cacheKey = $this->generateCacheKey($file, $configHash);
                 $cacheItem = $this->cachePool->getItem($cacheKey);
-                
+
                 if ($cacheItem->isHit()) {
                     // Use cached result
                     $cachedData = $cacheItem->get();
                     $metrics = $cachedData['analysis_result'];
                     $this->ignoredItems = $cachedData['ignored_items'];
-                    
+
                     $this->messageBus->dispatch(new FileProcessed($file));
                 }
             }
@@ -148,7 +149,7 @@ class CognitiveMetricsCollector
                     ));
                     continue;
                 }
-                
+
                 $this->messageBus->dispatch(new FileProcessed($file));
             }
 
@@ -292,7 +293,7 @@ class CognitiveMetricsCollector
     {
         $filePath = $file->getRealPath();
         $fileMtime = $file->getMTime();
-        
+
         return 'phpcca_' . md5($filePath . '|' . $fileMtime . '|' . $configHash);
     }
 
@@ -301,13 +302,14 @@ class CognitiveMetricsCollector
      */
     private function generateConfigHash(CognitiveConfig $config): string
     {
-        return md5(serialize($this->getConfigAsArray($config)));
+        return md5(serialize($config->toArray()));
     }
 
     /**
      * Cache the analysis result for a file
      */
-    private function cacheResult($cacheItem, SplFileInfo $file, array $metrics, string $configHash): void
+    /** @param array<string, mixed> $metrics */
+    private function cacheResult(CacheItemInterface $cacheItem, SplFileInfo $file, array $metrics, string $configHash): void
     {
         if (!$this->cachePool) {
             return;
@@ -322,30 +324,8 @@ class CognitiveMetricsCollector
             'ignored_items' => $this->ignoredItems,
             'cached_at' => time()
         ];
-        
+
         $cacheItem->set($data);
         $this->cachePool->save($cacheItem);
-    }
-
-    /**
-     * Get configuration as array for serialization
-     */
-    private function getConfigAsArray(CognitiveConfig $config): array
-    {
-        return [
-            'excludeFilePatterns' => $config->excludeFilePatterns,
-            'excludePatterns' => $config->excludePatterns,
-            'scoreThreshold' => $config->scoreThreshold,
-            'showOnlyMethodsExceedingThreshold' => $config->showOnlyMethodsExceedingThreshold,
-            'showHalsteadComplexity' => $config->showHalsteadComplexity,
-            'showCyclomaticComplexity' => $config->showCyclomaticComplexity,
-            'groupByClass' => $config->groupByClass,
-            'showDetailedCognitiveMetrics' => $config->showDetailedCognitiveMetrics,
-            'cache' => $config->cache ? [
-                'enabled' => $config->cache->enabled,
-                'directory' => $config->cache->directory,
-                'compression' => $config->cache->compression,
-            ] : null,
-        ];
     }
 }

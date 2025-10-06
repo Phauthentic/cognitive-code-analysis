@@ -15,4 +15,18 @@ class CacheConfig
         public bool $compression,
     ) {
     }
+
+    /**
+     * Convert the cache configuration to an array
+     *
+     * @return array<string, mixed>
+     */
+    public function toArray(): array
+    {
+        return [
+            'enabled' => $this->enabled,
+            'directory' => $this->directory,
+            'compression' => $this->compression,
+        ];
+    }
 }

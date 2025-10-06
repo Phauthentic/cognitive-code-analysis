@@ -15,4 +15,18 @@ class MetricsConfig
         public readonly bool $enabled
     ) {
     }
+
+    /**
+     * Convert the metrics configuration to an array
+     *
+     * @return array<string, mixed>
+     */
+    public function toArray(): array
+    {
+        return [
+            'threshold' => $this->threshold,
+            'scale' => $this->scale,
+            'enabled' => $this->enabled,
+        ];
+    }
 }
