@@ -47,7 +47,7 @@ jobs:
 
           if [ -n "$CHANGED_FILES" ]; then
             echo "Analyzing files: $CHANGED_FILES"
-            bin/phpcca analyse $CHANGED_FILES --report-type=markdown --report-file=cca-report.md --config=phpcca.yml || true
+            bin/phpcca analyse $CHANGED_FILES --report-type=markdown --report-file=cca-report.md --config=config.yml || true
 
             if [ -f "cca-report.md" ] && [ -s "cca-report.md" ]; then
               echo "has_report=true" >> $GITHUB_OUTPUT

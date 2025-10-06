@@ -18,7 +18,7 @@ class Application
             if (false === false) {
                 echo "Nested condition met.";
                 if (1 + 1 === 2) {
-                    echo "Math still works.";
+                    echo "Math still workss.";
                 }
             }
         }
