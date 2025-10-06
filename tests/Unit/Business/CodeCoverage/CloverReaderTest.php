@@ -16,7 +16,7 @@ class CloverReaderTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->testCoverageFile = __DIR__ . '/../../../../coverage-clover.xml';
+        $this->testCoverageFile = __DIR__ . '/../../../Fixtures/Coverage/coverage-clover.xml';
     }
 
     public function testConstructorThrowsExceptionWhenFileNotFound(): void
