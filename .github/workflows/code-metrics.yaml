@@ -1,0 +1,85 @@
+name: Code Metrics
+
+on:
+  pull_request:
+    paths:
+      - '**/*.php'
+    branches:
+      - '*'
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  code-metrics:
+    name: Cognitive Code Analysis
+    runs-on: ubuntu-24.04
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch base branch
+        run: |
+          git fetch origin ${{ github.base_ref }}:${{ github.base_ref }}
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: json, fileinfo
+          tools: composer
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-ansi --no-interaction --no-progress --no-scripts
+
+      - name: Analyze changed PHP files
+        id: analyze
+        run: |
+          BASE_SHA="${{ github.event.pull_request.base.sha }}"
+          HEAD_SHA="${{ github.sha }}"
+
+          CHANGED_FILES=$(git diff --name-only --diff-filter=ACMR $BASE_SHA...$HEAD_SHA | grep '\.php$' | tr '\n' ' ' || echo "")
+
+          if [ -n "$CHANGED_FILES" ]; then
+            echo "Analyzing files: $CHANGED_FILES"
+            bin/phpcca analyse $CHANGED_FILES --report-type=markdown --report-file=cca-report.md --config=phpcca.yml || true
+
+            if [ -f "cca-report.md" ] && [ -s "cca-report.md" ]; then
+              echo "has_report=true" >> $GITHUB_OUTPUT
+              echo "Report generated successfully"
+            else
+              echo "has_report=false" >> $GITHUB_OUTPUT
+              echo "No report generated"
+            fi
+          else
+            echo "has_report=false" >> $GITHUB_OUTPUT
+            echo "No PHP files changed, skipping analysis"
+          fi
+
+      - name: Post comment to PR
+        if: steps.analyze.outputs.has_report == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('cca-report.md', 'utf8');
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: report
+            });
+
+      - name: Upload report artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cca-report
+          path: cca-report.md
+          if-no-files-found: ignore
