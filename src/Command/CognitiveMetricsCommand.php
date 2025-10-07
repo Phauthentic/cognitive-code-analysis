@@ -45,7 +45,8 @@ class CognitiveMetricsCommand extends Command
         readonly private CognitiveMetricTextRendererInterface $renderer,
         readonly private Baseline $baselineService,
         readonly private CognitiveMetricsReportHandler $reportHandler,
-        readonly private CognitiveMetricsSorter $sorter
+        readonly private CognitiveMetricsSorter $sorter,
+        readonly private CodeCoverageFactory $coverageFactory
     ) {
         parent::__construct();
     }
@@ -133,44 +134,20 @@ class CognitiveMetricsCommand extends Command
             return Command::FAILURE;
         }
 
-        $coberturaFile = $input->getOption(self::OPTION_COVERAGE_COBERTURA);
-        $cloverFile = $input->getOption(self::OPTION_COVERAGE_CLOVER);
-
-        // Validate that only one coverage option is specified
-        if ($coberturaFile !== null && $cloverFile !== null) {
-            $output->writeln('<error>Only one coverage format can be specified at a time.</error>');
-            return self::FAILURE;
-        }
-
-        $coverageFile = $coberturaFile ?? $cloverFile;
-        $coverageFormat = $coberturaFile !== null ? 'cobertura' : ($cloverFile !== null ? 'clover' : null);
-
-        if (!$this->coverageFileExists($coverageFile, $output)) {
-            return self::FAILURE;
-        }
-
-        $coverageReader = $this->loadCoverageReader($coverageFile, $coverageFormat, $output);
+        $coverageReader = $this->handleCoverageOptions($input, $output);
         if ($coverageReader === false) {
-            return self::FAILURE;
+            return Command::FAILURE;
         }
 
         $metricsCollection = $this->metricsFacade->getCognitiveMetricsFromPaths($paths, $coverageReader);
 
         $this->handleBaseLine($input, $metricsCollection);
 
-        // Apply sorting if specified
-        $sortBy = $input->getOption(self::OPTION_SORT_BY);
-        $sortOrder = $input->getOption(self::OPTION_SORT_ORDER);
-
-        if ($sortBy !== null) {
-            try {
-                $metricsCollection = $this->sorter->sort($metricsCollection, $sortBy, $sortOrder);
-            } catch (\InvalidArgumentException $e) {
-                $output->writeln('<error>Sorting error: ' . $e->getMessage() . '</error>');
-                $output->writeln('<info>Available sort fields: ' . implode(', ', $this->sorter->getSortableFields()) . '</info>');
-                return Command::FAILURE;
-            }
+        $sortResult = $this->applySorting($input, $output, $metricsCollection);
+        if ($sortResult['status'] === Command::FAILURE) {
+            return Command::FAILURE;
         }
+        $metricsCollection = $sortResult['collection'];
 
         $reportType = $input->getOption(self::OPTION_REPORT_TYPE);
         $reportFile = $input->getOption(self::OPTION_REPORT_FILE);
@@ -211,6 +188,59 @@ class CognitiveMetricsCommand extends Command
         if ($baselineFile) {
             $baseline = $this->baselineService->loadBaseline($baselineFile);
             $this->baselineService->calculateDeltas($metricsCollection, $baseline);
+        }
+    }
+
+    /**
+     * Handle coverage options and return coverage reader
+     *
+     * @return CoverageReportReaderInterface|null|false Returns reader, null if no coverage, or false on error
+     */
+    private function handleCoverageOptions(InputInterface $input, OutputInterface $output): CoverageReportReaderInterface|null|false
+    {
+        $coberturaFile = $input->getOption(self::OPTION_COVERAGE_COBERTURA);
+        $cloverFile = $input->getOption(self::OPTION_COVERAGE_CLOVER);
+
+        // Validate that only one coverage option is specified
+        if ($coberturaFile !== null && $cloverFile !== null) {
+            $output->writeln('<error>Only one coverage format can be specified at a time.</error>');
+            return false;
+        }
+
+        $coverageFile = $coberturaFile ?? $cloverFile;
+        $coverageFormat = $coberturaFile !== null ? 'cobertura' : ($cloverFile !== null ? 'clover' : null);
+
+        if (!$this->coverageFileExists($coverageFile, $output)) {
+            return false;
+        }
+
+        return $this->loadCoverageReader($coverageFile, $coverageFormat, $output);
+    }
+
+    /**
+     * Apply sorting to metrics collection
+     *
+     * @return array{status: int, collection: CognitiveMetricsCollection}
+     */
+    private function applySorting(
+        InputInterface $input,
+        OutputInterface $output,
+        CognitiveMetricsCollection $metricsCollection
+    ): array {
+        $sortBy = $input->getOption(self::OPTION_SORT_BY);
+        $sortOrder = $input->getOption(self::OPTION_SORT_ORDER);
+
+        if ($sortBy === null) {
+            return ['status' => Command::SUCCESS, 'collection' => $metricsCollection];
+        }
+
+        try {
+            $sorted = $this->sorter->sort($metricsCollection, $sortBy, $sortOrder);
+            return ['status' => Command::SUCCESS, 'collection' => $sorted];
+        } catch (\InvalidArgumentException $e) {
+            $output->writeln('<error>Sorting error: ' . $e->getMessage() . '</error>');
+            $output->writeln('<info>Available sort fields: ' . implode(', ', $this->sorter->getSortableFields()) . '</info>');
+            return ['status' => Command::FAILURE, 'collection' => $metricsCollection];
         }
     }
 
@@ -259,7 +289,7 @@ class CognitiveMetricsCommand extends Command
         }
 
         try {
-            return CodeCoverageFactory::createFromName($format, $coverageFile);
+            return $this->coverageFactory->createFromName($format, $coverageFile);
         } catch (CognitiveAnalysisException $e) {
             $output->writeln(sprintf(
                 '<error>Failed to load coverage file: %s</error>',

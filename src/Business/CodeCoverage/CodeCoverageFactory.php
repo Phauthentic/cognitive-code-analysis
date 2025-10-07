@@ -8,7 +8,10 @@ use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 
 class CodeCoverageFactory
 {
-    public static function createFromName(string $name, string $filePath): CoverageReportReaderInterface
+    /**
+     * @throws CognitiveAnalysisException
+     */
+    public function createFromName(string $name, string $filePath): CoverageReportReaderInterface
     {
         return match (strtolower($name)) {
             'clover' => new CloverReader($filePath),

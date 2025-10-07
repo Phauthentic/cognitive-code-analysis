@@ -15,19 +15,23 @@ use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
  */
 class TableRowBuilder
 {
+    /**
+     * @SuppressWarnings("PHPMD.BooleanArgumentFlag")
+     */
     public function __construct(
         private readonly MetricFormatter $formatter,
-        private readonly CognitiveConfig $config
+        private readonly CognitiveConfig $config,
+        private readonly bool $hasCoverage = false,
     ) {
     }
 
     /**
      * Build a table row from metrics without class information
      *
-     * @param bool $includeCoverage Whether to include coverage column
+     * @param CognitiveMetrics $metrics
      * @return array<string, mixed>
      */
-    public function buildRow(CognitiveMetrics $metrics, bool $includeCoverage = false): array
+    public function buildRow(CognitiveMetrics $metrics): array
     {
         $row = $this->metricsToArray($metrics);
         $keys = $this->getKeys();
@@ -37,7 +41,7 @@ class TableRowBuilder
             $row = $this->addDelta($key, $metrics, $row);
         }
 
-        if ($includeCoverage) {
+        if ($this->hasCoverage) {
             $row = $this->addCoverageValue($metrics, $row);
         }
 
@@ -47,10 +51,10 @@ class TableRowBuilder
     /**
      * Build a table row from metrics with class information
      *
-     * @param bool $includeCoverage Whether to include coverage column
+     * @param CognitiveMetrics $metrics
      * @return array<string, mixed>
      */
-    public function buildRowWithClassInfo(CognitiveMetrics $metrics, bool $includeCoverage = false): array
+    public function buildRowWithClassInfo(CognitiveMetrics $metrics): array
     {
         $row = $this->metricsToArrayWithClassInfo($metrics);
         $keys = $this->getKeys();
@@ -60,7 +64,7 @@ class TableRowBuilder
             $row = $this->addDelta($key, $metrics, $row);
         }
 
-        if ($includeCoverage) {
+        if ($this->hasCoverage) {
             $row = $this->addCoverageValue($metrics, $row);
         }
 
@@ -78,25 +82,7 @@ class TableRowBuilder
             'methodName' => $metrics->getMethod(),
         ];
 
-        if ($this->config->showDetailedCognitiveMetrics) {
-            $fields = array_merge($fields, [
-                'lineCount' => $metrics->getLineCount(),
-                'argCount' => $metrics->getArgCount(),
-                'returnCount' => $metrics->getReturnCount(),
-                'variableCount' => $metrics->getVariableCount(),
-                'propertyCallCount' => $metrics->getPropertyCallCount(),
-                'ifCount' => $metrics->getIfCount(),
-                'ifNestingLevel' => $metrics->getIfNestingLevel(),
-                'elseCount' => $metrics->getElseCount(),
-            ]);
-        }
-
-        $fields['score'] = $this->formatter->formatScore($metrics->getScore());
-
-        $fields = $this->addHalsteadFields($fields, $metrics->getHalstead());
-        $fields = $this->addCyclomaticFields($fields, $metrics->getCyclomatic());
-
-        return $fields;
+        return $this->extracted($fields, $metrics);
     }
 
     /**
@@ -111,25 +97,7 @@ class TableRowBuilder
             'methodName' => $metrics->getMethod(),
         ];
 
-        if ($this->config->showDetailedCognitiveMetrics) {
-            $fields = array_merge($fields, [
-                'lineCount' => $metrics->getLineCount(),
-                'argCount' => $metrics->getArgCount(),
-                'returnCount' => $metrics->getReturnCount(),
-                'variableCount' => $metrics->getVariableCount(),
-                'propertyCallCount' => $metrics->getPropertyCallCount(),
-                'ifCount' => $metrics->getIfCount(),
-                'ifNestingLevel' => $metrics->getIfNestingLevel(),
-                'elseCount' => $metrics->getElseCount(),
-            ]);
-        }
-
-        $fields['score'] = $this->formatter->formatScore($metrics->getScore());
-
-        $fields = $this->addHalsteadFields($fields, $metrics->getHalstead());
-        $fields = $this->addCyclomaticFields($fields, $metrics->getCyclomatic());
-
-        return $fields;
+        return $this->extracted($fields, $metrics);
     }
 
     /**
@@ -175,7 +143,7 @@ class TableRowBuilder
         $getMethod = 'get' . $key;
         $getMethodWeight = 'get' . $key . 'Weight';
 
-        $weight = $metrics->{$getMethodWeight}();
+        $weight = (float)$metrics->{$getMethodWeight}();
         $row[$key] = $metrics->{$getMethod}() . ' (' . round($weight, 3) . ')';
 
         return $row;
@@ -232,7 +200,7 @@ class TableRowBuilder
     }
 
     /**
-     * Assert that a delta method exists
+     * @throws CognitiveAnalysisException
      */
     private function assertDeltaMethodExists(CognitiveMetrics $metrics, string $getDeltaMethod): void
     {
@@ -242,20 +210,46 @@ class TableRowBuilder
     }
 
     /**
-     * Add coverage value to the row
-     *
      * @param array<string, mixed> $row
      * @return array<string, mixed>
      */
     private function addCoverageValue(CognitiveMetrics $metrics, array $row): array
     {
         $coverage = $metrics->getCoverage();
-        if ($coverage !== null) {
-            $row['coverage'] = sprintf('%.2f%%', $coverage * 100);
-        } else {
+        if ($coverage === null) {
             $row['coverage'] = 'N/A';
+            return $row;
         }
 
+        $row['coverage'] = sprintf('%.2f%%', $coverage * 100);
         return $row;
+    }
+
+    /**
+     * @param array<string, mixed> $fields
+     * @param CognitiveMetrics $metrics
+     * @return array<string, mixed>
+     */
+    private function extracted(array $fields, CognitiveMetrics $metrics): array
+    {
+        if ($this->config->showDetailedCognitiveMetrics) {
+            $fields = array_merge($fields, [
+                'lineCount' => $metrics->getLineCount(),
+                'argCount' => $metrics->getArgCount(),
+                'returnCount' => $metrics->getReturnCount(),
+                'variableCount' => $metrics->getVariableCount(),
+                'propertyCallCount' => $metrics->getPropertyCallCount(),
+                'ifCount' => $metrics->getIfCount(),
+                'ifNestingLevel' => $metrics->getIfNestingLevel(),
+                'elseCount' => $metrics->getElseCount(),
+            ]);
+        }
+
+        $fields['score'] = $this->formatter->formatScore($metrics->getScore());
+
+        $fields = $this->addHalsteadFields($fields, $metrics->getHalstead());
+        $fields = $this->addCyclomaticFields($fields, $metrics->getCyclomatic());
+
+        return $fields;
     }
 }

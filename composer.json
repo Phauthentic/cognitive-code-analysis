@@ -82,6 +82,7 @@
             "bin/phpbench run benchmarks --report=aggregate"
         ],
         "all": [
+            "@csfix",
             "@cscheck",
             "@analyze",
             "@phpmd",
