@@ -11,6 +11,7 @@ use Phauthentic\CognitiveCodeAnalysis\Business\DirectoryScanner;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
 use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
+use Psr\Cache\InvalidArgumentException;
 use SplFileInfo;
 use Symfony\Component\Messenger\Exception\ExceptionInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
@@ -43,7 +44,7 @@ class CognitiveMetricsCollector
      * @param string $path
      * @param CognitiveConfig $config
      * @return CognitiveMetricsCollection
-     * @throws CognitiveAnalysisException
+     * @throws CognitiveAnalysisException|ExceptionInterface
      */
     public function collect(string $path, CognitiveConfig $config): CognitiveMetricsCollection
     {
@@ -56,7 +57,7 @@ class CognitiveMetricsCollector
      * @param array<string> $paths Array of paths to process
      * @param CognitiveConfig $config
      * @return CognitiveMetricsCollection Merged collection of metrics from all paths
-     * @throws CognitiveAnalysisException
+     * @throws CognitiveAnalysisException|ExceptionInterface
      */
     public function collectFromPaths(array $paths, CognitiveConfig $config): CognitiveMetricsCollection
     {
@@ -91,7 +92,6 @@ class CognitiveMetricsCollector
      *
      * @param iterable<SplFileInfo> $files
      * @return CognitiveMetricsCollection
-     * @throws ExceptionInterface
      */
     private function findMetrics(iterable $files): CognitiveMetricsCollection
     {
@@ -115,12 +115,10 @@ class CognitiveMetricsCollector
                 }
             }
 
-            $filename = $this->normalizeFilename($file);
-
             $metricsCollection = $this->processMethodMetrics(
                 $metrics,
                 $metricsCollection,
-                $filename
+                $this->normalizeFilename($file)
             );
         }
 
@@ -182,6 +180,7 @@ class CognitiveMetricsCollector
      * @param string $path Path to the directory or file to scan
      * @param array<int, string> $exclude List of regx to exclude
      * @return iterable<mixed, SplFileInfo> An iterable of SplFileInfo objects
+     * @throws CognitiveAnalysisException
      */
     private function findSourceFiles(string $path, array $exclude = []): iterable
     {
@@ -194,11 +193,12 @@ class CognitiveMetricsCollector
     /**
      * Get the project root directory path.
      *
+     * Start from the current file's directory and traverse up to find composer.json
+     *
      * @return string|null The project root path or null if not found
      */
     private function getProjectRoot(): ?string
     {
-        // Start from the current file's directory and traverse up to find composer.json
         $currentDir = __DIR__;
 
         while ($currentDir !== dirname($currentDir)) {
@@ -212,7 +212,7 @@ class CognitiveMetricsCollector
     }
 
     /**
-     * Generate cache key for a file based on path, modification time, and config hash
+     * Generate a cache key for a file based on path, modification time, and config hash
      */
     private function generateCacheKey(SplFileInfo $file, string $configHash): string
     {
@@ -262,17 +262,21 @@ class CognitiveMetricsCollector
     }
 
     /**
-     * Normalize filename for test environment
+     * Normalize filename for the test environment
+     *
+     * This is to ensure consistent file paths in test outputs
      */
     private function normalizeFilename(SplFileInfo $file): string
     {
         $filename = $file->getRealPath();
 
-        if (getenv('APP_ENV') === 'test') {
-            $projectRoot = $this->getProjectRoot();
-            if ($projectRoot && str_starts_with($filename, $projectRoot)) {
-                $filename = substr($filename, strlen($projectRoot) + 1);
-            }
+        if (getenv('APP_ENV') !== 'test') {
+            return $filename;
+        }
+
+        $projectRoot = $this->getProjectRoot();
+        if ($projectRoot && str_starts_with($filename, $projectRoot)) {
+            $filename = substr($filename, strlen($projectRoot) + 1);
         }
 
         return $filename;
@@ -282,6 +286,7 @@ class CognitiveMetricsCollector
      * Try to get cached metrics for a file
      *
      * @return array{metrics: array<string, mixed>|null, cacheItem: CacheItemInterface|null}
+     * @throws InvalidArgumentException|ExceptionInterface
      */
     private function getCachedMetrics(SplFileInfo $file, string $configHash, bool $useCache): array
     {
@@ -341,6 +346,7 @@ class CognitiveMetricsCollector
                 $file,
                 $exception
             ));
+
             return null;
         }
     }

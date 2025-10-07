@@ -14,15 +14,24 @@ use Psr\Cache\CacheItemPoolInterface;
 class FileCache implements CacheItemPoolInterface
 {
     private string $cacheDirectory;
-    /** @var array<CacheItemInterface> */
+
+    /**
+     * @var array<CacheItemInterface>
+     */
     private array $deferred = [];
 
+    /**
+     * @throws CacheException
+     */
     public function __construct(string $cacheDirectory = './.phpcca.cache')
     {
         $this->cacheDirectory = rtrim($cacheDirectory, '/');
         $this->ensureCacheDirectory();
     }
 
+    /**
+     * @throws CacheException
+     */
     public function getItem(string $key): CacheItemInterface
     {
         $filePath = $this->getCacheFilePath($key);
@@ -39,19 +48,27 @@ class FileCache implements CacheItemPoolInterface
         return new CacheItem($key, $data, true);
     }
 
-    /** @return array<string, CacheItemInterface> */
+    /**
+     * @return array<string, CacheItemInterface>
+     * @throws CacheException
+     */
     public function getItems(array $keys = []): iterable
     {
         $items = [];
         foreach ($keys as $key) {
             $items[$key] = $this->getItem($key);
         }
+
         return $items;
     }
 
+    /**
+     * @throws CacheException
+     */
     public function hasItem(string $key): bool
     {
         $filePath = $this->getCacheFilePath($key);
+
         return file_exists($filePath) && $this->loadCacheData($filePath) !== null;
     }
 
@@ -66,6 +83,9 @@ class FileCache implements CacheItemPoolInterface
         }
     }
 
+    /**
+     * @throws CacheException
+     */
     public function deleteItem(string $key): bool
     {
         $filePath = $this->getCacheFilePath($key);
@@ -77,6 +97,9 @@ class FileCache implements CacheItemPoolInterface
         return true;
     }
 
+    /**
+     * @throws CacheException
+     */
     public function deleteItems(array $keys): bool
     {
         $success = true;
@@ -88,12 +111,11 @@ class FileCache implements CacheItemPoolInterface
         return $success;
     }
 
+    /**
+     * @throws CacheException
+     */
     public function save(CacheItemInterface $item): bool
     {
-        if (!$item instanceof CacheItem) {
-            return false;
-        }
-
         $filePath = $this->getCacheFilePath($item->getKey());
         $data = $item->get();
 
@@ -106,11 +128,8 @@ class FileCache implements CacheItemPoolInterface
 
     public function saveDeferred(CacheItemInterface $item): bool
     {
-        if (!$item instanceof CacheItem) {
-            return false;
-        }
-
         $this->deferred[] = $item;
+
         return true;
     }
 
@@ -126,26 +145,35 @@ class FileCache implements CacheItemPoolInterface
         return $success;
     }
 
+    /**
+     * @throws CacheException
+     */
     private function ensureCacheDirectory(): void
     {
-        if (!is_dir($this->cacheDirectory)) {
-            if (!mkdir($this->cacheDirectory, 0755, true)) {
-                throw new CacheException("Failed to create cache directory: {$this->cacheDirectory}");
-            }
+        if (
+            !is_dir($this->cacheDirectory)
+            && !mkdir($this->cacheDirectory, 0755, true)
+        ) {
+            throw new CacheException("Failed to create cache directory: {$this->cacheDirectory}");
         }
     }
 
+    /**
+     * Create subdirectories to avoid too many files in one directory
+     *
+     * @throws CacheException
+     */
     private function getCacheFilePath(string $key): string
     {
-        // Create subdirectories to avoid too many files in one directory
         $hash = md5($key);
         $subDir = substr($hash, 0, 2);
         $dir = $this->cacheDirectory . '/' . $subDir;
 
-        if (!is_dir($dir)) {
-            if (!mkdir($dir, 0755, true)) {
-                throw new CacheException("Failed to create cache subdirectory: {$dir}");
-            }
+        if (
+            !is_dir($dir)
+            && !mkdir($dir, 0755, true)
+        ) {
+            throw new CacheException("Failed to create cache subdirectory: {$dir}");
         }
 
         return $dir . '/' . $hash . '.cache';
@@ -164,18 +192,18 @@ class FileCache implements CacheItemPoolInterface
             return null;
         }
 
-        // Data is stored without compression for now
-
         return $data;
     }
 
-    /** @param array<string, mixed> $data */
+    /**
+     * Store data
+     *
+     * Sanitize data to ensure valid UTF-8 encoding
+     *
+     * @param array<string, mixed> $data
+     */
     private function saveCacheData(string $filePath, array $data): bool
     {
-        // Store data without compression for now (compression can be added later)
-        // This ensures cache works reliably
-
-        // Sanitize data to ensure valid UTF-8 encoding
         $data = $this->sanitizeUtf8($data);
 
         $json = json_encode($data, JSON_PRETTY_PRINT);
@@ -184,13 +212,15 @@ class FileCache implements CacheItemPoolInterface
         }
 
         $dir = dirname($filePath);
-        if (!is_dir($dir)) {
-            if (!mkdir($dir, 0755, true)) {
-                return false;
-            }
+        if (
+            !is_dir($dir)
+            && !mkdir($dir, 0755, true)
+        ) {
+            return false;
         }
 
         $result = file_put_contents($filePath, $json);
+
         return $result !== false;
     }
 
