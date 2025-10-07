@@ -4,16 +4,15 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Business;
 
-use JsonException;
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChangeCounter\ChangeCounterFactory;
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChurnCalculator;
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Exporter\ChurnExporterFactory;
 use Phauthentic\CognitiveCodeAnalysis\Business\CodeCoverage\CoverageReportReaderInterface;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetrics;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollector;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter\CognitiveExporterFactory;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\ScoreCalculator;
-use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
 use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
 
@@ -81,14 +80,20 @@ class MetricsFacade
      * Collects and returns cognitive metrics for multiple paths.
      *
      * @param array<string> $paths Array of file or directory paths to collect metrics from.
+     * @param CoverageReportReaderInterface|null $coverageReader Optional coverage reader for coverage data.
      * @return CognitiveMetricsCollection The collected cognitive metrics from all paths.
      */
-    public function getCognitiveMetricsFromPaths(array $paths): CognitiveMetricsCollection
+    public function getCognitiveMetricsFromPaths(array $paths, ?CoverageReportReaderInterface $coverageReader = null): CognitiveMetricsCollection
     {
         $metricsCollection = $this->cognitiveMetricsCollector->collectFromPaths($paths, $this->configService->getConfig());
 
         foreach ($metricsCollection as $metric) {
             $this->scoreCalculator->calculate($metric, $this->configService->getConfig());
+
+            // Add coverage data if reader is provided
+            if ($coverageReader !== null) {
+                $this->addCoverageToMetric($metric, $coverageReader);
+            }
         }
 
         return $metricsCollection;
@@ -137,36 +142,6 @@ class MetricsFacade
     }
 
     /**
-     * Get all ignored classes and methods from the last metrics collection.
-     *
-     * @return array<string, array<string, string>> Array with 'classes' and 'methods' keys
-     */
-    public function getIgnored(): array
-    {
-        return $this->cognitiveMetricsCollector->getIgnored();
-    }
-
-    /**
-     * Get ignored classes from the last metrics collection.
-     *
-     * @return array<string, string> Array of ignored class FQCNs
-     */
-    public function getIgnoredClasses(): array
-    {
-        return $this->cognitiveMetricsCollector->getIgnoredClasses();
-    }
-
-    /**
-     * Get ignored methods from the last metrics collection.
-     *
-     * @return array<string, string> Array of ignored method keys (ClassName::methodName)
-     */
-    public function getIgnoredMethods(): array
-    {
-        return $this->cognitiveMetricsCollector->getIgnoredMethods();
-    }
-
-    /**
      * @param array<string, array<string, mixed>> $classes
      */
     public function exportChurnReport(
@@ -187,5 +162,49 @@ class MetricsFacade
     ): void {
         $exporter = $this->getCognitiveExporterFactory()->create($reportType);
         $exporter->export($metricsCollection, $filename);
+    }
+
+    /**
+     * Add coverage data to a metric
+     */
+    private function addCoverageToMetric(
+        CognitiveMetrics $metric,
+        CoverageReportReaderInterface $coverageReader
+    ): void {
+        // Strip leading backslash from class name for coverage lookup
+        $className = ltrim($metric->getClass(), '\\');
+
+        // Try to get method-level coverage first
+        $coverageDetails = $coverageReader->getCoverageDetails($className);
+        if ($coverageDetails !== null) {
+            $this->addMethodLevelCoverage($metric, $coverageDetails);
+            return;
+        }
+
+        // Fall back to class-level coverage if details not available
+        $coverage = $coverageReader->getLineCoverage($className);
+        if ($coverage !== null) {
+            $metric->setCoverage($coverage);
+        }
+    }
+
+    /**
+     * Add method-level coverage from coverage details
+     */
+    private function addMethodLevelCoverage(
+        CognitiveMetrics $metric,
+        CodeCoverage\CoverageDetails $coverageDetails
+    ): void {
+        $methods = $coverageDetails->getMethods();
+        $methodName = $metric->getMethod();
+
+        if (isset($methods[$methodName])) {
+            $methodCoverage = $methods[$methodName];
+            $metric->setCoverage($methodCoverage->getLineRate());
+            return;
+        }
+
+        // Fall back to class-level coverage if method not found
+        $metric->setCoverage($coverageDetails->getLineRate());
     }
 }

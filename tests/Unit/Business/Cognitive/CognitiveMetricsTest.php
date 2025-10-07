@@ -122,6 +122,7 @@ class CognitiveMetricsTest extends TestCase
             'ifCountWeightDelta' => null,
             'ifNestingLevelWeightDelta' => null,
             'elseCountWeightDelta' => null,
+            'coverage' => null,
         ];
 
         $this->assertSame($expectedArray, $metrics->toArray());
@@ -161,6 +162,7 @@ class CognitiveMetricsTest extends TestCase
             'ifCountWeightDelta' => null,
             'ifNestingLevelWeightDelta' => null,
             'elseCountWeightDelta' => null,
+            'coverage' => null,
         ];
 
         $this->assertSame($expectedArray, $metrics->jsonSerialize());
