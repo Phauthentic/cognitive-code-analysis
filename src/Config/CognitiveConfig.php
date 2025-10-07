@@ -8,6 +8,7 @@ use InvalidArgumentException;
 
 /**
  * @SuppressWarnings(BooleanArgumentFlag)
+ * @SuppressWarnings(ExcessiveParameterList)
  */
 class CognitiveConfig
 {

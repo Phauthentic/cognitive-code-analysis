@@ -64,6 +64,7 @@ class CognitiveMetrics implements JsonSerializable
 
     private ?HalsteadMetrics $halstead = null;
     private ?CyclomaticMetrics $cyclomatic = null;
+    private ?float $coverage = null;
 
     /**
      * @param array<string, mixed> $metrics
@@ -340,6 +341,16 @@ class CognitiveMetrics implements JsonSerializable
         return $this->score;
     }
 
+    public function setCoverage(?float $coverage): void
+    {
+        $this->coverage = $coverage;
+    }
+
+    public function getCoverage(): ?float
+    {
+        return $this->coverage;
+    }
+
     public function getLineCountWeightDelta(): ?Delta
     {
         return $this->lineCountWeightDelta;
@@ -435,6 +446,7 @@ class CognitiveMetrics implements JsonSerializable
             'ifCountWeightDelta' => $this->ifCountWeightDelta,
             'ifNestingLevelWeightDelta' => $this->ifNestingLevelWeightDelta,
             'elseCountWeightDelta' => $this->elseCountWeightDelta,
+            'coverage' => $this->coverage,
         ];
     }
 

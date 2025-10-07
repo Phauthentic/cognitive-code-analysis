@@ -8,6 +8,8 @@ use Psr\Cache\CacheItemInterface;
 
 /**
  * PSR-6 Cache Item implementation for file-based caching
+ *
+ * @SuppressWarnings(PHPMD)
  */
 class CacheItem implements CacheItemInterface
 {

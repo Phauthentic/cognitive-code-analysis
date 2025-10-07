@@ -11,8 +11,12 @@ use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
  */
 class TableHeaderBuilder
 {
+    /**
+     * @SuppressWarnings("PHPMD.BooleanArgumentFlag")
+     */
     public function __construct(
-        private readonly CognitiveConfig $config
+        private readonly CognitiveConfig $config,
+        private readonly bool $hasCoverage = false,
     ) {
     }
 
@@ -27,23 +31,28 @@ class TableHeaderBuilder
             "Method Name",
         ];
 
-        if ($this->config->showDetailedCognitiveMetrics) {
-            $fields = array_merge($fields, [
-                "Lines",
-                "Arguments",
-                "Returns",
-                "Variables",
-                "Property\nAccesses",
-                "If",
-                "If Nesting\nLevel",
-                "Else",
-            ]);
-        }
+        $fields = $this->addCognitiveMetricDetails($fields);
 
         $fields[] = "Cognitive\nComplexity";
 
         $fields = $this->addHalsteadHeaders($fields);
         $fields = $this->addCyclomaticHeaders($fields);
+        $fields = $this->addCoverageHeader($fields);
+
+        return $fields;
+    }
+
+    /**
+     * @param array<int, string> $fields
+     * @return array<int, string>
+     */
+    private function addCoverageHeader(array $fields): array
+    {
+        if (!$this->hasCoverage) {
+            return $fields;
+        }
+
+        $fields[] = "Line\nCoverage";
 
         return $fields;
     }
@@ -60,23 +69,16 @@ class TableHeaderBuilder
             "Method Name",
         ];
 
-        if ($this->config->showDetailedCognitiveMetrics) {
-            $fields = array_merge($fields, [
-                "Lines",
-                "Arguments",
-                "Returns",
-                "Variables",
-                "Property\nAccesses",
-                "If",
-                "If Nesting\nLevel",
-                "Else",
-            ]);
-        }
+        $fields = $this->addCognitiveMetricDetails($fields);
 
         $fields[] = "Cognitive\nComplexity";
 
         $fields = $this->addHalsteadHeaders($fields);
         $fields = $this->addCyclomaticHeaders($fields);
+
+        if ($this->hasCoverage) {
+            $fields[] = "Coverage";
+        }
 
         return $fields;
     }
@@ -110,6 +112,27 @@ class TableHeaderBuilder
             $fields[] = "Cyclomatic\nComplexity";
         }
 
+        return $fields;
+    }
+
+    /**
+     * @param array<int, string> $fields
+     * @return array<int, string>
+     */
+    private function addCognitiveMetricDetails(array $fields): array
+    {
+        if ($this->config->showDetailedCognitiveMetrics) {
+            $fields = array_merge($fields, [
+                "Lines",
+                "Arguments",
+                "Returns",
+                "Variables",
+                "Property\nAccesses",
+                "If",
+                "If Nesting\nLevel",
+                "Else",
+            ]);
+        }
         return $fields;
     }
 }

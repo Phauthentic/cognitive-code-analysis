@@ -229,15 +229,21 @@ class FileCache implements CacheItemPoolInterface
             return;
         }
 
-        $files = array_diff(scandir($dir), ['.', '..']);
+        $scanResult = scandir($dir);
+        if ($scanResult === false) {
+            return;
+        }
+
+        $files = array_diff($scanResult, ['.', '..']);
         foreach ($files as $file) {
             $path = $dir . '/' . $file;
             if (is_dir($path)) {
                 $this->removeDirectory($path);
-            } else {
-                unlink($path);
+                continue;
             }
+            unlink($path);
         }
+
         rmdir($dir);
     }
 }

@@ -6,6 +6,7 @@ namespace Phauthentic\CognitiveCodeAnalysis;
 
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChangeCounter\ChangeCounterFactory;
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChurnCalculator;
+use Phauthentic\CognitiveCodeAnalysis\Business\CodeCoverage\CodeCoverageFactory;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Baseline;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollector;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsSorter;
@@ -106,6 +107,9 @@ class Application
             ->setPublic(true);
 
         $this->containerBuilder->register(CognitiveMetricsSorter::class, CognitiveMetricsSorter::class)
+            ->setPublic(true);
+
+        $this->containerBuilder->register(CodeCoverageFactory::class, CodeCoverageFactory::class)
             ->setPublic(true);
 
         $this->containerBuilder->register(Processor::class, Processor::class)
@@ -232,6 +236,7 @@ class Application
                 new Reference(Baseline::class),
                 new Reference(CognitiveMetricsReportHandler::class),
                 new Reference(CognitiveMetricsSorter::class),
+                new Reference(CodeCoverageFactory::class),
             ])
             ->setPublic(true);
 

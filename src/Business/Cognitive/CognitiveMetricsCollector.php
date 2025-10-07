@@ -24,9 +24,9 @@ use Psr\Cache\CacheItemInterface;
 class CognitiveMetricsCollector
 {
     /**
-     * @var array<string, array<string, string>>|null Cached ignored items from the last parsing operation
+     * @var array<string, mixed>
      */
-    private ?array $ignoredItems = null;
+    private array $ignoredItems = [];
 
     public function __construct(
         protected readonly Parser $parser,
@@ -43,7 +43,7 @@ class CognitiveMetricsCollector
      * @param string $path
      * @param CognitiveConfig $config
      * @return CognitiveMetricsCollection
-     * @throws CognitiveAnalysisException|ExceptionInterface
+     * @throws CognitiveAnalysisException
      */
     public function collect(string $path, CognitiveConfig $config): CognitiveMetricsCollection
     {
@@ -56,7 +56,7 @@ class CognitiveMetricsCollector
      * @param array<string> $paths Array of paths to process
      * @param CognitiveConfig $config
      * @return CognitiveMetricsCollection Merged collection of metrics from all paths
-     * @throws CognitiveAnalysisException|ExceptionInterface
+     * @throws CognitiveAnalysisException
      */
     public function collectFromPaths(array $paths, CognitiveConfig $config): CognitiveMetricsCollection
     {
@@ -99,68 +99,23 @@ class CognitiveMetricsCollector
         $fileCount = 0;
         $config = $this->configService->getConfig();
         $configHash = $this->generateConfigHash($config);
+        $useCache = $this->cachePool !== null && $config->cache?->enabled === true;
 
         foreach ($files as $file) {
-            $metrics = null;
-            $useCache = $this->cachePool !== null && $config->cache?->enabled === true;
-            $cacheItem = null;
+            // Try to get cached metrics
+            $cached = $this->getCachedMetrics($file, $configHash, $useCache);
+            $metrics = $cached['metrics'];
 
-
-            if ($useCache && $this->cachePool !== null) {
-                $cacheKey = $this->generateCacheKey($file, $configHash);
-                $cacheItem = $this->cachePool->getItem($cacheKey);
-
-                if ($cacheItem->isHit()) {
-                    // Use cached result
-                    $cachedData = $cacheItem->get();
-                    $metrics = $cachedData['analysis_result'];
-                    $this->ignoredItems = $cachedData['ignored_items'];
-
-                    $this->messageBus->dispatch(new FileProcessed($file));
-                }
-            }
-
+            // If not cached, process the file
             if ($metrics === null) {
-                // Parse file and cache result
-                try {
-                    $metrics = $this->parser->parse(
-                        $this->getCodeFromFile($file)
-                    );
+                $metrics = $this->processFile($file, $fileCount, $cached['cacheItem'], $useCache, $configHash);
 
-                    // Store ignored items from the parser
-                    $this->ignoredItems = $this->parser->getIgnored();
-
-                    $fileCount++;
-
-                    // Clear memory periodically to prevent memory leaks
-                    if ($fileCount % 50 === 0) {
-                        $this->parser->clearStaticCaches();
-                        gc_collect_cycles();
-                    }
-
-                    // Cache the result if caching is enabled
-                    if ($useCache && $cacheItem !== null) {
-                        $this->cacheResult($cacheItem, $file, $metrics, $configHash);
-                    }
-                } catch (Throwable $exception) {
-                    $this->messageBus->dispatch(new ParserFailed(
-                        $file,
-                        $exception
-                    ));
+                if ($metrics === null) {
                     continue;
                 }
-
-                $this->messageBus->dispatch(new FileProcessed($file));
             }
 
-            $filename = $file->getRealPath();
-
-            if (getenv('APP_ENV') === 'test') {
-                $projectRoot = $this->getProjectRoot();
-                if ($projectRoot && str_starts_with($filename, $projectRoot)) {
-                    $filename = substr($filename, strlen($projectRoot) + 1);
-                }
-            }
+            $filename = $this->normalizeFilename($file);
 
             $metricsCollection = $this->processMethodMetrics(
                 $metrics,
@@ -327,5 +282,96 @@ class CognitiveMetricsCollector
 
         $cacheItem->set($data);
         $this->cachePool->save($cacheItem);
+    }
+
+    public function clearCache(): void
+    {
+        if ($this->cachePool !== null) {
+            $this->cachePool->clear();
+        }
+    }
+
+    /**
+     * Normalize filename for test environment
+     */
+    private function normalizeFilename(SplFileInfo $file): string
+    {
+        $filename = $file->getRealPath();
+
+        if (getenv('APP_ENV') === 'test') {
+            $projectRoot = $this->getProjectRoot();
+            if ($projectRoot && str_starts_with($filename, $projectRoot)) {
+                $filename = substr($filename, strlen($projectRoot) + 1);
+            }
+        }
+
+        return $filename;
+    }
+
+    /**
+     * Try to get cached metrics for a file
+     *
+     * @return array{metrics: array<string, mixed>|null, cacheItem: CacheItemInterface|null}
+     */
+    private function getCachedMetrics(SplFileInfo $file, string $configHash, bool $useCache): array
+    {
+        if (!$useCache || $this->cachePool === null) {
+            return ['metrics' => null, 'cacheItem' => null];
+        }
+
+        $cacheKey = $this->generateCacheKey($file, $configHash);
+        $cacheItem = $this->cachePool->getItem($cacheKey);
+
+        if (!$cacheItem->isHit()) {
+            return ['metrics' => null, 'cacheItem' => $cacheItem];
+        }
+
+        $cachedData = $cacheItem->get();
+        $this->ignoredItems = $cachedData['ignored_items'] ?? [];
+        $this->messageBus->dispatch(new FileProcessed($file));
+
+        return ['metrics' => $cachedData['analysis_result'], 'cacheItem' => $cacheItem];
+    }
+
+    /**
+     * Process a single file and parse its metrics
+     *
+     * @return array<string, mixed>|null
+     */
+    private function processFile(
+        SplFileInfo $file,
+        int &$fileCount,
+        ?CacheItemInterface $cacheItem,
+        bool $useCache,
+        string $configHash
+    ): ?array {
+        try {
+            $metrics = $this->parser->parse(
+                $this->getCodeFromFile($file)
+            );
+
+            $fileCount++;
+
+            // Clear memory periodically to prevent memory leaks
+            if ($fileCount % 50 === 0) {
+                $this->parser->clearStaticCaches();
+                gc_collect_cycles();
+            }
+
+            // Cache the result if caching is enabled
+            if ($useCache && $cacheItem !== null) {
+                $this->cacheResult($cacheItem, $file, $metrics, $configHash);
+            }
+
+            $this->messageBus->dispatch(new FileProcessed($file));
+
+            return $metrics;
+        } catch (Throwable $exception) {
+            $this->messageBus->dispatch(new ParserFailed(
+                $file,
+                $exception
+            ));
+            return null;
+        }
     }
 }
