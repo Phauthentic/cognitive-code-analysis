@@ -192,36 +192,6 @@ class CognitiveMetricsCollector
     }
 
     /**
-     * Get all ignored classes and methods from the last parsing operation.
-     *
-     * @return array<string, array<string, string>> Array with 'classes' and 'methods' keys
-     */
-    public function getIgnored(): array
-    {
-        return $this->ignoredItems ?? ['classes' => [], 'methods' => []];
-    }
-
-    /**
-     * Get ignored classes from the last parsing operation.
-     *
-     * @return array<string, string> Array of ignored class FQCNs
-     */
-    public function getIgnoredClasses(): array
-    {
-        return $this->ignoredItems['classes'] ?? [];
-    }
-
-    /**
-     * Get ignored methods from the last parsing operation.
-     *
-     * @return array<string, string> Array of ignored method keys (ClassName::methodName)
-     */
-    public function getIgnoredMethods(): array
-    {
-        return $this->ignoredItems['methods'] ?? [];
-    }
-
-    /**
      * Get the project root directory path.
      *
      * @return string|null The project root path or null if not found
