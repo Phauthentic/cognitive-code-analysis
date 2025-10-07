@@ -6,20 +6,20 @@ namespace Phauthentic\CognitiveCodeAnalysis\Command\Presentation;
 
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetrics;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
+use Phauthentic\CognitiveCodeAnalysis\Business\Traits\CoverageDataDetector;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
 use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Output\OutputInterface;
-use Phauthentic\CognitiveCodeAnalysis\Command\Presentation\MetricFormatter;
-use Phauthentic\CognitiveCodeAnalysis\Command\Presentation\TableRowBuilder;
-use Phauthentic\CognitiveCodeAnalysis\Command\Presentation\TableHeaderBuilder;
 
 /**
  *
  */
 class CognitiveMetricTextRenderer implements CognitiveMetricTextRendererInterface
 {
+    use CoverageDataDetector;
+
     private MetricFormatter $formatter;
     private TableRowBuilder $rowBuilder;
     private TableHeaderBuilder $headerBuilder;
@@ -35,6 +35,19 @@ class CognitiveMetricTextRenderer implements CognitiveMetricTextRendererInterfac
         return
             $config->showOnlyMethodsExceedingThreshold &&
             $metric->getScore() <= $config->scoreThreshold;
+    }
+
+    /**
+     * Check if any metric in the collection has coverage data
+     */
+    private function hasCoverageInCollection(CognitiveMetricsCollection $metricsCollection): bool
+    {
+        foreach ($metricsCollection as $metric) {
+            if ($metric->getCoverage() !== null) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -67,6 +80,7 @@ class CognitiveMetricTextRenderer implements CognitiveMetricTextRendererInterfac
      */
     private function renderGroupedByClass(CognitiveMetricsCollection $metricsCollection, CognitiveConfig $config, OutputInterface $output): void
     {
+        $hasCoverage = $this->hasCoverageInCollection($metricsCollection);
         $groupedByClass = $metricsCollection->groupBy('class');
 
         foreach ($groupedByClass as $className => $metrics) {
@@ -74,10 +88,10 @@ class CognitiveMetricTextRenderer implements CognitiveMetricTextRendererInterfac
                 continue;
             }
 
-            $rows = $this->buildRowsForClass($metrics, $config);
+            $rows = $this->buildRowsForClass($metrics, $config, $hasCoverage);
             if (count($rows) > 0) {
                 $filename = $this->getFilenameFromMetrics($metrics);
-                $this->renderTable((string)$className, $rows, $filename, $output);
+                $this->renderTable((string)$className, $rows, $filename, $hasCoverage, $output);
             }
         }
     }
@@ -87,14 +101,14 @@ class CognitiveMetricTextRenderer implements CognitiveMetricTextRendererInterfac
      *
      * @return array<int, array<string, mixed>>
      */
-    private function buildRowsForClass(CognitiveMetricsCollection $metrics, CognitiveConfig $config): array
+    private function buildRowsForClass(CognitiveMetricsCollection $metrics, CognitiveConfig $config, bool $hasCoverage): array
     {
         $rows = [];
         foreach ($metrics as $metric) {
             if ($this->metricExceedsThreshold($metric, $config)) {
                 continue;
             }
-            $rows[] = $this->rowBuilder->buildRow($metric);
+            $rows[] = $this->rowBuilder->buildRow($metric, $hasCoverage);
         }
         return $rows;
     }
@@ -118,11 +132,12 @@ class CognitiveMetricTextRenderer implements CognitiveMetricTextRendererInterfac
      */
     private function renderAllMethodsInSingleTable(CognitiveMetricsCollection $metricsCollection, CognitiveConfig $config, OutputInterface $output): void
     {
-        $rows = $this->buildRowsForSingleTable($metricsCollection, $config);
+        $hasCoverage = $this->hasCoverageInCollection($metricsCollection);
+        $rows = $this->buildRowsForSingleTable($metricsCollection, $config, $hasCoverage);
         $totalMethods = count($rows);
 
         if ($totalMethods > 0) {
-            $this->renderSingleTable($rows, $totalMethods, $output);
+            $this->renderSingleTable($rows, $totalMethods, $hasCoverage, $output);
         }
     }
 
@@ -131,14 +146,14 @@ class CognitiveMetricTextRenderer implements CognitiveMetricTextRendererInterfac
      *
      * @return array<int, array<string, mixed>>
      */
-    private function buildRowsForSingleTable(CognitiveMetricsCollection $metricsCollection, CognitiveConfig $config): array
+    private function buildRowsForSingleTable(CognitiveMetricsCollection $metricsCollection, CognitiveConfig $config, bool $hasCoverage): array
     {
         $rows = [];
         foreach ($metricsCollection as $metric) {
             if ($this->metricExceedsThreshold($metric, $config)) {
                 continue;
             }
-            $rows[] = $this->rowBuilder->buildRowWithClassInfo($metric);
+            $rows[] = $this->rowBuilder->buildRowWithClassInfo($metric, $hasCoverage);
         }
         return $rows;
     }
@@ -147,13 +162,14 @@ class CognitiveMetricTextRenderer implements CognitiveMetricTextRendererInterfac
      * @param string $className
      * @param array<int, mixed> $rows
      * @param string $filename
+     * @param bool $hasCoverage
      * @param OutputInterface $output
      */
-    private function renderTable(string $className, array $rows, string $filename, OutputInterface $output): void
+    private function renderTable(string $className, array $rows, string $filename, bool $hasCoverage, OutputInterface $output): void
     {
         $table = new Table($output);
         $table->setStyle('box');
-        $table->setHeaders($this->getTableHeaders());
+        $table->setHeaders($this->getTableHeaders($hasCoverage));
 
         $output->writeln("<info>Class: $className</info>");
         $output->writeln("<info>File: $filename</info>");
@@ -167,13 +183,14 @@ class CognitiveMetricTextRenderer implements CognitiveMetricTextRendererInterfac
     /**
      * @param array<int, mixed> $rows
      * @param int $totalMethods
+     * @param bool $hasCoverage
      * @param OutputInterface $output
      */
-    private function renderSingleTable(array $rows, int $totalMethods, OutputInterface $output): void
+    private function renderSingleTable(array $rows, int $totalMethods, bool $hasCoverage, OutputInterface $output): void
     {
         $table = new Table($output);
         $table->setStyle('box');
-        $table->setHeaders($this->getSingleTableHeaders());
+        $table->setHeaders($this->getSingleTableHeaders($hasCoverage));
 
         $output->writeln("<info>All Methods ($totalMethods total)</info>");
 
@@ -186,16 +203,16 @@ class CognitiveMetricTextRenderer implements CognitiveMetricTextRendererInterfac
     /**
      * @return string[]
      */
-    private function getTableHeaders(): array
+    private function getTableHeaders(bool $hasCoverage = false): array
     {
-        return $this->headerBuilder->getGroupedTableHeaders();
+        return $this->headerBuilder->getGroupedTableHeaders($hasCoverage);
     }
 
     /**
      * @return string[]
      */
-    private function getSingleTableHeaders(): array
+    private function getSingleTableHeaders(bool $hasCoverage = false): array
     {
-        return $this->headerBuilder->getSingleTableHeaders();
+        return $this->headerBuilder->getSingleTableHeaders($hasCoverage);
     }
 }

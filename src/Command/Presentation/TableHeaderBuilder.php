@@ -19,9 +19,10 @@ class TableHeaderBuilder
     /**
      * Get headers for grouped tables (without class column)
      *
+     * @param bool $hasCoverage Whether coverage data is available
      * @return array<int, string>
      */
-    public function getGroupedTableHeaders(): array
+    public function getGroupedTableHeaders(bool $hasCoverage = false): array
     {
         $fields = [
             "Method Name",
@@ -45,15 +46,20 @@ class TableHeaderBuilder
         $fields = $this->addHalsteadHeaders($fields);
         $fields = $this->addCyclomaticHeaders($fields);
 
+        if ($hasCoverage) {
+            $fields[] = "Line\nCoverage";
+        }
+
         return $fields;
     }
 
     /**
      * Get headers for single table (with class column)
      *
+     * @param bool $hasCoverage Whether coverage data is available
      * @return array<int, string>
      */
-    public function getSingleTableHeaders(): array
+    public function getSingleTableHeaders(bool $hasCoverage = false): array
     {
         $fields = [
             "Class",
@@ -77,6 +83,10 @@ class TableHeaderBuilder
 
         $fields = $this->addHalsteadHeaders($fields);
         $fields = $this->addCyclomaticHeaders($fields);
+
+        if ($hasCoverage) {
+            $fields[] = "Coverage";
+        }
 
         return $fields;
     }

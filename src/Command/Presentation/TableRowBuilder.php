@@ -24,9 +24,10 @@ class TableRowBuilder
     /**
      * Build a table row from metrics without class information
      *
+     * @param bool $includeCoverage Whether to include coverage column
      * @return array<string, mixed>
      */
-    public function buildRow(CognitiveMetrics $metrics): array
+    public function buildRow(CognitiveMetrics $metrics, bool $includeCoverage = false): array
     {
         $row = $this->metricsToArray($metrics);
         $keys = $this->getKeys();
@@ -36,15 +37,20 @@ class TableRowBuilder
             $row = $this->addDelta($key, $metrics, $row);
         }
 
+        if ($includeCoverage) {
+            $row = $this->addCoverageValue($metrics, $row);
+        }
+
         return $row;
     }
 
     /**
      * Build a table row from metrics with class information
      *
+     * @param bool $includeCoverage Whether to include coverage column
      * @return array<string, mixed>
      */
-    public function buildRowWithClassInfo(CognitiveMetrics $metrics): array
+    public function buildRowWithClassInfo(CognitiveMetrics $metrics, bool $includeCoverage = false): array
     {
         $row = $this->metricsToArrayWithClassInfo($metrics);
         $keys = $this->getKeys();
@@ -52,6 +58,10 @@ class TableRowBuilder
         foreach ($keys as $key) {
             $row = $this->addWeightedValue($key, $metrics, $row);
             $row = $this->addDelta($key, $metrics, $row);
+        }
+
+        if ($includeCoverage) {
+            $row = $this->addCoverageValue($metrics, $row);
         }
 
         return $row;
@@ -229,5 +239,23 @@ class TableRowBuilder
         if (!method_exists($metrics, $getDeltaMethod)) {
             throw new CognitiveAnalysisException('Method not found: ' . $getDeltaMethod);
         }
+    }
+
+    /**
+     * Add coverage value to the row
+     *
+     * @param array<string, mixed> $row
+     * @return array<string, mixed>
+     */
+    private function addCoverageValue(CognitiveMetrics $metrics, array $row): array
+    {
+        $coverage = $metrics->getCoverage();
+        if ($coverage !== null) {
+            $row['coverage'] = sprintf('%.2f%%', $coverage * 100);
+        } else {
+            $row['coverage'] = 'N/A';
+        }
+
+        return $row;
     }
 }

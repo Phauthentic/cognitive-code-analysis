@@ -81,14 +81,42 @@ class MetricsFacade
      * Collects and returns cognitive metrics for multiple paths.
      *
      * @param array<string> $paths Array of file or directory paths to collect metrics from.
+     * @param CoverageReportReaderInterface|null $coverageReader Optional coverage reader for coverage data.
      * @return CognitiveMetricsCollection The collected cognitive metrics from all paths.
      */
-    public function getCognitiveMetricsFromPaths(array $paths): CognitiveMetricsCollection
+    public function getCognitiveMetricsFromPaths(array $paths, ?CoverageReportReaderInterface $coverageReader = null): CognitiveMetricsCollection
     {
         $metricsCollection = $this->cognitiveMetricsCollector->collectFromPaths($paths, $this->configService->getConfig());
 
         foreach ($metricsCollection as $metric) {
             $this->scoreCalculator->calculate($metric, $this->configService->getConfig());
+
+            // Add coverage data if reader is provided
+            if ($coverageReader !== null) {
+                // Strip leading backslash from class name for coverage lookup
+                $className = ltrim($metric->getClass(), '\\');
+
+                // Try to get method-level coverage first
+                $coverageDetails = $coverageReader->getCoverageDetails($className);
+                if ($coverageDetails !== null) {
+                    $methods = $coverageDetails->getMethods();
+                    $methodName = $metric->getMethod();
+
+                    if (isset($methods[$methodName])) {
+                        $methodCoverage = $methods[$methodName];
+                        $metric->setCoverage($methodCoverage->getLineRate());
+                    } else {
+                        // Fall back to class-level coverage if method not found
+                        $metric->setCoverage($coverageDetails->getLineRate());
+                    }
+                } else {
+                    // Fall back to class-level coverage if details not available
+                    $coverage = $coverageReader->getLineCoverage($className);
+                    if ($coverage !== null) {
+                        $metric->setCoverage($coverage);
+                    }
+                }
+            }
         }
 
         return $metricsCollection;
