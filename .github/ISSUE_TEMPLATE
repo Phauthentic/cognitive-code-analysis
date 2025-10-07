@@ -18,6 +18,14 @@ body:
       placeholder: ex. email@example.com
     validations:
       required: false
+  - type: input
+    id: version
+    attributes:
+      label: The version / Commit ID
+      description: This helps to find out if you're running the latest version.
+      placeholder: ex. 1.2.3 or a commit SHA
+    validations:
+      required: true
   - type: textarea
     id: what-happened
     attributes:
