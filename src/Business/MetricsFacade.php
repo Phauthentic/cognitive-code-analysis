@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Business;
 
-use JsonException;
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChangeCounter\ChangeCounterFactory;
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChurnCalculator;
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Exporter\ChurnExporterFactory;
@@ -17,6 +16,7 @@ use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\ScoreCalculator;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
 use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
+use Symfony\Component\Messenger\Exception\ExceptionInterface;
 
 /**
  * Facade class for collecting and managing code quality metrics.
@@ -67,7 +67,7 @@ class MetricsFacade
      * @param string $path The file or directory path to collect metrics from.
      * @return CognitiveMetricsCollection The collected cognitive metrics.
      * @throws CognitiveAnalysisException
-     * @throws \Symfony\Component\Messenger\Exception\ExceptionInterface
+     * @throws ExceptionInterface
      */
     public function getCognitiveMetrics(string $path): CognitiveMetricsCollection
     {
@@ -87,7 +87,7 @@ class MetricsFacade
      * @param CoverageReportReaderInterface|null $coverageReader Optional coverage reader for coverage data.
      * @return CognitiveMetricsCollection The collected cognitive metrics from all paths.
      * @throws CognitiveAnalysisException
-     * @throws \Symfony\Component\Messenger\Exception\ExceptionInterface
+     * @throws ExceptionInterface
      */
     public function getCognitiveMetricsFromPaths(array $paths, ?CoverageReportReaderInterface $coverageReader = null): CognitiveMetricsCollection
     {
@@ -112,6 +112,8 @@ class MetricsFacade
      * @param string $since
      * @param CoverageReportReaderInterface|null $coverageReader
      * @return array<string, array<string, mixed>>
+     * @throws CognitiveAnalysisException
+     * @throws ExceptionInterface
      */
     public function calculateChurn(
         string $path,

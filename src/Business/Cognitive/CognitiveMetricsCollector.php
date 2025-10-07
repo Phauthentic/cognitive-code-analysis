@@ -7,17 +7,17 @@ namespace Phauthentic\CognitiveCodeAnalysis\Business\Cognitive;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Events\FileProcessed;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Events\ParserFailed;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Events\SourceFilesFound;
-use Phauthentic\CognitiveCodeAnalysis\Business\DirectoryScanner;
+use Phauthentic\CognitiveCodeAnalysis\Business\Utility\DirectoryScanner;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
 use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
+use Psr\Cache\CacheItemInterface;
+use Psr\Cache\CacheItemPoolInterface;
 use Psr\Cache\InvalidArgumentException;
 use SplFileInfo;
 use Symfony\Component\Messenger\Exception\ExceptionInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Throwable;
-use Psr\Cache\CacheItemPoolInterface;
-use Psr\Cache\CacheItemInterface;
 
 /**
  * CognitiveMetricsCollector class that collects cognitive metrics from source files
@@ -34,7 +34,7 @@ class CognitiveMetricsCollector
         protected readonly DirectoryScanner $directoryScanner,
         protected readonly ConfigService $configService,
         protected readonly MessageBusInterface $messageBus,
-        protected readonly ?CacheItemPoolInterface $cachePool = null,
+        protected readonly CacheItemPoolInterface $cachePool,
     ) {
     }
 
@@ -44,7 +44,7 @@ class CognitiveMetricsCollector
      * @param string $path
      * @param CognitiveConfig $config
      * @return CognitiveMetricsCollection
-     * @throws CognitiveAnalysisException|ExceptionInterface
+     * @throws CognitiveAnalysisException|ExceptionInterface|InvalidArgumentException
      */
     public function collect(string $path, CognitiveConfig $config): CognitiveMetricsCollection
     {
@@ -57,7 +57,7 @@ class CognitiveMetricsCollector
      * @param array<string> $paths Array of paths to process
      * @param CognitiveConfig $config
      * @return CognitiveMetricsCollection Merged collection of metrics from all paths
-     * @throws CognitiveAnalysisException|ExceptionInterface
+     * @throws CognitiveAnalysisException|ExceptionInterface|InvalidArgumentException
      */
     public function collectFromPaths(array $paths, CognitiveConfig $config): CognitiveMetricsCollection
     {
@@ -92,6 +92,8 @@ class CognitiveMetricsCollector
      *
      * @param iterable<SplFileInfo> $files
      * @return CognitiveMetricsCollection
+     * @throws ExceptionInterface
+     * @throws InvalidArgumentException
      */
     private function findMetrics(iterable $files): CognitiveMetricsCollection
     {
@@ -99,7 +101,7 @@ class CognitiveMetricsCollector
         $fileCount = 0;
         $config = $this->configService->getConfig();
         $configHash = $this->generateConfigHash($config);
-        $useCache = $this->cachePool !== null && $config->cache?->enabled === true;
+        $useCache = $config->cache?->enabled === true;
 
         foreach ($files as $file) {
             // Try to get cached metrics
@@ -236,11 +238,7 @@ class CognitiveMetricsCollector
     /** @param array<string, mixed> $metrics */
     private function cacheResult(CacheItemInterface $cacheItem, SplFileInfo $file, array $metrics, string $configHash): void
     {
-        if (!$this->cachePool) {
-            return;
-        }
-
-        $data = [
+        $cacheItem->set([
             'version' => '1.0',
             'file_path' => $file->getRealPath(),
             'file_mtime' => $file->getMTime(),
@@ -248,17 +246,14 @@ class CognitiveMetricsCollector
             'analysis_result' => $metrics,
             'ignored_items' => $this->ignoredItems,
             'cached_at' => time()
-        ];
+        ]);
 
-        $cacheItem->set($data);
         $this->cachePool->save($cacheItem);
     }
 
     public function clearCache(): void
     {
-        if ($this->cachePool !== null) {
-            $this->cachePool->clear();
-        }
+        $this->cachePool->clear();
     }
 
     /**
@@ -290,7 +285,7 @@ class CognitiveMetricsCollector
      */
     private function getCachedMetrics(SplFileInfo $file, string $configHash, bool $useCache): array
     {
-        if (!$useCache || $this->cachePool === null) {
+        if (!$useCache) {
             return ['metrics' => null, 'cacheItem' => null];
         }
 
@@ -312,6 +307,7 @@ class CognitiveMetricsCollector
      * Process a single file and parse its metrics
      *
      * @return array<string, mixed>|null
+     * @throws ExceptionInterface
      */
     private function processFile(
         SplFileInfo $file,

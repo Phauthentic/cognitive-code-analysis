@@ -157,6 +157,10 @@ class CognitiveMetricsCommand extends Command
             return Command::FAILURE;
         }
 
+        if ($input->getOption(self::OPTION_CLEAR_CACHE)) {
+            $this->metricsFacade->clearCache();
+        }
+
         // Handle cache directory override
         $cacheDir = $input->getOption(self::OPTION_CACHE_DIR);
         if ($cacheDir && $this->metricsFacade->getConfig()->cache !== null) {
@@ -169,7 +173,6 @@ class CognitiveMetricsCommand extends Command
             $this->metricsFacade->getConfig()->cache->enabled = false;
         }
 
-        $metricsCollection = $this->metricsFacade->getCognitiveMetricsFromPaths($paths);
         $coverageReader = $this->handleCoverageOptions($input, $output);
         if ($coverageReader === false) {
             return Command::FAILURE;
@@ -206,7 +209,7 @@ class CognitiveMetricsCommand extends Command
     private function parsePaths(string $pathInput): array
     {
         $paths = array_map('trim', explode(',', $pathInput));
-        return array_filter($paths, function ($path) {
+        return array_filter($paths, static function ($path) {
             return !empty($path);
         });
     }

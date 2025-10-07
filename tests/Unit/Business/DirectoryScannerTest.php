@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business;
 
 use FilesystemIterator;
-use Phauthentic\CognitiveCodeAnalysis\Business\DirectoryScanner;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use RecursiveDirectoryIterator;
@@ -74,7 +73,7 @@ class DirectoryScannerTest extends TestCase
     #[Test]
     public function testScan(): void
     {
-        $scanner = new DirectoryScanner();
+        $scanner = new \Phauthentic\CognitiveCodeAnalysis\Business\Utility\DirectoryScanner();
         $excludePatterns = ['exclude_me', 'exclude_me_too'];
 
         $files = [];
