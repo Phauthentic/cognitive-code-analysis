@@ -7,7 +7,9 @@ namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Cognitive;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollector;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Parser;
-use Phauthentic\CognitiveCodeAnalysis\Business\DirectoryScanner;
+use Phauthentic\CognitiveCodeAnalysis\Business\Utility\DirectoryScanner;
+use Phauthentic\CognitiveCodeAnalysis\Cache\Exception\CacheException;
+use Phauthentic\CognitiveCodeAnalysis\Cache\FileCache;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
 use Phauthentic\CognitiveCodeAnalysis\Config\ConfigLoader;
@@ -18,6 +20,7 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Config\Definition\Processor;
 use Symfony\Component\Messenger\Envelope;
+use Symfony\Component\Messenger\Exception\ExceptionInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
 
 /**
@@ -29,6 +32,9 @@ class CognitiveMetricsCollectorTest extends TestCase
     private ConfigService $configService;
     private MessageBusInterface $messageBus;
 
+    /**
+     * @throws CacheException
+     */
     protected function setUp(): void
     {
         parent::setUp();
@@ -53,7 +59,8 @@ class CognitiveMetricsCollectorTest extends TestCase
                 new Processor(),
                 new ConfigLoader(),
             ),
-            $bus
+            $bus,
+            new FileCache(sys_get_temp_dir())
         );
 
         $this->configService = new ConfigService(
@@ -91,7 +98,8 @@ class CognitiveMetricsCollectorTest extends TestCase
             ),
             new DirectoryScanner(),
             $configService,
-            $this->messageBus
+            $this->messageBus,
+            new FileCache(sys_get_temp_dir())
         );
 
         $path = './tests/TestCode';
@@ -357,6 +365,11 @@ class CognitiveMetricsCollectorTest extends TestCase
         $this->assertGreaterThan(0, $metricsCollection->count(), 'Should have metrics from directory and file');
     }
 
+    /**
+     * @throws CognitiveAnalysisException
+     * @throws CacheException
+     * @throws ExceptionInterface
+     */
     #[Test]
     public function testFindSourceFilesExcludePatternsNotMergedProperly(): void
     {
@@ -372,7 +385,8 @@ class CognitiveMetricsCollectorTest extends TestCase
             ),
             new DirectoryScanner(),
             $configService,
-            $this->messageBus
+            $this->messageBus,
+            new FileCache(sys_get_temp_dir())
         );
 
         $excludePatterns = ['Paginator\.php$', 'FileWithTwoClasses\.php$'];

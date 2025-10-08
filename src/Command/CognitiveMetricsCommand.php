@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phauthentic\CognitiveCodeAnalysis\Command;
 
 use Exception;
+use InvalidArgumentException;
 use Phauthentic\CognitiveCodeAnalysis\Business\CodeCoverage\CodeCoverageFactory;
 use Phauthentic\CognitiveCodeAnalysis\Business\CodeCoverage\CoverageReportReaderInterface;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Baseline;
@@ -18,7 +19,9 @@ use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Messenger\Exception\ExceptionInterface;
 
 /**
  * Command to parse PHP files or directories and output method metrics.
@@ -36,6 +39,9 @@ class CognitiveMetricsCommand extends Command
     public const OPTION_DEBUG = 'debug';
     public const OPTION_SORT_BY = 'sort-by';
     public const OPTION_SORT_ORDER = 'sort-order';
+    public const OPTION_CLEAR_CACHE = 'clear-cache';
+    public const OPTION_NO_CACHE = 'no-cache';
+    public const OPTION_CACHE_DIR = 'cache-dir';
     public const OPTION_COVERAGE_COBERTURA = 'coverage-cobertura';
     public const OPTION_COVERAGE_CLOVER = 'coverage-clover';
     private const ARGUMENT_PATH = 'path';
@@ -105,6 +111,21 @@ class CognitiveMetricsCommand extends Command
                 default: false
             )
             ->addOption(
+                name: self::OPTION_CLEAR_CACHE,
+                mode: InputOption::VALUE_NONE,
+                description: 'Clear all cached analysis results'
+            )
+            ->addOption(
+                name: self::OPTION_NO_CACHE,
+                mode: InputOption::VALUE_NONE,
+                description: 'Disable caching for this run'
+            )
+            ->addOption(
+                name: self::OPTION_CACHE_DIR,
+                mode: InputArgument::OPTIONAL,
+                description: 'Override default cache directory',
+            )
+            ->addOption(
                 name: self::OPTION_COVERAGE_COBERTURA,
                 mode: InputArgument::OPTIONAL,
                 description: 'Path to Cobertura XML coverage file to display coverage data.'
@@ -122,7 +143,9 @@ class CognitiveMetricsCommand extends Command
      * @param InputInterface $input
      * @param OutputInterface $output
      * @return int Command status code.
-     * @throws Exception
+     * @throws Exception|ExceptionInterface|ExceptionInterface
+     * @SuppressWarnings("PHPMD.CyclomaticComplexity")
+     * @SuppressWarnings("PHPMD.NPathComplexity")
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
@@ -132,6 +155,22 @@ class CognitiveMetricsCommand extends Command
         $configFile = $input->getOption(self::OPTION_CONFIG_FILE);
         if ($configFile && !$this->loadConfiguration($configFile, $output)) {
             return Command::FAILURE;
+        }
+
+        if ($input->getOption(self::OPTION_CLEAR_CACHE)) {
+            $this->metricsFacade->clearCache();
+        }
+
+        // Handle cache directory override
+        $cacheDir = $input->getOption(self::OPTION_CACHE_DIR);
+        if ($cacheDir && $this->metricsFacade->getConfig()->cache !== null) {
+            $this->metricsFacade->getConfig()->cache->directory = $cacheDir;
+        }
+
+        // Handle no-cache option
+        $noCache = $input->getOption(self::OPTION_NO_CACHE);
+        if ($noCache && $this->metricsFacade->getConfig()->cache !== null) {
+            $this->metricsFacade->getConfig()->cache->enabled = false;
         }
 
         $coverageReader = $this->handleCoverageOptions($input, $output);
@@ -170,7 +209,7 @@ class CognitiveMetricsCommand extends Command
     private function parsePaths(string $pathInput): array
     {
         $paths = array_map('trim', explode(',', $pathInput));
-        return array_filter($paths, function ($path) {
+        return array_filter($paths, static function ($path) {
             return !empty($path);
         });
     }
@@ -237,7 +276,7 @@ class CognitiveMetricsCommand extends Command
         try {
             $sorted = $this->sorter->sort($metricsCollection, $sortBy, $sortOrder);
             return ['status' => Command::SUCCESS, 'collection' => $sorted];
-        } catch (\InvalidArgumentException $e) {
+        } catch (InvalidArgumentException $e) {
             $output->writeln('<error>Sorting error: ' . $e->getMessage() . '</error>');
             $output->writeln('<info>Available sort fields: ' . implode(', ', $this->sorter->getSortableFields()) . '</info>');
             return ['status' => Command::FAILURE, 'collection' => $metricsCollection];
@@ -261,6 +300,7 @@ class CognitiveMetricsCommand extends Command
             return false;
         }
     }
+
 
     /**
      * Load coverage reader from file

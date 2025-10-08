@@ -130,6 +130,8 @@ class CognitiveMetricsCollection implements IteratorAggregate, Countable, JsonSe
             $grouped[$key]->add($metric);
         }
 
+        ksort($grouped);
+
         return $grouped;
     }
 

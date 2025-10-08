@@ -8,6 +8,7 @@ use InvalidArgumentException;
 
 /**
  * @SuppressWarnings(BooleanArgumentFlag)
+ * @SuppressWarnings(ExcessiveParameterList)
  */
 class CognitiveConfig
 {
@@ -26,6 +27,33 @@ class CognitiveConfig
         public readonly bool $showCyclomaticComplexity = false,
         public readonly bool $groupByClass = false,
         public readonly bool $showDetailedCognitiveMetrics = true,
+        public readonly ?CacheConfig $cache = null,
     ) {
+    }
+
+    /**
+     * Convert the cognitive configuration to an array
+     *
+     * @return array<string, mixed>
+     */
+    public function toArray(): array
+    {
+        $metricsArray = [];
+        foreach ($this->metrics as $key => $metric) {
+            $metricsArray[$key] = $metric->toArray();
+        }
+
+        return [
+            'excludeFilePatterns' => $this->excludeFilePatterns,
+            'excludePatterns' => $this->excludePatterns,
+            'metrics' => $metricsArray,
+            'showOnlyMethodsExceedingThreshold' => $this->showOnlyMethodsExceedingThreshold,
+            'scoreThreshold' => $this->scoreThreshold,
+            'showHalsteadComplexity' => $this->showHalsteadComplexity,
+            'showCyclomaticComplexity' => $this->showCyclomaticComplexity,
+            'groupByClass' => $this->groupByClass,
+            'showDetailedCognitiveMetrics' => $this->showDetailedCognitiveMetrics,
+            'cache' => $this->cache?->toArray(),
+        ];
     }
 }

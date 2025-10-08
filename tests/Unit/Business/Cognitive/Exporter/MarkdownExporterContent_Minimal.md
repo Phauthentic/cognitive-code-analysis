@@ -6,6 +6,15 @@
 
 ---
 
+* **Class:** AnotherClass
+* **File:** AnotherClass.php
+
+| Method | Cognitive Complexity |
+|--------|--------|
+| complexMethod | 0.800 |
+
+---
+
 * **Class:** TestClass
 * **File:** TestClass.php
 
@@ -13,15 +22,6 @@
 |--------|--------|
 | testMethod | 0.300 |
 | anotherMethod | 0.050 |
-
----
-
-* **Class:** AnotherClass
-* **File:** AnotherClass.php
-
-| Method | Cognitive Complexity |
-|--------|--------|
-| complexMethod | 0.800 |
 
 ---
 

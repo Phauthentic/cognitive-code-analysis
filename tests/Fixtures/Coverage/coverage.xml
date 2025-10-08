@@ -1755,7 +1755,7 @@
       <classes>
         <class name="Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollector" filename="Business/Cognitive/CognitiveMetricsCollector.php" line-rate="0.84285714285714" branch-rate="0" complexity="26">
           <methods>
-            <method name="__construct" signature="Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Parser $parser, Phauthentic\CognitiveCodeAnalysis\Business\DirectoryScanner $directoryScanner, Phauthentic\CognitiveCodeAnalysis\Config\ConfigService $configService, Symfony\Component\Messenger\MessageBusInterface $messageBus" line-rate="1" branch-rate="0" complexity="1">
+            <method name="__construct" signature="Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Parser $parser, Phauthentic\CognitiveCodeAnalysis\Business\Utility\DirectoryScanner $directoryScanner, Phauthentic\CognitiveCodeAnalysis\Config\ConfigService $configService, Symfony\Component\Messenger\MessageBusInterface $messageBus" line-rate="1" branch-rate="0" complexity="1">
               <lines>
                 <line number="35" hits="34"/>
               </lines>
@@ -2788,7 +2788,7 @@
     </package>
     <package name="Business/DirectoryScanner.php" line-rate="1" branch-rate="0" complexity="18">
       <classes>
-        <class name="Phauthentic\CognitiveCodeAnalysis\Business\DirectoryScanner" filename="Business/DirectoryScanner.php" line-rate="1" branch-rate="0" complexity="18">
+        <class name="Phauthentic\CognitiveCodeAnalysis\Business\Utility\DirectoryScanner" filename="Business/DirectoryScanner.php" line-rate="1" branch-rate="0" complexity="18">
           <methods>
             <method name="scan" signature="array $paths, array $exclude" line-rate="1" branch-rate="0" complexity="4">
               <lines>
