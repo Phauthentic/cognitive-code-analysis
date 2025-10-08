@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phauthentic\CognitiveCodeAnalysis\Command;
 
 use Exception;
+use InvalidArgumentException;
 use Phauthentic\CognitiveCodeAnalysis\Business\CodeCoverage\CodeCoverageFactory;
 use Phauthentic\CognitiveCodeAnalysis\Business\CodeCoverage\CoverageReportReaderInterface;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Baseline;
@@ -129,8 +130,7 @@ class CognitiveMetricsCommand extends Command
         $pathInput = $input->getArgument(self::ARGUMENT_PATH);
         $paths = $this->parsePaths($pathInput);
 
-        $configFile = $input->getOption(self::OPTION_CONFIG_FILE);
-        if ($configFile && !$this->loadConfiguration($configFile, $output)) {
+        if (!$this->loadConfiguration($input, $output)) {
             return Command::FAILURE;
         }
 
@@ -147,6 +147,7 @@ class CognitiveMetricsCommand extends Command
         if ($sortResult['status'] === Command::FAILURE) {
             return Command::FAILURE;
         }
+
         $metricsCollection = $sortResult['collection'];
 
         $reportType = $input->getOption(self::OPTION_REPORT_TYPE);
@@ -237,7 +238,7 @@ class CognitiveMetricsCommand extends Command
         try {
             $sorted = $this->sorter->sort($metricsCollection, $sortBy, $sortOrder);
             return ['status' => Command::SUCCESS, 'collection' => $sorted];
-        } catch (\InvalidArgumentException $e) {
+        } catch (InvalidArgumentException $e) {
             $output->writeln('<error>Sorting error: ' . $e->getMessage() . '</error>');
             $output->writeln('<info>Available sort fields: ' . implode(', ', $this->sorter->getSortableFields()) . '</info>');
             return ['status' => Command::FAILURE, 'collection' => $metricsCollection];
@@ -247,14 +248,23 @@ class CognitiveMetricsCommand extends Command
     /**
      * Loads configuration and handles errors.
      *
-     * @param string $configFile
      * @param OutputInterface $output
      * @return bool Success or failure.
      */
-    private function loadConfiguration(string $configFile, OutputInterface $output): bool
+    private function loadConfiguration(InputInterface $input, OutputInterface $output): bool
     {
         try {
+            $configFile = $input->getOption(self::OPTION_CONFIG_FILE);
+            if (!$configFile && file_exists(getcwd() .  '/phpcca.yml')) {
+                $configFile = getcwd() .  '/phpcca.yml';
+            }
+
+            if (!$configFile) {
+                return true;
+            }
+
             $this->metricsFacade->loadConfig($configFile);
+
             return true;
         } catch (Exception $e) {
             $output->writeln('<error>Failed to load configuration: ' . $e->getMessage() . '</error>');
@@ -279,7 +289,7 @@ class CognitiveMetricsCommand extends Command
             return null;
         }
 
-        // Auto-detect format if not specified
+        // Auto-detect format if isn't specified
         if ($format === null) {
             $format = $this->detectCoverageFormat($coverageFile);
             if ($format === null) {
@@ -309,12 +319,12 @@ class CognitiveMetricsCommand extends Command
             return null;
         }
 
-        // Cobertura format has <coverage> root element with line-rate attribute
+        // Cobertura format has <coverage> root element with a line-rate attribute
         if (preg_match('/<coverage[^>]*line-rate=/', $content)) {
             return 'cobertura';
         }
 
-        // Clover format has <coverage> with generated attribute and <project> child
+        // Clover format has <coverage> with a generated attribute and <project> child
         if (preg_match('/<coverage[^>]*generated=.*<project/', $content)) {
             return 'clover';
         }
@@ -322,19 +332,23 @@ class CognitiveMetricsCommand extends Command
         return null;
     }
 
+    /**
+     * Checks
+     * - if no coverage file is provided, validation passes (backward compatibility)
+     * - if a coverage file is provided, check if it exists
+     *
+     * If coverage file was provided but doesn't exist - show error.
+     */
     private function coverageFileExists(?string $coverageFile, OutputInterface $output): bool
     {
-        // If no coverage file is provided, validation passes (backward compatibility)
         if ($coverageFile === null) {
             return true;
         }
 
-        // If coverage file is provided, check if it exists
         if (file_exists($coverageFile)) {
             return true;
         }
 
-        // Coverage file was provided but doesn't exist - show error
         $output->writeln(sprintf(
             '<error>Coverage file not found: %s</error>',
             $coverageFile
