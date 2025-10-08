@@ -28,7 +28,6 @@ class ConfigFactory
                 $cacheConfig = new CacheConfig(
                     enabled: $config['cognitive']['cache']['enabled'] ?? true,
                     directory: $config['cognitive']['cache']['directory'] ?? './.phpcca.cache',
-                    compression: $config['cognitive']['cache']['compression'] ?? true,
                 );
         }
 

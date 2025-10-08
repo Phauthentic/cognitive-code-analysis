@@ -9,7 +9,7 @@ use Psr\Cache\CacheItemInterface;
 use Psr\Cache\CacheItemPoolInterface;
 
 /**
- * PSR-6 File-based Cache implementation with compression support
+ * PSR-6 File-based Cache implementation
  */
 class FileCache implements CacheItemPoolInterface
 {
@@ -152,7 +152,7 @@ class FileCache implements CacheItemPoolInterface
     {
         if (
             !is_dir($this->cacheDirectory)
-            && !mkdir($this->cacheDirectory, 0755, true)
+            && !@mkdir($this->cacheDirectory, 0755, true)
         ) {
             throw new CacheException("Failed to create cache directory: {$this->cacheDirectory}");
         }
@@ -171,7 +171,7 @@ class FileCache implements CacheItemPoolInterface
 
         if (
             !is_dir($dir)
-            && !mkdir($dir, 0755, true)
+            && !@mkdir($dir, 0755, true)
         ) {
             throw new CacheException("Failed to create cache subdirectory: {$dir}");
         }
@@ -179,15 +179,15 @@ class FileCache implements CacheItemPoolInterface
         return $dir . '/' . $hash . '.cache';
     }
 
-    /** @return array<string, mixed>|null */
-    private function loadCacheData(string $filePath): ?array
+    /** @return mixed|null */
+    private function loadCacheData(string $filePath): mixed
     {
         $content = file_get_contents($filePath);
         if ($content === false) {
             return null;
         }
 
-        $data = json_decode($content, true);
+        $data = json_decode($content, false);
         if ($data === null) {
             return null;
         }
@@ -200,9 +200,9 @@ class FileCache implements CacheItemPoolInterface
      *
      * Sanitize data to ensure valid UTF-8 encoding
      *
-     * @param array<string, mixed> $data
+     * @param mixed $data
      */
-    private function saveCacheData(string $filePath, array $data): bool
+    private function saveCacheData(string $filePath, mixed $data): bool
     {
         $data = $this->sanitizeUtf8($data);
 

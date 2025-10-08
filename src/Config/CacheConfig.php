@@ -12,7 +12,6 @@ class CacheConfig
     public function __construct(
         public bool $enabled,
         public string $directory,
-        public bool $compression,
     ) {
     }
 
@@ -26,7 +25,6 @@ class CacheConfig
         return [
             'enabled' => $this->enabled,
             'directory' => $this->directory,
-            'compression' => $this->compression,
         ];
     }
 }
