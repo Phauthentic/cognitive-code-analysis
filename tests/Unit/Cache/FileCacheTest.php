@@ -77,11 +77,11 @@ class FileCacheTest extends TestCase
 
         $retrievedItem = $this->cache->getItem($key);
         $retrievedValue = $retrievedItem->get();
-        $this->assertIsObject($retrievedValue);
-        $this->assertEquals('value1', $retrievedValue->key1);
-        $this->assertEquals(123, $retrievedValue->key2);
-        $this->assertIsObject($retrievedValue->key3);
-        $this->assertTrue($retrievedValue->key3->nested);
+        $this->assertIsArray($retrievedValue);
+        $this->assertEquals('value1', $retrievedValue['key1']);
+        $this->assertEquals(123, $retrievedValue['key2']);
+        $this->assertIsArray($retrievedValue['key3']);
+        $this->assertTrue($retrievedValue['key3']['nested']);
         $this->assertTrue($retrievedItem->isHit());
     }
 
@@ -95,9 +95,9 @@ class FileCacheTest extends TestCase
 
         $retrievedItem = $this->cache->getItem($key);
         $retrievedValue = $retrievedItem->get();
-        $this->assertIsObject($retrievedValue);
-        $this->assertEquals('value1', $retrievedValue->property1);
-        $this->assertEquals(456, $retrievedValue->property2);
+        $this->assertIsArray($retrievedValue);
+        $this->assertEquals('value1', $retrievedValue['property1']);
+        $this->assertEquals(456, $retrievedValue['property2']);
         $this->assertTrue($retrievedItem->isHit());
     }
 
@@ -268,7 +268,7 @@ class FileCacheTest extends TestCase
         $content = file_get_contents($expectedFile);
         $this->assertNotFalse($content);
 
-        $data = json_decode($content, false);
+        $data = json_decode($content, true);
         $this->assertEquals($value, $data);
     }
 
@@ -288,15 +288,15 @@ class FileCacheTest extends TestCase
         $retrievedItem = $this->cache->getItem($key);
         $retrievedValue = $retrievedItem->get();
 
-        $this->assertIsObject($retrievedValue);
-        $this->assertObjectHasProperty('valid_utf8', $retrievedValue);
-        $this->assertObjectHasProperty('invalid_utf8', $retrievedValue);
-        $this->assertObjectHasProperty('mixed', $retrievedValue);
-        $this->assertObjectHasProperty('unicode', $retrievedValue);
+        $this->assertIsArray($retrievedValue);
+        $this->assertArrayHasKey('valid_utf8', $retrievedValue);
+        $this->assertArrayHasKey('invalid_utf8', $retrievedValue);
+        $this->assertArrayHasKey('mixed', $retrievedValue);
+        $this->assertArrayHasKey('unicode', $retrievedValue);
 
         // Verify UTF-8 sanitization worked
-        $this->assertIsString($retrievedValue->invalid_utf8);
-        $this->assertIsString($retrievedValue->mixed);
+        $this->assertIsString($retrievedValue['invalid_utf8']);
+        $this->assertIsString($retrievedValue['mixed']);
     }
 
     public function testCorruptedCacheFile(): void

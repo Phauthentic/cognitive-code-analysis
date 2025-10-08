@@ -191,7 +191,7 @@ class FileCache implements CacheItemPoolInterface
             return null;
         }
 
-        $data = json_decode($content, false);
+            $data = json_decode($content, true);
         if ($data === null) {
             return null;
         }
