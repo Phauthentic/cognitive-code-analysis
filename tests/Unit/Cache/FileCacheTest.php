@@ -40,14 +40,14 @@ class FileCacheTest extends TestCase
     {
         $cacheDirWithSlash = $this->testCacheDir . '/';
         $cache = new FileCache($cacheDirWithSlash);
-        
+
         $this->assertDirectoryExists($this->testCacheDir);
     }
 
     public function testGetItemReturnsMissForNonExistentKey(): void
     {
         $item = $this->cache->getItem('non-existent-key');
-        
+
         $this->assertEquals('non-existent-key', $item->getKey());
         $this->assertNull($item->get());
         $this->assertFalse($item->isHit());
@@ -57,10 +57,10 @@ class FileCacheTest extends TestCase
     {
         $key = 'test-key';
         $value = 'test-value';
-        
+
         $item = new CacheItem($key, $value, true);
         $this->assertTrue($this->cache->save($item));
-        
+
         $retrievedItem = $this->cache->getItem($key);
         $this->assertEquals($key, $retrievedItem->getKey());
         $this->assertEquals($value, $retrievedItem->get());
@@ -71,10 +71,10 @@ class FileCacheTest extends TestCase
     {
         $key = 'array-key';
         $value = ['key1' => 'value1', 'key2' => 123, 'key3' => ['nested' => true]];
-        
+
         $item = new CacheItem($key, $value, true);
         $this->assertTrue($this->cache->save($item));
-        
+
         $retrievedItem = $this->cache->getItem($key);
         $retrievedValue = $retrievedItem->get();
         $this->assertIsObject($retrievedValue);
@@ -89,10 +89,10 @@ class FileCacheTest extends TestCase
     {
         $key = 'object-key';
         $value = (object) ['property1' => 'value1', 'property2' => 456];
-        
+
         $item = new CacheItem($key, $value, true);
         $this->assertTrue($this->cache->save($item));
-        
+
         $retrievedItem = $this->cache->getItem($key);
         $retrievedValue = $retrievedItem->get();
         $this->assertIsObject($retrievedValue);
@@ -104,10 +104,10 @@ class FileCacheTest extends TestCase
     public function testSaveAndGetItemWithNullValue(): void
     {
         $key = 'null-key';
-        
+
         $item = new CacheItem($key, null, true);
         $this->assertTrue($this->cache->save($item));
-        
+
         // Saving null should delete the item
         $this->assertFalse($this->cache->hasItem($key));
     }
@@ -115,24 +115,24 @@ class FileCacheTest extends TestCase
     public function testHasItem(): void
     {
         $key = 'has-item-test';
-        
+
         $this->assertFalse($this->cache->hasItem($key));
-        
+
         $item = new CacheItem($key, 'value', true);
         $this->cache->save($item);
-        
+
         $this->assertTrue($this->cache->hasItem($key));
     }
 
     public function testDeleteItem(): void
     {
         $key = 'delete-test';
-        
+
         // Save an item first
         $item = new CacheItem($key, 'value', true);
         $this->cache->save($item);
         $this->assertTrue($this->cache->hasItem($key));
-        
+
         // Delete the item
         $this->assertTrue($this->cache->deleteItem($key));
         $this->assertFalse($this->cache->hasItem($key));
@@ -146,21 +146,21 @@ class FileCacheTest extends TestCase
     public function testDeleteItems(): void
     {
         $keys = ['key1', 'key2', 'key3'];
-        
+
         // Save items first
         foreach ($keys as $key) {
             $item = new CacheItem($key, "value-{$key}", true);
             $this->cache->save($item);
         }
-        
+
         // Verify all items exist
         foreach ($keys as $key) {
             $this->assertTrue($this->cache->hasItem($key));
         }
-        
+
         // Delete all items
         $this->assertTrue($this->cache->deleteItems($keys));
-        
+
         // Verify all items are deleted
         foreach ($keys as $key) {
             $this->assertFalse($this->cache->hasItem($key));
@@ -170,26 +170,26 @@ class FileCacheTest extends TestCase
     public function testGetItems(): void
     {
         $keys = ['key1', 'key2', 'key3'];
-        
+
         // Save some items
         $item1 = new CacheItem('key1', 'value1', true);
         $item2 = new CacheItem('key2', 'value2', true);
         $this->cache->save($item1);
         $this->cache->save($item2);
-        
+
         $items = $this->cache->getItems($keys);
-        
+
         $this->assertCount(3, $items);
         $this->assertArrayHasKey('key1', $items);
         $this->assertArrayHasKey('key2', $items);
         $this->assertArrayHasKey('key3', $items);
-        
+
         $this->assertTrue($items['key1']->isHit());
         $this->assertEquals('value1', $items['key1']->get());
-        
+
         $this->assertTrue($items['key2']->isHit());
         $this->assertEquals('value2', $items['key2']->get());
-        
+
         $this->assertFalse($items['key3']->isHit());
         $this->assertNull($items['key3']->get());
     }
@@ -198,27 +198,27 @@ class FileCacheTest extends TestCase
     {
         $key1 = 'deferred-key1';
         $key2 = 'deferred-key2';
-        
+
         $item1 = new CacheItem($key1, 'value1', true);
         $item2 = new CacheItem($key2, 'value2', true);
-        
+
         $this->assertTrue($this->cache->saveDeferred($item1));
         $this->assertTrue($this->cache->saveDeferred($item2));
-        
+
         // Items should not be saved yet
         $this->assertFalse($this->cache->hasItem($key1));
         $this->assertFalse($this->cache->hasItem($key2));
-        
+
         // Commit the deferred items
         $this->assertTrue($this->cache->commit());
-        
+
         // Now items should be saved
         $this->assertTrue($this->cache->hasItem($key1));
         $this->assertTrue($this->cache->hasItem($key2));
-        
+
         $retrievedItem1 = $this->cache->getItem($key1);
         $this->assertEquals('value1', $retrievedItem1->get());
-        
+
         $retrievedItem2 = $this->cache->getItem($key2);
         $this->assertEquals('value2', $retrievedItem2->get());
     }
@@ -230,17 +230,17 @@ class FileCacheTest extends TestCase
         $item2 = new CacheItem('key2', 'value2', true);
         $this->cache->save($item1);
         $this->cache->save($item2);
-        
+
         $this->assertTrue($this->cache->hasItem('key1'));
         $this->assertTrue($this->cache->hasItem('key2'));
-        
+
         // Clear the cache
         $this->assertTrue($this->cache->clear());
-        
+
         // Items should be gone
         $this->assertFalse($this->cache->hasItem('key1'));
         $this->assertFalse($this->cache->hasItem('key2'));
-        
+
         // Cache directory should still exist
         $this->assertDirectoryExists($this->testCacheDir);
     }
@@ -249,25 +249,25 @@ class FileCacheTest extends TestCase
     {
         $key = 'test-structure';
         $value = 'test-value';
-        
+
         $item = new CacheItem($key, $value, true);
         $this->cache->save($item);
-        
+
         // Check that subdirectory was created
         $hash = md5($key);
         $subDir = substr($hash, 0, 2);
         $expectedSubDir = $this->testCacheDir . '/' . $subDir;
-        
+
         $this->assertDirectoryExists($expectedSubDir);
-        
+
         // Check that cache file was created
         $expectedFile = $expectedSubDir . '/' . $hash . '.cache';
         $this->assertFileExists($expectedFile);
-        
+
         // Verify file content
         $content = file_get_contents($expectedFile);
         $this->assertNotFalse($content);
-        
+
         $data = json_decode($content, false);
         $this->assertEquals($value, $data);
     }
@@ -281,19 +281,19 @@ class FileCacheTest extends TestCase
             'mixed' => "Valid text with \x80 invalid chars",
             'unicode' => 'Unicode: 你好世界 🌍'
         ];
-        
+
         $item = new CacheItem($key, $value, true);
         $this->assertTrue($this->cache->save($item));
-        
+
         $retrievedItem = $this->cache->getItem($key);
         $retrievedValue = $retrievedItem->get();
-        
+
         $this->assertIsObject($retrievedValue);
         $this->assertObjectHasProperty('valid_utf8', $retrievedValue);
         $this->assertObjectHasProperty('invalid_utf8', $retrievedValue);
         $this->assertObjectHasProperty('mixed', $retrievedValue);
         $this->assertObjectHasProperty('unicode', $retrievedValue);
-        
+
         // Verify UTF-8 sanitization worked
         $this->assertIsString($retrievedValue->invalid_utf8);
         $this->assertIsString($retrievedValue->mixed);
@@ -303,18 +303,18 @@ class FileCacheTest extends TestCase
     {
         $key = 'corrupted-test';
         $value = 'test-value';
-        
+
         // Save a valid item first
         $item = new CacheItem($key, $value, true);
         $this->cache->save($item);
-        
+
         // Corrupt the cache file
         $hash = md5($key);
         $subDir = substr($hash, 0, 2);
         $cacheFile = $this->testCacheDir . '/' . $subDir . '/' . $hash . '.cache';
-        
+
         file_put_contents($cacheFile, 'invalid json content');
-        
+
         // Should return a miss for corrupted file
         $retrievedItem = $this->cache->getItem($key);
         $this->assertFalse($retrievedItem->isHit());
@@ -325,18 +325,18 @@ class FileCacheTest extends TestCase
     {
         $key = 'empty-test';
         $value = 'test-value';
-        
+
         // Save a valid item first
         $item = new CacheItem($key, $value, true);
         $this->cache->save($item);
-        
+
         // Empty the cache file
         $hash = md5($key);
         $subDir = substr($hash, 0, 2);
         $cacheFile = $this->testCacheDir . '/' . $subDir . '/' . $hash . '.cache';
-        
+
         file_put_contents($cacheFile, '');
-        
+
         // Should return a miss for empty file
         $retrievedItem = $this->cache->getItem($key);
         $this->assertFalse($retrievedItem->isHit());
@@ -347,10 +347,10 @@ class FileCacheTest extends TestCase
     {
         // Create a cache directory that's not writable
         $nonWritableDir = '/root/non-writable-cache';
-        
+
         $this->expectException(CacheException::class);
         $this->expectExceptionMessage('Failed to create cache directory');
-        
+
         new FileCache($nonWritableDir);
     }
 
@@ -359,12 +359,12 @@ class FileCacheTest extends TestCase
         // Create a cache with a non-writable parent directory
         $parentDir = $this->testCacheDir . '/parent';
         mkdir($parentDir, 0444); // Read-only
-        
+
         $this->expectException(CacheException::class);
         $this->expectExceptionMessage('Failed to create cache directory');
-        
+
         $cache = new FileCache($parentDir . '/cache');
-        
+
         // Try to save an item which will trigger subdirectory creation
         $item = new CacheItem('test-key', 'test-value', true);
         $cache->save($item);
@@ -375,12 +375,12 @@ class FileCacheTest extends TestCase
         // Create a value that cannot be JSON encoded
         $key = 'json-fail-test';
         $value = "\x80"; // Invalid UTF-8 that might cause JSON encoding issues
-        
+
         $item = new CacheItem($key, $value, true);
-        
+
         // This should handle the encoding gracefully
         $result = $this->cache->save($item);
-        
+
         // The save might succeed due to UTF-8 sanitization
         if ($result) {
             $retrievedItem = $this->cache->getItem($key);
@@ -392,10 +392,10 @@ class FileCacheTest extends TestCase
     {
         $key = 'large-data-test';
         $value = str_repeat('A', 10000); // 10KB string
-        
+
         $item = new CacheItem($key, $value, true);
         $this->assertTrue($this->cache->save($item));
-        
+
         $retrievedItem = $this->cache->getItem($key);
         $this->assertEquals($value, $retrievedItem->get());
         $this->assertTrue($retrievedItem->isHit());
@@ -415,14 +415,14 @@ class FileCacheTest extends TestCase
             'key"with"quotes',
             "key'with'singlequotes"
         ];
-        
+
         foreach ($keys as $key) {
             $value = "value-for-{$key}";
             $item = new CacheItem($key, $value, true);
-            
+
             $this->assertTrue($this->cache->save($item), "Failed to save key: {$key}");
             $this->assertTrue($this->cache->hasItem($key), "Failed to verify key exists: {$key}");
-            
+
             $retrievedItem = $this->cache->getItem($key);
             $this->assertEquals($value, $retrievedItem->get(), "Failed to retrieve value for key: {$key}");
         }

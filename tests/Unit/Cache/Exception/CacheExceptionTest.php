@@ -16,7 +16,7 @@ class CacheExceptionTest extends TestCase
     public function testInheritsFromCognitiveAnalysisException(): void
     {
         $exception = new CacheException();
-        
+
         $this->assertInstanceOf(CognitiveAnalysisException::class, $exception);
         $this->assertInstanceOf(\Exception::class, $exception);
     }
@@ -24,7 +24,7 @@ class CacheExceptionTest extends TestCase
     public function testDefaultConstructor(): void
     {
         $exception = new CacheException();
-        
+
         $this->assertEquals('', $exception->getMessage());
         $this->assertEquals(0, $exception->getCode());
         $this->assertNull($exception->getPrevious());
@@ -34,7 +34,7 @@ class CacheExceptionTest extends TestCase
     {
         $message = 'Cache operation failed';
         $exception = new CacheException($message);
-        
+
         $this->assertEquals($message, $exception->getMessage());
         $this->assertEquals(0, $exception->getCode());
         $this->assertNull($exception->getPrevious());
@@ -45,7 +45,7 @@ class CacheExceptionTest extends TestCase
         $message = 'Cache operation failed';
         $code = 500;
         $exception = new CacheException($message, $code);
-        
+
         $this->assertEquals($message, $exception->getMessage());
         $this->assertEquals($code, $exception->getCode());
         $this->assertNull($exception->getPrevious());
@@ -57,7 +57,7 @@ class CacheExceptionTest extends TestCase
         $code = 500;
         $previous = new \RuntimeException('Previous exception');
         $exception = new CacheException($message, $code, $previous);
-        
+
         $this->assertEquals($message, $exception->getMessage());
         $this->assertEquals($code, $exception->getCode());
         $this->assertSame($previous, $exception->getPrevious());
@@ -67,35 +67,35 @@ class CacheExceptionTest extends TestCase
     {
         $this->expectException(CacheException::class);
         $this->expectExceptionMessage('Test exception message');
-        
+
         throw new CacheException('Test exception message');
     }
 
     public function testCanBeCaughtAsParentException(): void
     {
         $caught = false;
-        
+
         try {
             throw new CacheException('Test message');
         } catch (CognitiveAnalysisException $e) {
             $caught = true;
             $this->assertEquals('Test message', $e->getMessage());
         }
-        
+
         $this->assertTrue($caught);
     }
 
     public function testCanBeCaughtAsGenericException(): void
     {
         $caught = false;
-        
+
         try {
             throw new CacheException('Test message');
         } catch (\Exception $e) {
             $caught = true;
             $this->assertEquals('Test message', $e->getMessage());
         }
-        
+
         $this->assertTrue($caught);
     }
 
@@ -103,14 +103,14 @@ class CacheExceptionTest extends TestCase
     {
         $message = 'Cache failed: "Invalid UTF-8 sequence \x80"';
         $exception = new CacheException($message);
-        
+
         $this->assertEquals($message, $exception->getMessage());
     }
 
     public function testExceptionWithEmptyMessage(): void
     {
         $exception = new CacheException('');
-        
+
         $this->assertEquals('', $exception->getMessage());
     }
 
@@ -118,7 +118,7 @@ class CacheExceptionTest extends TestCase
     {
         $message = str_repeat('A', 1000);
         $exception = new CacheException($message);
-        
+
         $this->assertEquals($message, $exception->getMessage());
     }
 }

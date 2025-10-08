@@ -41,7 +41,7 @@ class CacheItemTest extends TestCase
     public function testSetValue(): void
     {
         $item = new CacheItem('test-key', 'initial-value', true);
-        
+
         $newValue = 'new-value';
         $result = $item->set($newValue);
 
@@ -83,16 +83,16 @@ class CacheItemTest extends TestCase
     public function testSetExpirationReturnsSelf(): void
     {
         $item = new CacheItem('test-key', 'value', true);
-        
+
         $result = $item->setExpiration(3600);
-        
+
         $this->assertSame($item, $result);
     }
 
     public function testGetExpirationReturnsNull(): void
     {
         $item = new CacheItem('test-key', 'value', true);
-        
+
         $this->assertNull($item->getExpiration());
     }
 
@@ -100,27 +100,27 @@ class CacheItemTest extends TestCase
     {
         $item = new CacheItem('test-key', 'value', true);
         $expiration = new \DateTime('+1 hour');
-        
+
         $result = $item->expiresAt($expiration);
-        
+
         $this->assertSame($item, $result);
     }
 
     public function testExpiresAtWithNull(): void
     {
         $item = new CacheItem('test-key', 'value', true);
-        
+
         $result = $item->expiresAt(null);
-        
+
         $this->assertSame($item, $result);
     }
 
     public function testExpiresAfterWithInteger(): void
     {
         $item = new CacheItem('test-key', 'value', true);
-        
+
         $result = $item->expiresAfter(3600);
-        
+
         $this->assertSame($item, $result);
     }
 
@@ -128,18 +128,18 @@ class CacheItemTest extends TestCase
     {
         $item = new CacheItem('test-key', 'value', true);
         $interval = new \DateInterval('PT1H');
-        
+
         $result = $item->expiresAfter($interval);
-        
+
         $this->assertSame($item, $result);
     }
 
     public function testExpiresAfterWithNull(): void
     {
         $item = new CacheItem('test-key', 'value', true);
-        
+
         $result = $item->expiresAfter(null);
-        
+
         $this->assertSame($item, $result);
     }
 
@@ -150,10 +150,10 @@ class CacheItemTest extends TestCase
 
         // The key should remain the same throughout the item's lifecycle
         $this->assertEquals($key, $item->getKey());
-        
+
         $item->set('new-value');
         $this->assertEquals($key, $item->getKey());
-        
+
         $item->setExpiration(3600);
         $this->assertEquals($key, $item->getKey());
     }
@@ -161,13 +161,13 @@ class CacheItemTest extends TestCase
     public function testIsHitIsImmutable(): void
     {
         $item = new CacheItem('test-key', 'value', true);
-        
+
         // isHit should remain true
         $this->assertTrue($item->isHit());
-        
+
         $item->set('new-value');
         $this->assertTrue($item->isHit());
-        
+
         $item->setExpiration(3600);
         $this->assertTrue($item->isHit());
     }
@@ -175,13 +175,13 @@ class CacheItemTest extends TestCase
     public function testIsHitIsImmutableForMiss(): void
     {
         $item = new CacheItem('test-key', null, false);
-        
+
         // isHit should remain false
         $this->assertFalse($item->isHit());
-        
+
         $item->set('new-value');
         $this->assertFalse($item->isHit());
-        
+
         $item->setExpiration(3600);
         $this->assertFalse($item->isHit());
     }

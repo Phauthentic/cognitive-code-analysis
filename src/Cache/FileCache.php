@@ -146,6 +146,7 @@ class FileCache implements CacheItemPoolInterface
     }
 
     /**
+     * @SuppressWarnings("PHPMD.ErrorControlOperator")
      * @throws CacheException
      */
     private function ensureCacheDirectory(): void
@@ -161,6 +162,7 @@ class FileCache implements CacheItemPoolInterface
     /**
      * Create subdirectories to avoid too many files in one directory
      *
+     * @SuppressWarnings("PHPMD.ErrorControlOperator")
      * @throws CacheException
      */
     private function getCacheFilePath(string $key): string
@@ -171,7 +173,7 @@ class FileCache implements CacheItemPoolInterface
 
         if (
             !is_dir($dir)
-            && !@mkdir($dir, 0755, true)
+            && @!mkdir($dir, 0755, true)
         ) {
             throw new CacheException("Failed to create cache subdirectory: {$dir}");
         }
@@ -179,7 +181,9 @@ class FileCache implements CacheItemPoolInterface
         return $dir . '/' . $hash . '.cache';
     }
 
-    /** @return mixed|null */
+    /**
+     * @return mixed|null
+     */
     private function loadCacheData(string $filePath): mixed
     {
         $content = file_get_contents($filePath);
