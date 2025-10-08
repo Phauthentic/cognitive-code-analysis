@@ -41,6 +41,5 @@ cognitive:
       scale: 1.0
       enabled: true
   cache:
-    enabled: true
+    enabled: false
     directory: './.phpcca.cache'
-    compression: true
