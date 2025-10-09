@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter;
 
 use InvalidArgumentException;
+use Phauthentic\CognitiveCodeAnalysis\Business\Exporter\ExporterRegistry;
 use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
 
 /**
@@ -12,9 +13,19 @@ use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
  */
 class CognitiveExporterFactory
 {
+    /** @var array<string, array<string, mixed>> */
+    private array $customExporters = [];
+    private ExporterRegistry $registry;
+
+    /**
+     * @param array<string, array<string, mixed>> $customExporters
+     */
     public function __construct(
-        private readonly CognitiveConfig $config
+        private readonly CognitiveConfig $config,
+        array $customExporters = []
     ) {
+        $this->customExporters = $customExporters;
+        $this->registry = new ExporterRegistry();
     }
 
     /**
@@ -26,13 +37,46 @@ class CognitiveExporterFactory
      */
     public function create(string $type): DataExporterInterface
     {
-        return match ($type) {
+        // Check built-in exporters first
+        $builtIn = match ($type) {
             'json' => new JsonExporter(),
             'csv' => new CsvExporter(),
             'html' => new HtmlExporter(),
             'markdown' => new MarkdownExporter($this->config),
-            default => throw new InvalidArgumentException("Unsupported exporter type: {$type}"),
+            default => null,
         };
+
+        if ($builtIn !== null) {
+            return $builtIn;
+        }
+
+        // Check custom exporters
+        if (isset($this->customExporters[$type])) {
+            return $this->createCustomExporter($this->customExporters[$type]);
+        }
+
+        throw new InvalidArgumentException("Unsupported exporter type: {$type}");
+    }
+
+    /**
+     * Create a custom exporter instance.
+     *
+     * @param array<string, mixed> $config
+     * @return DataExporterInterface
+     */
+    private function createCustomExporter(array $config): DataExporterInterface
+    {
+        $this->registry->loadExporter($config['class'], $config['file'] ?? null);
+        $exporter = $this->registry->instantiate(
+            $config['class'],
+            $config['requiresConfig'] ?? false,
+            $this->config
+        );
+        $this->registry->validateInterface($exporter, DataExporterInterface::class);
+
+        // PHPStan needs explicit type assertion since instantiate returns object
+        assert($exporter instanceof DataExporterInterface);
+        return $exporter;
     }
 
     /**
@@ -42,7 +86,10 @@ class CognitiveExporterFactory
      */
     public function getSupportedTypes(): array
     {
-        return ['json', 'csv', 'html', 'markdown'];
+        return array_merge(
+            ['json', 'csv', 'html', 'markdown'],
+            array_keys($this->customExporters)
+        );
     }
 
     /**

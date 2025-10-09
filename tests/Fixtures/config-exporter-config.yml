@@ -1,0 +1,20 @@
+cognitive:
+  excludeFilePatterns: []
+  excludePatterns: []
+  scoreThreshold: 0.8
+  showOnlyMethodsExceedingThreshold: false
+  showHalsteadComplexity: false
+  showCyclomaticComplexity: false
+  showDetailedCognitiveMetrics: true
+  groupByClass: false
+  metrics:
+    lineCount:
+      threshold: 60
+      scale: 25.0
+      enabled: true
+  customExporters:
+    cognitive:
+      config:
+        class: 'TestConfigExporter\ConfigExporter'
+        file: null
+        requiresConfig: true

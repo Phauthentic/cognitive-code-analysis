@@ -43,7 +43,9 @@ class MetricsFacade
     private function getChurnExporterFactory(): ChurnExporterFactory
     {
         if ($this->churnExporterFactory === null) {
-            $this->churnExporterFactory = new ChurnExporterFactory();
+            $config = $this->configService->getConfig();
+            $customExporters = $config->customExporters['churn'] ?? [];
+            $this->churnExporterFactory = new ChurnExporterFactory($customExporters);
         }
         return $this->churnExporterFactory;
     }
@@ -54,7 +56,12 @@ class MetricsFacade
     private function getCognitiveExporterFactory(): CognitiveExporterFactory
     {
         if ($this->cognitiveExporterFactory === null) {
-            $this->cognitiveExporterFactory = new CognitiveExporterFactory($this->configService->getConfig());
+            $config = $this->configService->getConfig();
+            $customExporters = $config->customExporters['cognitive'] ?? [];
+            $this->cognitiveExporterFactory = new CognitiveExporterFactory(
+                $config,
+                $customExporters
+            );
         }
         return $this->cognitiveExporterFactory;
     }
