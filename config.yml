@@ -40,3 +40,15 @@ cognitive:
       threshold: 1
       scale: 1.0
       enabled: true
+  # Example of custom exporters:
+  # customExporters:
+  #   cognitive:
+  #     pdf:
+  #       class: 'My\Custom\PdfExporter'
+  #       file: '/path/to/PdfExporter.php'
+  #       requiresConfig: true
+  #   churn:
+  #     xml:
+  #       class: 'My\Custom\XmlChurnExporter'
+  #       file: null
+  #       requiresConfig: false

@@ -6,6 +6,7 @@ namespace Phauthentic\CognitiveCodeAnalysis\Command\Handler;
 
 use Exception;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter\CognitiveExporterFactory;
 use Phauthentic\CognitiveCodeAnalysis\Business\MetricsFacade;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -56,7 +57,11 @@ class CognitiveMetricsReportHandler
 
     private function isValidReportType(?string $reportType): bool
     {
-        return in_array($reportType, ['json', 'csv', 'html', 'markdown']);
+        if ($reportType === null) {
+            return false;
+        }
+        $factory = new CognitiveExporterFactory($this->metricsFacade->getConfig());
+        return $factory->isSupported($reportType);
     }
 
     /**

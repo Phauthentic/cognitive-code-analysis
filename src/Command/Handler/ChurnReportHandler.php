@@ -21,7 +21,9 @@ class ChurnReportHandler
         private MetricsFacade $metricsFacade,
         private OutputInterface $output
     ) {
-        $this->exporterFactory = new ChurnExporterFactory();
+        $config = $this->metricsFacade->getConfig();
+        $customExporters = $config->customExporters['churn'] ?? [];
+        $this->exporterFactory = new ChurnExporterFactory($customExporters);
     }
 
     /**

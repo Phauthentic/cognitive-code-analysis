@@ -1,0 +1,24 @@
+cognitive:
+  excludeFilePatterns: []
+  excludePatterns: []
+  scoreThreshold: 0.5
+  showOnlyMethodsExceedingThreshold: false
+  showHalsteadComplexity: false
+  showCyclomaticComplexity: false
+  showDetailedCognitiveMetrics: true
+  groupByClass: true
+  metrics:
+    lineCount:
+      threshold: 60
+      scale: 25.0
+      enabled: true
+  customExporters:
+    cognitive:
+      test:
+        class: 'Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter\JsonExporter'
+        file: null
+        requiresConfig: false
+    churn:
+      test:
+        class: 'Phauthentic\CognitiveCodeAnalysis\Business\Churn\Exporter\JsonExporter'
+        file: null
