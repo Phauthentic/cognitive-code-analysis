@@ -7,18 +7,40 @@ namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Churn\Exporter;
 use InvalidArgumentException;
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report\ChurnReportFactory;
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report\ReportGeneratorInterface;
+use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
+use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\MockObject\MockObject;
+use ReflectionClass;
+use Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Churn\Exporter\TestCognitiveConfig;
 
 /**
  * Test case for ChurnReportFactory with custom exporters.
  */
 class ChurnExporterFactoryCustomTest extends TestCase
 {
+    private function createMockConfigService(array $customExporters = []): ConfigService&MockObject
+    {
+        // Create a mock that allows property access by using reflection
+        $config = $this->createMock(CognitiveConfig::class);
+
+        // Use reflection to set the readonly property
+        $reflection = new ReflectionClass($config);
+        $property = $reflection->getProperty('customExporters');
+        $property->setAccessible(true);
+        $property->setValue($config, ['churn' => $customExporters]);
+
+        $configService = $this->createMock(ConfigService::class);
+        $configService->method('getConfig')->willReturn($config);
+
+        return $configService;
+    }
     #[Test]
     public function testCreateBuiltInExporter(): void
     {
-        $factory = new ChurnReportFactory();
+        $configService = $this->createMockConfigService();
+        $factory = new ChurnReportFactory($configService);
 
         $exporter = $factory->create('json');
 
@@ -52,7 +74,7 @@ PHP;
                 ]
             ];
 
-            $factory = new ChurnReportFactory($customExporters);
+            $factory = new ChurnReportFactory($this->createMockConfigService($customExporters));
             $exporter = $factory->create('custom');
 
             $this->assertInstanceOf(ReportGeneratorInterface::class, $exporter);
@@ -89,7 +111,7 @@ PHP;
                 ]
             ];
 
-            $factory = new ChurnReportFactory($customExporters);
+            $factory = new ChurnReportFactory($this->createMockConfigService($customExporters));
             $exporter = $factory->create('autoloaded');
 
             $this->assertInstanceOf(ReportGeneratorInterface::class, $exporter);
@@ -102,7 +124,7 @@ PHP;
     #[Test]
     public function testCreateUnsupportedExporter(): void
     {
-        $factory = new ChurnReportFactory();
+        $factory = new ChurnReportFactory($this->createMockConfigService());
 
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Unsupported exporter type: unsupported');
@@ -124,7 +146,7 @@ PHP;
             ]
         ];
 
-        $factory = new ChurnReportFactory($customExporters);
+        $factory = new ChurnReportFactory($this->createMockConfigService($customExporters));
         $supportedTypes = $factory->getSupportedTypes();
 
         $expectedBuiltInTypes = ['json', 'csv', 'html', 'markdown', 'svg-treemap', 'svg'];
@@ -149,7 +171,7 @@ PHP;
             ]
         ];
 
-        $factory = new ChurnReportFactory($customExporters);
+        $factory = new ChurnReportFactory($this->createMockConfigService($customExporters));
 
         $this->assertTrue($factory->isSupported('json'));
         $this->assertTrue($factory->isSupported('custom'));
@@ -181,7 +203,7 @@ PHP;
                 ]
             ];
 
-            $factory = new ChurnReportFactory($customExporters);
+            $factory = new ChurnReportFactory($this->createMockConfigService($customExporters));
 
             $this->expectException(\Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException::class);
             $this->expectExceptionMessage('Exporter must implement Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report\ReportGeneratorInterface');
@@ -202,7 +224,7 @@ PHP;
             ]
         ];
 
-        $factory = new ChurnReportFactory($customExporters);
+        $factory = new ChurnReportFactory($this->createMockConfigService($customExporters));
 
         $this->expectException(\Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException::class);
         $this->expectExceptionMessage('Exporter file not found: /non/existent/file.php');

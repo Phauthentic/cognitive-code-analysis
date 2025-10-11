@@ -6,7 +6,7 @@ namespace Phauthentic\CognitiveCodeAnalysis\Command\Handler;
 
 use Exception;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
-use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report\CognitiveReportFactory;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report\CognitiveReportFactoryInterface;
 use Phauthentic\CognitiveCodeAnalysis\Business\MetricsFacade;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -15,7 +15,8 @@ class CognitiveMetricsReportHandler
 {
     public function __construct(
         private MetricsFacade $metricsFacade,
-        private OutputInterface $output
+        private OutputInterface $output,
+        private CognitiveReportFactoryInterface $reportFactory
     ) {
     }
 
@@ -60,8 +61,7 @@ class CognitiveMetricsReportHandler
         if ($reportType === null) {
             return false;
         }
-        $factory = new CognitiveReportFactory($this->metricsFacade->getConfig());
-        return $factory->isSupported($reportType);
+        return $this->reportFactory->isSupported($reportType);
     }
 
     /**
@@ -84,9 +84,12 @@ class CognitiveMetricsReportHandler
      */
     public function handleInvalidReporType(?string $reportType): int
     {
+        $supportedTypes = $this->reportFactory->getSupportedTypes();
+
         $this->output->writeln(sprintf(
-            '<error>Invalid report type `%s` provided. Only `json`, `csv`, `html`, and `markdown` are accepted.</error>',
-            $reportType
+            '<error>Invalid report type `%s` provided. Supported types: %s</error>',
+            $reportType,
+            implode(', ', $supportedTypes)
         ));
 
         return Command::FAILURE;

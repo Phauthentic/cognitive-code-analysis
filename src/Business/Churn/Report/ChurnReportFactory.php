@@ -6,22 +6,18 @@ namespace Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report;
 
 use InvalidArgumentException;
 use Phauthentic\CognitiveCodeAnalysis\Business\Reporter\ReporterRegistry;
+use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
 
 /**
  * Factory for creating churn data exporters.
  */
-class ChurnReportFactory
+class ChurnReportFactory implements ChurnReportFactoryInterface
 {
-    /** @var array<string, array<string, mixed>> */
-    private array $customExporters = [];
     private ReporterRegistry $registry;
 
-    /**
-     * @param array<string, array<string, mixed>> $customExporters
-     */
-    public function __construct(array $customExporters = [])
-    {
-        $this->customExporters = $customExporters;
+    public function __construct(
+        private readonly ConfigService $configService
+    ) {
         $this->registry = new ReporterRegistry();
     }
 
@@ -34,6 +30,9 @@ class ChurnReportFactory
      */
     public function create(string $type): ReportGeneratorInterface
     {
+        $config = $this->configService->getConfig();
+        $customExporters = $config->customExporters['churn'] ?? [];
+
         // Check built-in exporters first
         $builtIn = match ($type) {
             'json' => new JsonReport(),
@@ -49,8 +48,8 @@ class ChurnReportFactory
         }
 
         // Check custom exporters
-        if (isset($this->customExporters[$type])) {
-            return $this->createCustomExporter($this->customExporters[$type]);
+        if (isset($customExporters[$type])) {
+            return $this->createCustomExporter($customExporters[$type]);
         }
 
         throw new InvalidArgumentException("Unsupported exporter type: {$type}");
@@ -84,9 +83,12 @@ class ChurnReportFactory
      */
     public function getSupportedTypes(): array
     {
+        $config = $this->configService->getConfig();
+        $customExporters = $config->customExporters['churn'] ?? [];
+
         return array_merge(
             ['json', 'csv', 'html', 'markdown', 'svg-treemap', 'svg'],
-            array_keys($this->customExporters)
+            array_keys($customExporters)
         );
     }
 

@@ -6,25 +6,18 @@ namespace Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report;
 
 use InvalidArgumentException;
 use Phauthentic\CognitiveCodeAnalysis\Business\Reporter\ReporterRegistry;
-use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
+use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
 
 /**
  * Factory for creating cognitive metrics exporters.
  */
-class CognitiveReportFactory
+class CognitiveReportFactory implements CognitiveReportFactoryInterface
 {
-    /** @var array<string, array<string, mixed>> */
-    private array $customExporters = [];
     private ReporterRegistry $registry;
 
-    /**
-     * @param array<string, array<string, mixed>> $customExporters
-     */
     public function __construct(
-        private readonly CognitiveConfig $config,
-        array $customExporters = []
+        private readonly ConfigService $configService
     ) {
-        $this->customExporters = $customExporters;
         $this->registry = new ReporterRegistry();
     }
 
@@ -37,12 +30,15 @@ class CognitiveReportFactory
      */
     public function create(string $type): ReportGeneratorInterface
     {
+        $config = $this->configService->getConfig();
+        $customExporters = $config->customExporters['cognitive'] ?? [];
+
         // Check built-in exporters first
         $builtIn = match ($type) {
             'json' => new JsonReport(),
             'csv' => new CsvReport(),
             'html' => new HtmlReport(),
-            'markdown' => new MarkdownReport($this->config),
+            'markdown' => new MarkdownReport($config),
             default => null,
         };
 
@@ -50,8 +46,8 @@ class CognitiveReportFactory
             return $builtIn;
         }
 
-        if (isset($this->customExporters[$type])) {
-            return $this->createCustomExporter($this->customExporters[$type]);
+        if (isset($customExporters[$type])) {
+            return $this->createCustomExporter($customExporters[$type]);
         }
 
         throw new InvalidArgumentException("Unsupported exporter type: {$type}");
@@ -65,11 +61,13 @@ class CognitiveReportFactory
      */
     private function createCustomExporter(array $config): ReportGeneratorInterface
     {
+        $cognitiveConfig = $this->configService->getConfig();
+
         $this->registry->loadExporter($config['class'], $config['file'] ?? null);
         $exporter = $this->registry->instantiate(
             $config['class'],
             $config['requiresConfig'] ?? false,
-            $this->config
+            $cognitiveConfig
         );
         $this->registry->validateInterface($exporter, ReportGeneratorInterface::class);
 
@@ -85,9 +83,12 @@ class CognitiveReportFactory
      */
     public function getSupportedTypes(): array
     {
+        $config = $this->configService->getConfig();
+        $customExporters = $config->customExporters['cognitive'] ?? [];
+
         return array_merge(
             ['json', 'csv', 'html', 'markdown'],
-            array_keys($this->customExporters)
+            array_keys($customExporters)
         );
     }
 

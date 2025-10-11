@@ -8,11 +8,14 @@ use InvalidArgumentException;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report\CognitiveReportFactory;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report\ReportGeneratorInterface;
 use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
+use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\MockObject\MockObject;
 
 /**
  * Test case for CognitiveReportFactory with custom exporters.
+ * @SuppressWarnings(PHPMD.TooManyPublicMethods)
  */
 class CognitiveExporterFactoryCustomTest extends TestCase
 {
@@ -30,10 +33,27 @@ class CognitiveExporterFactoryCustomTest extends TestCase
         );
     }
 
+    private function createMockConfigService(array $customExporters = []): ConfigService&MockObject
+    {
+        $config = new CognitiveConfig(
+            excludeFilePatterns: [],
+            excludePatterns: [],
+            metrics: [],
+            showOnlyMethodsExceedingThreshold: false,
+            scoreThreshold: 0.5,
+            customExporters: ['cognitive' => $customExporters]
+        );
+
+        $configService = $this->createMock(ConfigService::class);
+        $configService->method('getConfig')->willReturn($config);
+
+        return $configService;
+    }
+
     #[Test]
     public function testCreateBuiltInExporter(): void
     {
-        $factory = new CognitiveReportFactory($this->config);
+        $factory = new CognitiveReportFactory($this->createMockConfigService());
 
         $exporter = $factory->create('json');
 
@@ -44,7 +64,7 @@ class CognitiveExporterFactoryCustomTest extends TestCase
     #[Test]
     public function testCreateBuiltInExporterWithConfig(): void
     {
-        $factory = new CognitiveReportFactory($this->config);
+        $factory = new CognitiveReportFactory($this->createMockConfigService());
 
         $exporter = $factory->create('markdown');
 
@@ -80,7 +100,7 @@ PHP;
                 ]
             ];
 
-            $factory = new CognitiveReportFactory($this->config, $customExporters);
+            $factory = new CognitiveReportFactory($this->createMockConfigService($customExporters));
             $exporter = $factory->create('custom');
 
             $this->assertInstanceOf(ReportGeneratorInterface::class, $exporter);
@@ -125,7 +145,7 @@ PHP;
                 ]
             ];
 
-            $factory = new CognitiveReportFactory($this->config, $customExporters);
+            $factory = new CognitiveReportFactory($this->createMockConfigService($customExporters));
             $exporter = $factory->create('config');
 
             $this->assertInstanceOf(ReportGeneratorInterface::class, $exporter);
@@ -164,7 +184,7 @@ PHP;
                 ]
             ];
 
-            $factory = new CognitiveReportFactory($this->config, $customExporters);
+            $factory = new CognitiveReportFactory($this->createMockConfigService($customExporters));
             $exporter = $factory->create('autoloaded');
 
             $this->assertInstanceOf(ReportGeneratorInterface::class, $exporter);
@@ -177,7 +197,7 @@ PHP;
     #[Test]
     public function testCreateUnsupportedExporter(): void
     {
-        $factory = new CognitiveReportFactory($this->config);
+        $factory = new CognitiveReportFactory($this->createMockConfigService());
 
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Unsupported exporter type: unsupported');
@@ -201,7 +221,7 @@ PHP;
             ]
         ];
 
-        $factory = new CognitiveReportFactory($this->config, $customExporters);
+        $factory = new CognitiveReportFactory($this->createMockConfigService($customExporters));
         $supportedTypes = $factory->getSupportedTypes();
 
         $expectedBuiltInTypes = ['json', 'csv', 'html', 'markdown'];
@@ -227,7 +247,7 @@ PHP;
             ]
         ];
 
-        $factory = new CognitiveReportFactory($this->config, $customExporters);
+        $factory = new CognitiveReportFactory($this->createMockConfigService($customExporters));
 
         $this->assertTrue($factory->isSupported('json'));
         $this->assertTrue($factory->isSupported('custom'));
@@ -260,7 +280,7 @@ PHP;
                 ]
             ];
 
-            $factory = new CognitiveReportFactory($this->config, $customExporters);
+            $factory = new CognitiveReportFactory($this->createMockConfigService($customExporters));
 
             $this->expectException(\Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException::class);
             $this->expectExceptionMessage('Exporter must implement Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report\ReportGeneratorInterface');
@@ -282,7 +302,7 @@ PHP;
             ]
         ];
 
-        $factory = new CognitiveReportFactory($this->config, $customExporters);
+        $factory = new CognitiveReportFactory($this->createMockConfigService($customExporters));
 
         $this->expectException(\Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException::class);
         $this->expectExceptionMessage('Exporter file not found: /non/existent/file.php');
@@ -325,7 +345,7 @@ PHP;
                 ]
             ];
 
-            $factory = new CognitiveReportFactory($this->config, $customExporters);
+            $factory = new CognitiveReportFactory($this->createMockConfigService($customExporters));
             $exporter = $factory->create('nullconfig');
 
             $this->assertInstanceOf(ReportGeneratorInterface::class, $exporter);

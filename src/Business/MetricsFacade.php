@@ -6,12 +6,12 @@ namespace Phauthentic\CognitiveCodeAnalysis\Business;
 
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChangeCounter\ChangeCounterFactory;
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChurnCalculator;
-use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report\ChurnReportFactory;
+use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report\ChurnReportFactoryInterface;
 use Phauthentic\CognitiveCodeAnalysis\Business\CodeCoverage\CoverageReportReaderInterface;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetrics;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollector;
-use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report\CognitiveReportFactory;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report\CognitiveReportFactoryInterface;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\ScoreCalculator;
 use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
 use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
@@ -21,9 +21,6 @@ use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
  */
 class MetricsFacade
 {
-    private ?ChurnReportFactory $churnExporterFactory = null;
-    private ?CognitiveReportFactory $cognitiveExporterFactory = null;
-
     /**
      * Constructor initializes the metrics collectors, score calculator, and config service.
      */
@@ -32,38 +29,11 @@ class MetricsFacade
         private readonly ScoreCalculator $scoreCalculator,
         private readonly ConfigService $configService,
         private readonly ChurnCalculator $churnCalculator,
-        private readonly ChangeCounterFactory $changeCounterFactory
+        private readonly ChangeCounterFactory $changeCounterFactory,
+        private readonly ChurnReportFactoryInterface $churnReportFactory,
+        private readonly CognitiveReportFactoryInterface $cognitiveReportFactory
     ) {
         $this->loadConfig(__DIR__ . '/../../config.yml');
-    }
-
-    /**
-     * Get or create the churn exporter factory.
-     */
-    private function getChurnExporterFactory(): ChurnReportFactory
-    {
-        if ($this->churnExporterFactory === null) {
-            $config = $this->configService->getConfig();
-            $customExporters = $config->customExporters['churn'] ?? [];
-            $this->churnExporterFactory = new ChurnReportFactory($customExporters);
-        }
-        return $this->churnExporterFactory;
-    }
-
-    /**
-     * Get or create the cognitive exporter factory.
-     */
-    private function getCognitiveExporterFactory(): CognitiveReportFactory
-    {
-        if ($this->cognitiveExporterFactory === null) {
-            $config = $this->configService->getConfig();
-            $customExporters = $config->customExporters['cognitive'] ?? [];
-            $this->cognitiveExporterFactory = new CognitiveReportFactory(
-                $config,
-                $customExporters
-            );
-        }
-        return $this->cognitiveExporterFactory;
     }
 
     /**
@@ -156,7 +126,7 @@ class MetricsFacade
         string $reportType,
         string $filename
     ): void {
-        $exporter = $this->getChurnExporterFactory()->create($reportType);
+        $exporter = $this->churnReportFactory->create($reportType);
         $exporter->export($classes, $filename);
     }
 
@@ -167,7 +137,7 @@ class MetricsFacade
         string $reportType,
         string $filename
     ): void {
-        $exporter = $this->getCognitiveExporterFactory()->create($reportType);
+        $exporter = $this->cognitiveReportFactory->create($reportType);
         $exporter->export($metricsCollection, $filename);
     }
 
