@@ -5,6 +5,7 @@ This guide explains how to create custom reporters for the Cognitive Code Checke
 ## Overview
 
 The Cognitive Code Checker supports two types of reporters:
+
 - **Cognitive Reporters**: Export cognitive complexity metrics
 - **Churn Reporters**: Export code churn metrics
 
@@ -17,6 +18,7 @@ Both types follow similar patterns but have different interfaces and data struct
 Cognitive reporters handle cognitive complexity metrics data and implement the `ReportGeneratorInterface` from the `Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report` namespace.
 
 **Interface:**
+
 ```php
 interface ReportGeneratorInterface
 {
@@ -25,6 +27,7 @@ interface ReportGeneratorInterface
 ```
 
 **Data Structure:** `CognitiveMetricsCollection` contains individual `CognitiveMetrics` objects with methods like:
+
 - `getClass()` - Class name
 - `getMethod()` - Method name
 - `getLineCount()` - Number of lines
@@ -37,6 +40,7 @@ interface ReportGeneratorInterface
 Churn reporters handle code churn metrics data and implement the `ReportGeneratorInterface` from the `Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report` namespace.
 
 **Interface:**
+
 ```php
 interface ReportGeneratorInterface
 {
@@ -223,12 +227,14 @@ php bin/churn-report --format=xml --output=churn.xml
 For inspiration, examine the built-in reporters:
 
 **Cognitive Reporters:**
+- 
 - `JsonReport` - JSON format
 - `CsvReport` - CSV format  
 - `HtmlReport` - HTML with Bootstrap styling
 - `MarkdownReport` - Markdown tables
 
 **Churn Reporters:**
+
 - `JsonReport` - JSON format
 - `CsvReport` - CSV format
 - `HtmlReport` - HTML with Bootstrap styling
