@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report;
 
 use Phauthentic\CognitiveCodeAnalysis\Business\Reporter\MarkdownFormatterTrait;
-use Phauthentic\CognitiveCodeAnalysis\Business\Traits\CoverageDataDetector;
+use Phauthentic\CognitiveCodeAnalysis\Business\Utility\CoverageDataDetector;
 use Phauthentic\CognitiveCodeAnalysis\Business\Utility\Datetime;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 

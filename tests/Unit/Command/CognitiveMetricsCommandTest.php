@@ -267,7 +267,7 @@ class CognitiveMetricsCommandTest extends TestCase
                 'Command should succeed with multiple files'
             ],
             'multiple files with spaces' => [
-                __DIR__ . '/../../../src/Command/CognitiveMetricsCommand.php, ' . __DIR__ . '/../../../src/Business/MetricsFacade.php, ' . __DIR__ . '/../../../src/Business/DirectoryScanner.php',
+                __DIR__ . '/../../../src/Command/CognitiveMetricsCommand.php, ' . __DIR__ . '/../../../src/Business/MetricsFacade.php, ' . __DIR__ . '/../../../src/Business/Utility/DirectoryScanner.php',
                 'Command should succeed with multiple files and spaces'
             ],
             'multiple directories' => [
@@ -279,7 +279,7 @@ class CognitiveMetricsCommandTest extends TestCase
                 'Command should succeed with mixed directories and files'
             ],
             'mixed paths with spaces' => [
-                __DIR__ . '/../../../src/Command, ' . __DIR__ . '/../../../src/Business/MetricsFacade.php, ' . __DIR__ . '/../../../src/Business/DirectoryScanner.php',
+                __DIR__ . '/../../../src/Command, ' . __DIR__ . '/../../../src/Business/MetricsFacade.php, ' . __DIR__ . '/../../../src/Business/Utility/DirectoryScanner.php',
                 'Command should succeed with mixed paths and spaces'
             ],
         ];
