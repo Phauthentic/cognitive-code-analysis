@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CognitiveCodeAnalysis\Business\Exporter;
+namespace Phauthentic\CognitiveCodeAnalysis\Business\Reporter;
 
 use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
@@ -10,7 +10,7 @@ use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 /**
  * Registry for managing dynamic exporter loading and instantiation.
  */
-class ExporterRegistry
+class ReporterRegistry
 {
     /** @var array<string, bool> */
     private array $loadedFiles = [];

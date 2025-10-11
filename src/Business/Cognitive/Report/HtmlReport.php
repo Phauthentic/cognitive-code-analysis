@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter;
+namespace Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report;
 
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Delta;
@@ -10,9 +10,9 @@ use Phauthentic\CognitiveCodeAnalysis\Business\Utility\Datetime;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 
 /**
- * HtmlExporter class for exporting metrics as an HTML file.
+ * HtmlReport class for exporting metrics as an HTML file.
  */
-class HtmlExporter implements DataExporterInterface
+class HtmlReport implements ReportGeneratorInterface
 {
     /**
      * @var array<string>

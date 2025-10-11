@@ -15,5 +15,5 @@ cognitive:
   customExporters:
     churn:
       custom:
-        class: 'Phauthentic\CognitiveCodeAnalysis\Business\Churn\Exporter\JsonExporter'
+        class: 'Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report\JsonReport'
         file: null

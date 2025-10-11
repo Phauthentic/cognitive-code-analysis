@@ -6,7 +6,7 @@ namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Cognitive\Export
 
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetrics;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
-use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter\CsvExporter;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report\CsvReport;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -16,13 +16,13 @@ use PHPUnit\Framework\TestCase;
  */
 class CsvExporterTest extends TestCase
 {
-    private CsvExporter $csvExporter;
+    private CsvReport $csvExporter;
     private string $filename;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->csvExporter = new CsvExporter();
+        $this->csvExporter = new CsvReport();
         $this->filename = sys_get_temp_dir() . '/test_metrics.csv';
     }
 

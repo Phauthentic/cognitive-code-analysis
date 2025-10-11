@@ -6,12 +6,12 @@ namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Cognitive\Export
 
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetrics;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
-use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter\JsonExporter;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report\JsonReport;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Test case for JsonExporter class.
+ * Test case for JsonReport class.
  */
 class JsonExporterTest extends TestCase
 {
@@ -53,8 +53,8 @@ class JsonExporterTest extends TestCase
         $metricsCollection->add($metrics1);
         $metricsCollection->add($metrics2);
 
-        // Create an instance of JsonExporter and export the metrics.
-        $jsonExporter = new JsonExporter();
+        // Create an instance of JsonReport and export the metrics.
+        $jsonExporter = new JsonReport();
         $jsonExporter->export($metricsCollection, $filename);
 
         // Read the contents of the file and decode the JSON.

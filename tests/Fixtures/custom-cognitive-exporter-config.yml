@@ -15,6 +15,6 @@ cognitive:
   customExporters:
     cognitive:
       custom:
-        class: 'Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter\JsonExporter'
+        class: 'Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report\JsonReport'
         file: null
         requiresConfig: false

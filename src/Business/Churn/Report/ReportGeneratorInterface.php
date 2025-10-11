@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CognitiveCodeAnalysis\Business\Churn\Exporter;
+namespace Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report;
 
 /**
  *
  */
-interface DataExporterInterface
+interface ReportGeneratorInterface
 {
     /**
      * @param array<string, array<string, mixed>> $classes

@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CognitiveCodeAnalysis\Business\Churn\Exporter;
+namespace Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report;
 
-use Phauthentic\CognitiveCodeAnalysis\Business\Exporter\MarkdownFormatterTrait;
+use Phauthentic\CognitiveCodeAnalysis\Business\Reporter\MarkdownFormatterTrait;
 use Phauthentic\CognitiveCodeAnalysis\Business\Traits\CoverageDataDetector;
 use Phauthentic\CognitiveCodeAnalysis\Business\Utility\Datetime;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 
 /**
- * MarkdownExporter for Churn metrics.
+ * MarkdownReport for Churn metrics.
  */
-class MarkdownExporter extends AbstractExporter
+class MarkdownReport extends AbstractReport
 {
     use MarkdownFormatterTrait;
     use CoverageDataDetector;

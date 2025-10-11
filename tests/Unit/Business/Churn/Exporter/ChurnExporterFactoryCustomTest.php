@@ -5,25 +5,25 @@ declare(strict_types=1);
 namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Churn\Exporter;
 
 use InvalidArgumentException;
-use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Exporter\ChurnExporterFactory;
-use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Exporter\DataExporterInterface;
+use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report\ChurnReportFactory;
+use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report\ReportGeneratorInterface;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Test case for ChurnExporterFactory with custom exporters.
+ * Test case for ChurnReportFactory with custom exporters.
  */
 class ChurnExporterFactoryCustomTest extends TestCase
 {
     #[Test]
     public function testCreateBuiltInExporter(): void
     {
-        $factory = new ChurnExporterFactory();
+        $factory = new ChurnReportFactory();
 
         $exporter = $factory->create('json');
 
-        $this->assertInstanceOf(DataExporterInterface::class, $exporter);
-        $this->assertInstanceOf('Phauthentic\CognitiveCodeAnalysis\Business\Churn\Exporter\JsonExporter', $exporter);
+        $this->assertInstanceOf(ReportGeneratorInterface::class, $exporter);
+        $this->assertInstanceOf('Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report\JsonReport', $exporter);
     }
 
     #[Test]
@@ -34,9 +34,9 @@ class ChurnExporterFactoryCustomTest extends TestCase
         $classContent = <<<'PHP'
 <?php
 namespace TestCustomChurn;
-use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Exporter\DataExporterInterface;
+use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report\ReportGeneratorInterface;
 
-class CustomChurnExporter implements DataExporterInterface {
+class CustomChurnExporter implements ReportGeneratorInterface {
     public function export(array $classes, string $filename): void {
         file_put_contents($filename, 'custom churn data');
     }
@@ -52,10 +52,10 @@ PHP;
                 ]
             ];
 
-            $factory = new ChurnExporterFactory($customExporters);
+            $factory = new ChurnReportFactory($customExporters);
             $exporter = $factory->create('custom');
 
-            $this->assertInstanceOf(DataExporterInterface::class, $exporter);
+            $this->assertInstanceOf(ReportGeneratorInterface::class, $exporter);
             $this->assertInstanceOf('TestCustomChurn\CustomChurnExporter', $exporter);
         } finally {
             unlink($tempFile);
@@ -70,9 +70,9 @@ PHP;
         $classContent = <<<'PHP'
 <?php
 namespace TestAutoloadedChurn;
-use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Exporter\DataExporterInterface;
+use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report\ReportGeneratorInterface;
 
-class AutoloadedChurnExporter implements DataExporterInterface {
+class AutoloadedChurnExporter implements ReportGeneratorInterface {
     public function export(array $classes, string $filename): void {
         file_put_contents($filename, 'autoloaded churn data');
     }
@@ -89,10 +89,10 @@ PHP;
                 ]
             ];
 
-            $factory = new ChurnExporterFactory($customExporters);
+            $factory = new ChurnReportFactory($customExporters);
             $exporter = $factory->create('autoloaded');
 
-            $this->assertInstanceOf(DataExporterInterface::class, $exporter);
+            $this->assertInstanceOf(ReportGeneratorInterface::class, $exporter);
             $this->assertInstanceOf('TestAutoloadedChurn\AutoloadedChurnExporter', $exporter);
         } finally {
             unlink($tempFile);
@@ -102,7 +102,7 @@ PHP;
     #[Test]
     public function testCreateUnsupportedExporter(): void
     {
-        $factory = new ChurnExporterFactory();
+        $factory = new ChurnReportFactory();
 
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Unsupported exporter type: unsupported');
@@ -124,7 +124,7 @@ PHP;
             ]
         ];
 
-        $factory = new ChurnExporterFactory($customExporters);
+        $factory = new ChurnReportFactory($customExporters);
         $supportedTypes = $factory->getSupportedTypes();
 
         $expectedBuiltInTypes = ['json', 'csv', 'html', 'markdown', 'svg-treemap', 'svg'];
@@ -149,7 +149,7 @@ PHP;
             ]
         ];
 
-        $factory = new ChurnExporterFactory($customExporters);
+        $factory = new ChurnReportFactory($customExporters);
 
         $this->assertTrue($factory->isSupported('json'));
         $this->assertTrue($factory->isSupported('custom'));
@@ -181,10 +181,10 @@ PHP;
                 ]
             ];
 
-            $factory = new ChurnExporterFactory($customExporters);
+            $factory = new ChurnReportFactory($customExporters);
 
             $this->expectException(\Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException::class);
-            $this->expectExceptionMessage('Exporter must implement Phauthentic\CognitiveCodeAnalysis\Business\Churn\Exporter\DataExporterInterface');
+            $this->expectExceptionMessage('Exporter must implement Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report\ReportGeneratorInterface');
 
             $factory->create('invalid');
         } finally {
@@ -202,7 +202,7 @@ PHP;
             ]
         ];
 
-        $factory = new ChurnExporterFactory($customExporters);
+        $factory = new ChurnReportFactory($customExporters);
 
         $this->expectException(\Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException::class);
         $this->expectExceptionMessage('Exporter file not found: /non/existent/file.php');

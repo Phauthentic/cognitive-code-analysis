@@ -124,11 +124,11 @@ class MetricsFacadeCustomExportersTest extends TestCase
         $exporterContent = <<<'PHP'
 <?php
 namespace TestConfigExporter;
-use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter\DataExporterInterface;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report\ReportGeneratorInterface;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
 use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
 
-class ConfigExporter implements DataExporterInterface {
+class ConfigExporter implements ReportGeneratorInterface {
     private CognitiveConfig $config;
     
     public function __construct(CognitiveConfig $config) {

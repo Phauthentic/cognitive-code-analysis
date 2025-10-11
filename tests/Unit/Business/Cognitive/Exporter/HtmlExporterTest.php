@@ -6,7 +6,7 @@ namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Cognitive\Export
 
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetrics;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
-use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter\HtmlExporter;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report\HtmlReport;
 use Phauthentic\CognitiveCodeAnalysis\Business\Utility\Datetime;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -16,13 +16,13 @@ use PHPUnit\Framework\TestCase;
  */
 class HtmlExporterTest extends TestCase
 {
-    private HtmlExporter $csvExporter;
+    private HtmlReport $csvExporter;
     private string $filename;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->csvExporter = new HtmlExporter();
+        $this->csvExporter = new HtmlReport();
         $this->filename = sys_get_temp_dir() . '/test_metrics.csv';
         Datetime::$fixedDate = '2023-10-01 12:00:00';
     }

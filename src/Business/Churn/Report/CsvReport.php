@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CognitiveCodeAnalysis\Business\Churn\Exporter;
+namespace Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report;
 
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 
 /**
- * CsvExporter for Churn metrics.
+ * CsvReport for Churn metrics.
  */
-class CsvExporter extends AbstractExporter
+class CsvReport extends AbstractReport
 {
     /**
      * @var array<string>

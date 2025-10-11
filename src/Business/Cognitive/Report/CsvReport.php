@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter;
+namespace Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report;
 
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
@@ -10,7 +10,7 @@ use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 /**
  *
  */
-class CsvExporter implements DataExporterInterface
+class CsvReport implements ReportGeneratorInterface
 {
     /**
      * @var array<string>

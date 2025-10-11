@@ -4,31 +4,31 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Exporter;
 
-use Phauthentic\CognitiveCodeAnalysis\Business\Exporter\ExporterRegistry;
+use Phauthentic\CognitiveCodeAnalysis\Business\Reporter\ReporterRegistry;
 use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Test case for ExporterRegistry class.
+ * Test case for ReporterRegistry class.
  */
 class ExporterRegistryTest extends TestCase
 {
-    private ExporterRegistry $registry;
+    private ReporterRegistry $registry;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->registry = new ExporterRegistry();
+        $this->registry = new ReporterRegistry();
     }
 
     #[Test]
     public function testLoadExporterWithExistingClass(): void
     {
-        // Test loading a class that already exists (JsonExporter)
+        // Test loading a class that already exists (JsonReport)
         $this->registry->loadExporter(
-            'Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter\JsonExporter',
+            'Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report\JsonReport',
             null
         );
 
@@ -80,12 +80,12 @@ PHP;
     public function testInstantiateWithoutConfig(): void
     {
         $exporter = $this->registry->instantiate(
-            'Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter\JsonExporter',
+            'Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report\JsonReport',
             false,
             null
         );
 
-        $this->assertInstanceOf('Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter\JsonExporter', $exporter);
+        $this->assertInstanceOf('Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report\JsonReport', $exporter);
     }
 
     #[Test]
@@ -100,22 +100,22 @@ PHP;
         );
 
         $exporter = $this->registry->instantiate(
-            'Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter\MarkdownExporter',
+            'Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report\MarkdownReport',
             true,
             $config
         );
 
-        $this->assertInstanceOf('Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter\MarkdownExporter', $exporter);
+        $this->assertInstanceOf('Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report\MarkdownReport', $exporter);
     }
 
     #[Test]
     public function testValidateInterfaceWithValidExporter(): void
     {
-        $exporter = new \Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter\JsonExporter();
+        $exporter = new \Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report\JsonReport();
 
         $this->registry->validateInterface(
             $exporter,
-            'Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter\DataExporterInterface'
+            'Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report\ReportGeneratorInterface'
         );
 
         // Should not throw an exception
@@ -128,7 +128,7 @@ PHP;
         $this->expectException(CognitiveAnalysisException::class);
         $this->expectExceptionMessage('Exporter must implement InvalidInterface');
 
-        $exporter = new \Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter\JsonExporter();
+        $exporter = new \Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report\JsonReport();
 
         $this->registry->validateInterface($exporter, 'InvalidInterface');
     }

@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter;
+namespace Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report;
 
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetrics;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Delta;
-use Phauthentic\CognitiveCodeAnalysis\Business\Exporter\MarkdownFormatterTrait;
+use Phauthentic\CognitiveCodeAnalysis\Business\Reporter\MarkdownFormatterTrait;
 use Phauthentic\CognitiveCodeAnalysis\Business\Utility\Datetime;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
@@ -15,7 +15,7 @@ use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
 /**
  * @SuppressWarnings("PHPMD.ExcessiveClassComplexity")
  */
-class MarkdownExporter implements DataExporterInterface
+class MarkdownReport implements ReportGeneratorInterface
 {
     use MarkdownFormatterTrait;
 

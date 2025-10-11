@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter;
+namespace Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report;
 
 use JsonException;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
@@ -11,7 +11,7 @@ use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 /**
  *
  */
-class JsonExporter implements DataExporterInterface
+class JsonReport implements ReportGeneratorInterface
 {
     /**
      * @throws JsonException|CognitiveAnalysisException

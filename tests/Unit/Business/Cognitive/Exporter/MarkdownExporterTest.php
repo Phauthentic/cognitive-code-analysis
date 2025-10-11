@@ -6,7 +6,7 @@ namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Cognitive\Export
 
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetrics;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
-use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter\MarkdownExporter;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report\MarkdownReport;
 use Phauthentic\CognitiveCodeAnalysis\Business\Utility\Datetime;
 use Phauthentic\CognitiveCodeAnalysis\Config\ConfigLoader;
 use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
@@ -63,7 +63,7 @@ class MarkdownExporterTest extends TestCase
         $config = $configService->getConfig();
 
         $metricsCollection = $this->createTestMetricsCollection();
-        $exporter = new MarkdownExporter($config);
+        $exporter = new MarkdownReport($config);
         $exporter->export($metricsCollection, $this->filename);
 
         $this->assertFileEquals(

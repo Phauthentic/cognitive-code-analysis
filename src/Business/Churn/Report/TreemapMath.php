@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CognitiveCodeAnalysis\Business\Churn\Exporter;
+namespace Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report;
 
 /**
  * Handles mathematical operations for treemap generation.

@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CognitiveCodeAnalysis\Business\Exporter;
+namespace Phauthentic\CognitiveCodeAnalysis\Business\Reporter;
 
 /**
- * Trait providing common markdown formatting utilities.
+ * Abstract base class for Markdown exporters providing common formatting utilities.
  */
-trait MarkdownFormatterTrait
+abstract class AbstractMarkdownReporter
 {
     /**
      * Escape special markdown characters in strings.
@@ -17,6 +17,8 @@ trait MarkdownFormatterTrait
      */
     protected function escapeMarkdown(string $string): string
     {
+        // Escape pipe characters which would break table formatting
+        // Also escape backslashes to prevent escaping issues
         return str_replace(['\\', '|'], ['\\\\', '\\|'], $string);
     }
 
@@ -38,7 +40,7 @@ trait MarkdownFormatterTrait
      * @param array<string> $headers
      * @return string
      */
-    protected function buildMarkdownTableHeader(array $headers): string
+    protected function buildTableHeader(array $headers): string
     {
         return '| ' . implode(' | ', $headers) . ' |';
     }
@@ -49,7 +51,7 @@ trait MarkdownFormatterTrait
      * @param int $columnCount Number of columns in the table
      * @return string
      */
-    protected function buildMarkdownTableSeparator(int $columnCount): string
+    protected function buildTableSeparator(int $columnCount): string
     {
         return '|' . str_repeat(' --- |', $columnCount);
     }
@@ -60,7 +62,7 @@ trait MarkdownFormatterTrait
      * @param array<string> $cells
      * @return string
      */
-    protected function buildMarkdownTableRow(array $cells): string
+    protected function buildTableRow(array $cells): string
     {
         return '| ' . implode(' | ', $cells) . ' |';
     }
@@ -72,7 +74,7 @@ trait MarkdownFormatterTrait
      * @param int $decimals Number of decimal places
      * @return string
      */
-    protected function formatMarkdownPercentage(float $value, int $decimals = 2): string
+    protected function formatPercentage(float $value, int $decimals = 2): string
     {
         return sprintf("%.{$decimals}f%%", $value * 100);
     }

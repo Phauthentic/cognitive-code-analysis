@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CognitiveCodeAnalysis\Business\Churn\Exporter;
+namespace Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report;
 
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 
@@ -15,7 +15,7 @@ use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
  *
  * @SuppressWarnings("PHPMD.ShortVariable")
  */
-class SvgTreemapExporter extends AbstractExporter
+class SvgTreemapReport extends AbstractReport
 {
     private const SVG_WIDTH = 1200;
     private const SVG_HEIGHT = 800;

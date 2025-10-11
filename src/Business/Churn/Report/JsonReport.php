@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CognitiveCodeAnalysis\Business\Churn\Exporter;
+namespace Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report;
 
 use JsonException;
 use Phauthentic\CognitiveCodeAnalysis\Business\Utility\Datetime;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 
-class JsonExporter extends AbstractExporter
+class JsonReport extends AbstractReport
 {
     /**
      * @param array<string, array<string, mixed>> $classes

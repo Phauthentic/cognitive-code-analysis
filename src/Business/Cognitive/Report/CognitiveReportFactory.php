@@ -2,45 +2,47 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CognitiveCodeAnalysis\Business\Churn\Exporter;
+namespace Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report;
 
 use InvalidArgumentException;
-use Phauthentic\CognitiveCodeAnalysis\Business\Exporter\ExporterRegistry;
+use Phauthentic\CognitiveCodeAnalysis\Business\Reporter\ReporterRegistry;
+use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
 
 /**
- * Factory for creating churn data exporters.
+ * Factory for creating cognitive metrics exporters.
  */
-class ChurnExporterFactory
+class CognitiveReportFactory
 {
     /** @var array<string, array<string, mixed>> */
     private array $customExporters = [];
-    private ExporterRegistry $registry;
+    private ReporterRegistry $registry;
 
     /**
      * @param array<string, array<string, mixed>> $customExporters
      */
-    public function __construct(array $customExporters = [])
-    {
+    public function __construct(
+        private readonly CognitiveConfig $config,
+        array $customExporters = []
+    ) {
         $this->customExporters = $customExporters;
-        $this->registry = new ExporterRegistry();
+        $this->registry = new ReporterRegistry();
     }
 
     /**
      * Create an exporter instance based on the report type.
      *
-     * @param string $type The type of exporter to create (json, csv, html, markdown, svg-treemap)
-     * @return DataExporterInterface
+     * @param string $type The type of exporter to create (json, csv, html, markdown)
+     * @return ReportGeneratorInterface
      * @throws InvalidArgumentException If the type is not supported
      */
-    public function create(string $type): DataExporterInterface
+    public function create(string $type): ReportGeneratorInterface
     {
         // Check built-in exporters first
         $builtIn = match ($type) {
-            'json' => new JsonExporter(),
-            'csv' => new CsvExporter(),
-            'html' => new HtmlExporter(),
-            'markdown' => new MarkdownExporter(),
-            'svg-treemap', 'svg' => new SvgTreemapExporter(),
+            'json' => new JsonReport(),
+            'csv' => new CsvReport(),
+            'html' => new HtmlReport(),
+            'markdown' => new MarkdownReport($this->config),
             default => null,
         };
 
@@ -48,7 +50,6 @@ class ChurnExporterFactory
             return $builtIn;
         }
 
-        // Check custom exporters
         if (isset($this->customExporters[$type])) {
             return $this->createCustomExporter($this->customExporters[$type]);
         }
@@ -60,20 +61,20 @@ class ChurnExporterFactory
      * Create a custom exporter instance.
      *
      * @param array<string, mixed> $config
-     * @return DataExporterInterface
+     * @return ReportGeneratorInterface
      */
-    private function createCustomExporter(array $config): DataExporterInterface
+    private function createCustomExporter(array $config): ReportGeneratorInterface
     {
         $this->registry->loadExporter($config['class'], $config['file'] ?? null);
         $exporter = $this->registry->instantiate(
             $config['class'],
-            false, // Churn exporters don't need config
-            null
+            $config['requiresConfig'] ?? false,
+            $this->config
         );
-        $this->registry->validateInterface($exporter, DataExporterInterface::class);
+        $this->registry->validateInterface($exporter, ReportGeneratorInterface::class);
 
         // PHPStan needs explicit type assertion since instantiate returns object
-        assert($exporter instanceof DataExporterInterface);
+        assert($exporter instanceof ReportGeneratorInterface);
         return $exporter;
     }
 
@@ -85,7 +86,7 @@ class ChurnExporterFactory
     public function getSupportedTypes(): array
     {
         return array_merge(
-            ['json', 'csv', 'html', 'markdown', 'svg-treemap', 'svg'],
+            ['json', 'csv', 'html', 'markdown'],
             array_keys($this->customExporters)
         );
     }

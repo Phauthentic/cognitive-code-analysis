@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CognitiveCodeAnalysis\Business\Churn\Exporter;
+namespace Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report;
 
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 
-abstract class AbstractExporter implements DataExporterInterface
+abstract class AbstractReport implements ReportGeneratorInterface
 {
     /**
      * @throws CognitiveAnalysisException

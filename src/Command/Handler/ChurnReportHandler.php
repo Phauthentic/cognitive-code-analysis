@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phauthentic\CognitiveCodeAnalysis\Command\Handler;
 
 use Exception;
-use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Exporter\ChurnExporterFactory;
+use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report\ChurnReportFactory;
 use Phauthentic\CognitiveCodeAnalysis\Business\MetricsFacade;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -15,7 +15,7 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class ChurnReportHandler
 {
-    private ChurnExporterFactory $exporterFactory;
+    private ChurnReportFactory $exporterFactory;
 
     public function __construct(
         private MetricsFacade $metricsFacade,
@@ -23,7 +23,7 @@ class ChurnReportHandler
     ) {
         $config = $this->metricsFacade->getConfig();
         $customExporters = $config->customExporters['churn'] ?? [];
-        $this->exporterFactory = new ChurnExporterFactory($customExporters);
+        $this->exporterFactory = new ChurnReportFactory($customExporters);
     }
 
     /**

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Churn\Exporter;
 
-use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Exporter\JsonExporter;
+use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report\JsonReport;
 use PHPUnit\Framework\Attributes\Test;
 
 /**
@@ -16,7 +16,7 @@ class JsonExporterTest extends AbstractExporterTestCase
     {
         parent::setUp();
 
-        $this->exporter = new JsonExporter();
+        $this->exporter = new JsonReport();
         $this->filename = sys_get_temp_dir() . '/test_metrics.json';
     }
 

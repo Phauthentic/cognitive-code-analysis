@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Churn\Exporter;
 
-use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Exporter\MarkdownExporter;
+use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report\MarkdownReport;
 use PHPUnit\Framework\Attributes\Test;
 
 /**
@@ -16,7 +16,7 @@ class MarkdownExporterTest extends AbstractExporterTestCase
     {
         parent::setUp();
 
-        $this->exporter = new MarkdownExporter();
+        $this->exporter = new MarkdownReport();
         $this->filename = sys_get_temp_dir() . '/test_metrics.md';
     }
 

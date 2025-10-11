@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Churn\Exporter;
 
-use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Exporter\CsvExporter;
+use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report\CsvReport;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 use PHPUnit\Framework\Attributes\Test;
 
@@ -16,7 +16,7 @@ class CsvExportTest extends AbstractExporterTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->exporter = new CsvExporter();
+        $this->exporter = new CsvReport();
         $this->filename = sys_get_temp_dir() . '/test_metrics.csv';
     }
 

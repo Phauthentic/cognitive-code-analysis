@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Cognitive\Exporter;
 
 use InvalidArgumentException;
-use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter\CognitiveExporterFactory;
-use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter\DataExporterInterface;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report\CognitiveReportFactory;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report\ReportGeneratorInterface;
 use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Test case for CognitiveExporterFactory with custom exporters.
+ * Test case for CognitiveReportFactory with custom exporters.
  */
 class CognitiveExporterFactoryCustomTest extends TestCase
 {
@@ -33,23 +33,23 @@ class CognitiveExporterFactoryCustomTest extends TestCase
     #[Test]
     public function testCreateBuiltInExporter(): void
     {
-        $factory = new CognitiveExporterFactory($this->config);
+        $factory = new CognitiveReportFactory($this->config);
 
         $exporter = $factory->create('json');
 
-        $this->assertInstanceOf(DataExporterInterface::class, $exporter);
-        $this->assertInstanceOf('Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter\JsonExporter', $exporter);
+        $this->assertInstanceOf(ReportGeneratorInterface::class, $exporter);
+        $this->assertInstanceOf('Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report\JsonReport', $exporter);
     }
 
     #[Test]
     public function testCreateBuiltInExporterWithConfig(): void
     {
-        $factory = new CognitiveExporterFactory($this->config);
+        $factory = new CognitiveReportFactory($this->config);
 
         $exporter = $factory->create('markdown');
 
-        $this->assertInstanceOf(DataExporterInterface::class, $exporter);
-        $this->assertInstanceOf('Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter\MarkdownExporter', $exporter);
+        $this->assertInstanceOf(ReportGeneratorInterface::class, $exporter);
+        $this->assertInstanceOf('Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report\MarkdownReport', $exporter);
     }
 
     #[Test]
@@ -60,10 +60,10 @@ class CognitiveExporterFactoryCustomTest extends TestCase
         $classContent = <<<'PHP'
 <?php
 namespace TestCustomCognitive;
-use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter\DataExporterInterface;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report\ReportGeneratorInterface;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
 
-class CustomCognitiveExporter implements DataExporterInterface {
+class CustomCognitiveExporter implements ReportGeneratorInterface {
     public function export(CognitiveMetricsCollection $metrics, string $filename): void {
         file_put_contents($filename, 'custom cognitive data');
     }
@@ -80,10 +80,10 @@ PHP;
                 ]
             ];
 
-            $factory = new CognitiveExporterFactory($this->config, $customExporters);
+            $factory = new CognitiveReportFactory($this->config, $customExporters);
             $exporter = $factory->create('custom');
 
-            $this->assertInstanceOf(DataExporterInterface::class, $exporter);
+            $this->assertInstanceOf(ReportGeneratorInterface::class, $exporter);
             $this->assertInstanceOf('TestCustomCognitive\CustomCognitiveExporter', $exporter);
         } finally {
             unlink($tempFile);
@@ -98,11 +98,11 @@ PHP;
         $classContent = <<<'PHP'
 <?php
 namespace TestConfigCognitive;
-use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter\DataExporterInterface;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report\ReportGeneratorInterface;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
 use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
 
-class ConfigCognitiveExporter implements DataExporterInterface {
+class ConfigCognitiveExporter implements ReportGeneratorInterface {
     private CognitiveConfig $config;
     
     public function __construct(CognitiveConfig $config) {
@@ -125,10 +125,10 @@ PHP;
                 ]
             ];
 
-            $factory = new CognitiveExporterFactory($this->config, $customExporters);
+            $factory = new CognitiveReportFactory($this->config, $customExporters);
             $exporter = $factory->create('config');
 
-            $this->assertInstanceOf(DataExporterInterface::class, $exporter);
+            $this->assertInstanceOf(ReportGeneratorInterface::class, $exporter);
             $this->assertInstanceOf('TestConfigCognitive\ConfigCognitiveExporter', $exporter);
         } finally {
             unlink($tempFile);
@@ -143,10 +143,10 @@ PHP;
         $classContent = <<<'PHP'
 <?php
 namespace TestAutoloadedCognitive;
-use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter\DataExporterInterface;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report\ReportGeneratorInterface;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
 
-class AutoloadedCognitiveExporter implements DataExporterInterface {
+class AutoloadedCognitiveExporter implements ReportGeneratorInterface {
     public function export(CognitiveMetricsCollection $metrics, string $filename): void {
         file_put_contents($filename, 'autoloaded cognitive data');
     }
@@ -164,10 +164,10 @@ PHP;
                 ]
             ];
 
-            $factory = new CognitiveExporterFactory($this->config, $customExporters);
+            $factory = new CognitiveReportFactory($this->config, $customExporters);
             $exporter = $factory->create('autoloaded');
 
-            $this->assertInstanceOf(DataExporterInterface::class, $exporter);
+            $this->assertInstanceOf(ReportGeneratorInterface::class, $exporter);
             $this->assertInstanceOf('TestAutoloadedCognitive\AutoloadedCognitiveExporter', $exporter);
         } finally {
             unlink($tempFile);
@@ -177,7 +177,7 @@ PHP;
     #[Test]
     public function testCreateUnsupportedExporter(): void
     {
-        $factory = new CognitiveExporterFactory($this->config);
+        $factory = new CognitiveReportFactory($this->config);
 
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Unsupported exporter type: unsupported');
@@ -201,7 +201,7 @@ PHP;
             ]
         ];
 
-        $factory = new CognitiveExporterFactory($this->config, $customExporters);
+        $factory = new CognitiveReportFactory($this->config, $customExporters);
         $supportedTypes = $factory->getSupportedTypes();
 
         $expectedBuiltInTypes = ['json', 'csv', 'html', 'markdown'];
@@ -227,7 +227,7 @@ PHP;
             ]
         ];
 
-        $factory = new CognitiveExporterFactory($this->config, $customExporters);
+        $factory = new CognitiveReportFactory($this->config, $customExporters);
 
         $this->assertTrue($factory->isSupported('json'));
         $this->assertTrue($factory->isSupported('custom'));
@@ -260,10 +260,10 @@ PHP;
                 ]
             ];
 
-            $factory = new CognitiveExporterFactory($this->config, $customExporters);
+            $factory = new CognitiveReportFactory($this->config, $customExporters);
 
             $this->expectException(\Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException::class);
-            $this->expectExceptionMessage('Exporter must implement Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter\DataExporterInterface');
+            $this->expectExceptionMessage('Exporter must implement Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report\ReportGeneratorInterface');
 
             $factory->create('invalid');
         } finally {
@@ -282,7 +282,7 @@ PHP;
             ]
         ];
 
-        $factory = new CognitiveExporterFactory($this->config, $customExporters);
+        $factory = new CognitiveReportFactory($this->config, $customExporters);
 
         $this->expectException(\Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException::class);
         $this->expectExceptionMessage('Exporter file not found: /non/existent/file.php');
@@ -298,11 +298,11 @@ PHP;
         $classContent = <<<'PHP'
 <?php
 namespace TestNullConfigCognitive;
-use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter\DataExporterInterface;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report\ReportGeneratorInterface;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
 use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
 
-class NullConfigCognitiveExporter implements DataExporterInterface {
+class NullConfigCognitiveExporter implements ReportGeneratorInterface {
     private ?CognitiveConfig $config;
     
     public function __construct(?CognitiveConfig $config = null) {
@@ -325,10 +325,10 @@ PHP;
                 ]
             ];
 
-            $factory = new CognitiveExporterFactory($this->config, $customExporters);
+            $factory = new CognitiveReportFactory($this->config, $customExporters);
             $exporter = $factory->create('nullconfig');
 
-            $this->assertInstanceOf(DataExporterInterface::class, $exporter);
+            $this->assertInstanceOf(ReportGeneratorInterface::class, $exporter);
             $this->assertInstanceOf('TestNullConfigCognitive\NullConfigCognitiveExporter', $exporter);
         } finally {
             unlink($tempFile);

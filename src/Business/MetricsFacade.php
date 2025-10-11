@@ -6,12 +6,12 @@ namespace Phauthentic\CognitiveCodeAnalysis\Business;
 
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChangeCounter\ChangeCounterFactory;
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChurnCalculator;
-use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Exporter\ChurnExporterFactory;
+use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report\ChurnReportFactory;
 use Phauthentic\CognitiveCodeAnalysis\Business\CodeCoverage\CoverageReportReaderInterface;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetrics;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollector;
-use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter\CognitiveExporterFactory;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report\CognitiveReportFactory;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\ScoreCalculator;
 use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
 use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
@@ -21,8 +21,8 @@ use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
  */
 class MetricsFacade
 {
-    private ?ChurnExporterFactory $churnExporterFactory = null;
-    private ?CognitiveExporterFactory $cognitiveExporterFactory = null;
+    private ?ChurnReportFactory $churnExporterFactory = null;
+    private ?CognitiveReportFactory $cognitiveExporterFactory = null;
 
     /**
      * Constructor initializes the metrics collectors, score calculator, and config service.
@@ -40,12 +40,12 @@ class MetricsFacade
     /**
      * Get or create the churn exporter factory.
      */
-    private function getChurnExporterFactory(): ChurnExporterFactory
+    private function getChurnExporterFactory(): ChurnReportFactory
     {
         if ($this->churnExporterFactory === null) {
             $config = $this->configService->getConfig();
             $customExporters = $config->customExporters['churn'] ?? [];
-            $this->churnExporterFactory = new ChurnExporterFactory($customExporters);
+            $this->churnExporterFactory = new ChurnReportFactory($customExporters);
         }
         return $this->churnExporterFactory;
     }
@@ -53,12 +53,12 @@ class MetricsFacade
     /**
      * Get or create the cognitive exporter factory.
      */
-    private function getCognitiveExporterFactory(): CognitiveExporterFactory
+    private function getCognitiveExporterFactory(): CognitiveReportFactory
     {
         if ($this->cognitiveExporterFactory === null) {
             $config = $this->configService->getConfig();
             $customExporters = $config->customExporters['cognitive'] ?? [];
-            $this->cognitiveExporterFactory = new CognitiveExporterFactory(
+            $this->cognitiveExporterFactory = new CognitiveReportFactory(
                 $config,
                 $customExporters
             );
