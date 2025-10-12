@@ -4,12 +4,8 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Business\Cognitive;
 
-use JsonException;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 
-/**
- *
- */
 class Baseline
 {
     /**
@@ -36,7 +32,7 @@ class Baseline
      *
      * @param string $baselineFile
      * @return array<string, array<string, mixed>> $baseline
-     * @throws JsonException|CognitiveAnalysisException
+     * @throws \JsonException|\Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException
      */
     public function loadBaseline(string $baselineFile): array
     {

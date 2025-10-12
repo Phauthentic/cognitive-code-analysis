@@ -80,9 +80,11 @@ class MarkdownExporter implements DataExporterInterface
 
         $filtered = new CognitiveMetricsCollection();
         foreach ($methods as $metric) {
-            if ($metric->getScore() > $this->config->scoreThreshold) {
-                $filtered->add($metric);
+            if ($metric->getScore() <= $this->config->scoreThreshold) {
+                continue;
             }
+
+            $filtered->add($metric);
         }
 
         return $filtered;

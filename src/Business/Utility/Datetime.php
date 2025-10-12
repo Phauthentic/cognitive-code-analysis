@@ -6,9 +6,6 @@ namespace Phauthentic\CognitiveCodeAnalysis\Business\Utility;
 
 use DateTime as PHPDateTime;
 
-/**
- *
- */
 class Datetime extends PHPDateTime
 {
     /**

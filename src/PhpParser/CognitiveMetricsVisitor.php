@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Phauthentic\CognitiveCodeAnalysis\PhpParser;
 
 use PhpParser\Node;
-use PhpParser\NodeTraverser;
 use PhpParser\NodeVisitor;
 use PhpParser\NodeVisitorAbstract;
 
@@ -177,9 +176,11 @@ class CognitiveMetricsVisitor extends NodeVisitorAbstract
     private function trackMethodArguments(Node\Stmt\ClassMethod $node): void
     {
         foreach ($node->params as $param) {
-            if ($this->isVariable($param->var)) {
-                $this->methodArguments[$param->var->name] = true;
+            if (!$this->isVariable($param->var)) {
+                continue;
             }
+
+            $this->methodArguments[$param->var->name] = true;
         }
     }
 
@@ -218,9 +219,11 @@ class CognitiveMetricsVisitor extends NodeVisitorAbstract
 
     private function setCurrentNamespaceOnEnterNode(Node $node): void
     {
-        if ($node instanceof Node\Stmt\Namespace_) {
-            $this->currentNamespace = $node->name instanceof Node\Name ? $node->name->toString() : '';
+        if (!($node instanceof Node\Stmt\Namespace_)) {
+            return;
         }
+
+        $this->currentNamespace = $node->name instanceof Node\Name ? $node->name->toString() : '';
     }
 
     /**
@@ -325,9 +328,11 @@ class CognitiveMetricsVisitor extends NodeVisitorAbstract
      */
     private function countVariablesNotAlreadyTrackedAsArguments(Node\Expr\Variable $node): void
     {
-        if (is_string($node->name) && !isset($this->methodArguments[$node->name])) {
-            $this->currentVariables[$node->name] = true;
+        if (!is_string($node->name) || isset($this->methodArguments[$node->name])) {
+            return;
         }
+
+        $this->currentVariables[$node->name] = true;
     }
 
     private function trackPropertyFetch(Node\Expr\PropertyFetch $node): void
@@ -340,10 +345,12 @@ class CognitiveMetricsVisitor extends NodeVisitorAbstract
         $property = $node->name->toString();
 
         // Only track new properties to avoid duplicates
-        if (!isset($this->accessedProperties[$property])) {
-            $this->accessedProperties[$property] = true;
-            $this->propertyCalls++;
+        if (isset($this->accessedProperties[$property])) {
+            return;
         }
+
+        $this->accessedProperties[$property] = true;
+        $this->propertyCalls++;
     }
 
     private function trackIfStatement(): void
@@ -351,9 +358,11 @@ class CognitiveMetricsVisitor extends NodeVisitorAbstract
         $this->ifCount++;
         $this->currentIfNestingLevel++;
 
-        if ($this->currentIfNestingLevel > $this->maxIfNestingLevel) {
-            $this->maxIfNestingLevel = $this->currentIfNestingLevel;
+        if ($this->currentIfNestingLevel <= $this->maxIfNestingLevel) {
+            return;
         }
+
+        $this->maxIfNestingLevel = $this->currentIfNestingLevel;
     }
 
     private function incrementElseCount(): void
@@ -363,9 +372,11 @@ class CognitiveMetricsVisitor extends NodeVisitorAbstract
 
     private function checkNestingLevelOnLeaveNode(Node $node): void
     {
-        if ($node instanceof Node\Stmt\If_) {
-            $this->currentIfNestingLevel--;
+        if (!($node instanceof Node\Stmt\If_)) {
+            return;
         }
+
+        $this->currentIfNestingLevel--;
     }
 
 
@@ -411,21 +422,25 @@ class CognitiveMetricsVisitor extends NodeVisitorAbstract
 
     private function checkNameSpaceOnLeaveNode(Node $node): void
     {
-        if ($node instanceof Node\Stmt\Namespace_) {
-            $this->currentNamespace = '';
+        if (!($node instanceof Node\Stmt\Namespace_)) {
+            return;
         }
+
+        $this->currentNamespace = '';
     }
 
     private function checkClassOnLeaveNode(Node $node): void
     {
-        if ($this->isClassOrTraitNode($node)) {
-            if (!empty($this->currentMethod)) {
-                // Don't clear the class context if we're still processing a method
-                return;
-            }
-
-            $this->currentClassName = '';
+        if (!$this->isClassOrTraitNode($node)) {
+            return;
         }
+
+        if (!empty($this->currentMethod)) {
+            // Don't clear the class context if we're still processing a method
+            return;
+        }
+
+        $this->currentClassName = '';
     }
 
     public function leaveNode(Node $node): void
@@ -442,9 +457,11 @@ class CognitiveMetricsVisitor extends NodeVisitorAbstract
         $completeMetrics = [];
         foreach ($this->methodMetrics as $methodKey => $metrics) {
             // Ensure the method key contains a class name and method name (not just ::method or ClassName::)
-            if (strpos($methodKey, '::') > 0 && !str_starts_with($methodKey, '::') && !str_ends_with($methodKey, '::')) {
-                $completeMetrics[$methodKey] = $metrics;
+            if (strpos($methodKey, '::') <= 0 || str_starts_with($methodKey, '::') || str_ends_with($methodKey, '::')) {
+                continue;
             }
+
+            $completeMetrics[$methodKey] = $metrics;
         }
 
         return $completeMetrics;

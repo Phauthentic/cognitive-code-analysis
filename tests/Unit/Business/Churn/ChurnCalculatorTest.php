@@ -10,9 +10,6 @@ use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetrics;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
 use PHPUnit\Framework\TestCase;
 
-/**
- *
- */
 class ChurnCalculatorTest extends TestCase
 {
     public function testCalculate(): void

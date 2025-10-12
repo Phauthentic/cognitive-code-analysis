@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Business\Churn\Exporter;
 
-use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
-
 /**
  * CsvExporter for Churn metrics.
  */
@@ -25,7 +23,7 @@ class CsvExporter extends AbstractExporter
     /**
      * @param array<string, array<string, mixed>> $classes
      * @param string $filename
-     * @throws CognitiveAnalysisException
+     * @throws \Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException
      */
     public function export(array $classes, string $filename): void
     {

@@ -12,9 +12,6 @@ use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Output\OutputInterface;
 
-/**
- *
- */
 class CognitiveMetricTextRenderer implements CognitiveMetricTextRendererInterface
 {
     use CoverageDataDetector;
@@ -51,10 +48,6 @@ class CognitiveMetricTextRenderer implements CognitiveMetricTextRendererInterfac
         return false;
     }
 
-    /**
-     * @param CognitiveMetricsCollection $metricsCollection
-     * @param OutputInterface $output
-     */
     public function render(CognitiveMetricsCollection $metricsCollection, OutputInterface $output): void
     {
         $config = $this->configService->getConfig();
@@ -73,11 +66,6 @@ class CognitiveMetricTextRenderer implements CognitiveMetricTextRendererInterfac
         $this->renderAllMethodsInSingleTable($metricsCollection, $config, $output);
     }
 
-    /**
-     * @param CognitiveMetricsCollection $metricsCollection
-     * @param CognitiveConfig $config
-     * @param OutputInterface $output
-     */
     private function renderGroupedByClass(
         CognitiveMetricsCollection $metricsCollection,
         CognitiveConfig $config,
@@ -91,10 +79,12 @@ class CognitiveMetricTextRenderer implements CognitiveMetricTextRendererInterfac
             }
 
             $rows = $this->buildRowsForClass($metrics, $config);
-            if (count($rows) > 0) {
-                $filename = $this->getFilenameFromMetrics($metrics);
-                $this->renderTable((string)$className, $rows, $filename, $output);
+            if (count($rows) <= 0) {
+                continue;
             }
+
+            $filename = $this->getFilenameFromMetrics($metrics);
+            $this->renderTable((string)$className, $rows, $filename, $output);
         }
     }
 
@@ -128,11 +118,6 @@ class CognitiveMetricTextRenderer implements CognitiveMetricTextRendererInterfac
         return '';
     }
 
-    /**
-     * @param CognitiveMetricsCollection $metricsCollection
-     * @param CognitiveConfig $config
-     * @param OutputInterface $output
-     */
     private function renderAllMethodsInSingleTable(
         CognitiveMetricsCollection $metricsCollection,
         CognitiveConfig $config,
@@ -141,9 +126,11 @@ class CognitiveMetricTextRenderer implements CognitiveMetricTextRendererInterfac
         $rows = $this->buildRowsForSingleTable($metricsCollection, $config);
         $totalMethods = count($rows);
 
-        if ($totalMethods > 0) {
-            $this->renderSingleTable($rows, $totalMethods, $output);
+        if ($totalMethods <= 0) {
+            return;
         }
+
+        $this->renderSingleTable($rows, $totalMethods, $output);
     }
 
     /**

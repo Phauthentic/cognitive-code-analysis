@@ -86,9 +86,11 @@ class CognitiveMetrics implements JsonSerializable
             $this->halstead = new HalsteadMetrics($metrics['halstead']);
         }
 
-        if (isset($metrics['cyclomatic_complexity'])) {
-            $this->cyclomatic = new CyclomaticMetrics($metrics['cyclomatic_complexity']);
+        if (!isset($metrics['cyclomatic_complexity'])) {
+            return;
         }
+
+        $this->cyclomatic = new CyclomaticMetrics($metrics['cyclomatic_complexity']);
     }
 
     /**
@@ -458,17 +460,11 @@ class CognitiveMetrics implements JsonSerializable
         return $this->toArray();
     }
 
-    /**
-     * @return HalsteadMetrics|null
-     */
     public function getHalstead(): ?HalsteadMetrics
     {
         return $this->halstead;
     }
 
-    /**
-     * @return CyclomaticMetrics|null
-     */
     public function getCyclomatic(): ?CyclomaticMetrics
     {
         return $this->cyclomatic;

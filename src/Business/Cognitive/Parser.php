@@ -17,9 +17,6 @@ use PhpParser\Error;
 use PhpParser\ParserFactory;
 use ReflectionClass;
 
-/**
- *
- */
 class Parser
 {
     protected PhpParser $parser;
@@ -78,21 +75,25 @@ class Parser
 
         // Add cyclomatic complexity to method metrics
         foreach ($cyclomaticMetrics as $method => $complexityData) {
-            if (isset($methodMetrics[$method])) {
-                $complexity = $complexityData['complexity'] ?? $complexityData;
-                $riskLevel = $complexityData['risk_level'] ?? $this->getRiskLevel($complexity);
-                $methodMetrics[$method]['cyclomatic_complexity'] = [
-                    'complexity' => $complexity,
-                    'risk_level' => $riskLevel
-                ];
+            if (!isset($methodMetrics[$method])) {
+                continue;
             }
+
+            $complexity = $complexityData['complexity'] ?? $complexityData;
+            $riskLevel = $complexityData['risk_level'] ?? $this->getRiskLevel($complexity);
+            $methodMetrics[$method]['cyclomatic_complexity'] = [
+                'complexity' => $complexity,
+                'risk_level' => $riskLevel
+            ];
         }
 
         // Add Halstead metrics to method metrics
         foreach ($halsteadMetrics as $method => $metrics) {
-            if (isset($methodMetrics[$method])) {
-                $methodMetrics[$method]['halstead'] = $metrics;
+            if (!isset($methodMetrics[$method])) {
+                continue;
             }
+
+            $methodMetrics[$method]['halstead'] = $metrics;
         }
 
         return $methodMetrics;

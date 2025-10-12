@@ -8,9 +8,6 @@ use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Exporter\CsvExporter;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 use PHPUnit\Framework\Attributes\Test;
 
-/**
- *
- */
 class CsvExportTest extends AbstractExporterTestCase
 {
     protected function setUp(): void

@@ -7,9 +7,6 @@ namespace Phauthentic\CognitiveCodeAnalysis\Business\Churn;
 use Phauthentic\CognitiveCodeAnalysis\Business\CodeCoverage\CoverageReportReaderInterface;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
 
-/**
- *
- */
 class ChurnCalculator
 {
     /**

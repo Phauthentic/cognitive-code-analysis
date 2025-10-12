@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Cognitive;
 
 use ArrayIterator;
-use InvalidArgumentException;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetrics;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
 use PHPUnit\Framework\Attributes\Test;

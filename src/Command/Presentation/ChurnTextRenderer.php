@@ -4,14 +4,10 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Command\Presentation;
 
-use Phauthentic\CognitiveCodeAnalysis\Business\CodeCoverage\CoberturaReader;
 use Phauthentic\CognitiveCodeAnalysis\Business\Traits\CoverageDataDetector;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Output\OutputInterface;
 
-/**
- *
- */
 class ChurnTextRenderer
 {
     use CoverageDataDetector;
