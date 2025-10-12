@@ -22,7 +22,9 @@ use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\ScoreCalculator;
 use Phauthentic\CognitiveCodeAnalysis\Business\MetricsFacade;
 use Phauthentic\CognitiveCodeAnalysis\Business\Utility\DirectoryScanner;
 use Phauthentic\CognitiveCodeAnalysis\Command\ChurnCommand;
+use Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications\ChurnValidationSpecificationFactory;
 use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsCommand;
+use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\CognitiveMetricsValidationSpecificationFactory;
 use Phauthentic\CognitiveCodeAnalysis\Command\EventHandler\ParserErrorHandler;
 use Phauthentic\CognitiveCodeAnalysis\Command\EventHandler\ProgressBarHandler;
 use Phauthentic\CognitiveCodeAnalysis\Command\EventHandler\VerboseHandler;
@@ -103,6 +105,12 @@ class Application
             ->setPublic(true);
 
         $this->containerBuilder->register(CodeCoverageFactory::class, CodeCoverageFactory::class)
+            ->setPublic(true);
+
+        $this->containerBuilder->register(CognitiveMetricsValidationSpecificationFactory::class, CognitiveMetricsValidationSpecificationFactory::class)
+            ->setPublic(true);
+
+        $this->containerBuilder->register(ChurnValidationSpecificationFactory::class, ChurnValidationSpecificationFactory::class)
             ->setPublic(true);
     }
 
@@ -268,6 +276,7 @@ class Application
                 new Reference(CognitiveMetricsReportHandler::class),
                 new Reference(CognitiveMetricsSorter::class),
                 new Reference(CodeCoverageFactory::class),
+                new Reference(CognitiveMetricsValidationSpecificationFactory::class),
             ])
             ->setPublic(true);
 
@@ -276,6 +285,7 @@ class Application
                 new Reference(MetricsFacade::class),
                 new Reference(ChurnTextRenderer::class),
                 new Reference(ChurnReportHandler::class),
+                new Reference(ChurnValidationSpecificationFactory::class),
             ])
             ->setPublic(true);
     }

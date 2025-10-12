@@ -14,10 +14,7 @@ use Phauthentic\CognitiveCodeAnalysis\Command\Handler\ChurnReportHandler;
 use Phauthentic\CognitiveCodeAnalysis\Command\Presentation\ChurnTextRenderer;
 use Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications\ChurnCommandContext;
 use Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications\CompositeChurnValidationSpecification;
-use Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications\CoverageFileExistsSpecification;
-use Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications\CoverageFormatExclusivitySpecification;
-use Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications\CoverageFormatSupportedSpecification;
-use Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications\ReportOptionsCompleteSpecification;
+use Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications\ChurnValidationSpecificationFactory;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -51,21 +48,13 @@ class ChurnCommand extends Command
     public function __construct(
         readonly private MetricsFacade $metricsFacade,
         readonly private ChurnTextRenderer $renderer,
-        readonly private ChurnReportHandler $report
+        readonly private ChurnReportHandler $report,
+        readonly private ChurnValidationSpecificationFactory $validationSpecificationFactory
     ) {
         parent::__construct();
-        $this->initializeValidationSpecification();
+        $this->validationSpecification = $this->validationSpecificationFactory->create();
     }
 
-    private function initializeValidationSpecification(): void
-    {
-        $this->validationSpecification = new CompositeChurnValidationSpecification([
-            new CoverageFormatExclusivitySpecification(),
-            new CoverageFileExistsSpecification(),
-            new CoverageFormatSupportedSpecification(),
-            new ReportOptionsCompleteSpecification(),
-        ]);
-    }
 
     /**
      * Configures the command options and arguments.

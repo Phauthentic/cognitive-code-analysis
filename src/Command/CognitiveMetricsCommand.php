@@ -16,11 +16,7 @@ use Phauthentic\CognitiveCodeAnalysis\Command\Handler\CognitiveMetricsReportHand
 use Phauthentic\CognitiveCodeAnalysis\Command\Presentation\CognitiveMetricTextRendererInterface;
 use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\CognitiveMetricsCommandContext;
 use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\CompositeCognitiveMetricsValidationSpecification;
-use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\CoverageFileExistsSpecification;
-use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\CoverageFormatExclusivitySpecification;
-use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\CoverageFormatSupportedSpecification;
-use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\SortFieldValidSpecification;
-use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\SortOrderValidSpecification;
+use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\CognitiveMetricsValidationSpecificationFactory;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -55,22 +51,13 @@ class CognitiveMetricsCommand extends Command
         readonly private Baseline $baselineService,
         readonly private CognitiveMetricsReportHandler $reportHandler,
         readonly private CognitiveMetricsSorter $sorter,
-        readonly private CodeCoverageFactory $coverageFactory
+        readonly private CodeCoverageFactory $coverageFactory,
+        readonly private CognitiveMetricsValidationSpecificationFactory $validationSpecificationFactory
     ) {
         parent::__construct();
-        $this->initializeValidationSpecification();
+        $this->validationSpecification = $this->validationSpecificationFactory->create();
     }
 
-    private function initializeValidationSpecification(): void
-    {
-        $this->validationSpecification = new CompositeCognitiveMetricsValidationSpecification([
-            new CoverageFormatExclusivitySpecification(),
-            new CoverageFileExistsSpecification(),
-            new CoverageFormatSupportedSpecification(),
-            new SortFieldValidSpecification(),
-            new SortOrderValidSpecification(),
-        ]);
-    }
 
     /**
      * Configures the command options and arguments.
