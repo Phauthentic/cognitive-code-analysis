@@ -4,18 +4,16 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\PhpParser;
 
+use PhpParser\Parser;
 use PhpParser\ParserFactory;
 use PhpParser\NodeTraverser;
 use Phauthentic\CognitiveCodeAnalysis\PhpParser\AnnotationVisitor;
 use PHPUnit\Framework\TestCase;
 
-/**
- * Test for AnnotationVisitor class.
- */
 class AnnotationVisitorTest extends TestCase
 {
     private AnnotationVisitor $visitor;
-    private $parser;
+    private Parser $parser;
     private NodeTraverser $traverser;
 
     protected function setUp(): void

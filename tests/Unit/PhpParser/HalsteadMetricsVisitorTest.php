@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\PhpParser;
 
+use Phauthentic\CognitiveCodeAnalysis\Business\Halstead\HalsteadMetricsCalculator;
+use Phauthentic\CognitiveCodeAnalysis\PhpParser\HalsteadMetricsVisitor;
 use PhpParser\ParserFactory;
 use PhpParser\NodeTraverser;
 use PHPUnit\Framework\TestCase;
@@ -26,7 +28,8 @@ class HalsteadMetricsVisitorTest extends TestCase
         $parser = (new ParserFactory())->createForHostVersion();
         $ast = $parser->parse($code);
         $traverser = new NodeTraverser();
-        $visitor = new \Phauthentic\CognitiveCodeAnalysis\PhpParser\HalsteadMetricsVisitor();
+        $calculator = new HalsteadMetricsCalculator();
+        $visitor = new HalsteadMetricsVisitor($calculator);
         $traverser->addVisitor($visitor);
         $traverser->traverse($ast);
         $metrics = $visitor->getMetrics();
