@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\PhpParser;
 
+use Phauthentic\CognitiveCodeAnalysis\Business\Halstead\HalsteadMetricsCalculatorInterface;
 use PhpParser\Node;
 use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\Trait_;
@@ -13,8 +14,6 @@ use PhpParser\NodeVisitorAbstract;
 /**
  * @SuppressWarnings(PHPMD.TooManyFields)
  * @SuppressWarnings(PHPMD.ShortVariable)
- * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
- * @SuppressWarnings(PHPMD.CyclomaticComplexity)
  */
 class HalsteadMetricsVisitor extends NodeVisitorAbstract
 {
@@ -39,6 +38,21 @@ class HalsteadMetricsVisitor extends NodeVisitorAbstract
     private ?AnnotationVisitor $annotationVisitor = null;
 
     /**
+     * @var HalsteadMetricsCalculatorInterface The calculator for Halstead metrics
+     */
+    private HalsteadMetricsCalculatorInterface $calculator;
+
+    /**
+     * Constructor for HalsteadMetricsVisitor.
+     *
+     * @param HalsteadMetricsCalculatorInterface $calculator The calculator for Halstead metrics
+     */
+    public function __construct(HalsteadMetricsCalculatorInterface $calculator)
+    {
+        $this->calculator = $calculator;
+    }
+
+    /**
      * Set the annotation visitor to check for ignored items.
      */
     public function setAnnotationVisitor(AnnotationVisitor $annotationVisitor): void
@@ -59,6 +73,7 @@ class HalsteadMetricsVisitor extends NodeVisitorAbstract
      * The node processing is part of gathering metrics for the Halstead complexity measurement. Operators and operands
      * are collected to later calculate metrics such as program length, vocabulary, volume, difficulty, and effort.
      *
+     * @SuppressWarnings("PHPMD.CyclomaticComplexity")
      */
     public function enterNode(Node $node)
     {
@@ -170,7 +185,7 @@ class HalsteadMetricsVisitor extends NodeVisitorAbstract
             // Store metrics for the method before resetting
             if ($this->currentClassName !== null && $this->currentMethodName !== null) {
                 $methodKey = $this->currentClassName . '::' . $this->currentMethodName;
-                $this->methodMetrics[$methodKey] = $this->calculateMetricsFor($this->methodOperators, $this->methodOperands, $methodKey);
+                $this->methodMetrics[$methodKey] = $this->calculator->calculateMetrics($this->methodOperators, $this->methodOperands, $methodKey);
             }
             $this->currentMethodName = null;
             $this->methodOperators = [];
@@ -229,7 +244,7 @@ class HalsteadMetricsVisitor extends NodeVisitorAbstract
             return;
         }
 
-        $this->classMetrics[$this->currentClassName] = $this->calculateMetrics();
+        $this->classMetrics[$this->currentClassName] = $this->calculator->calculateMetrics($this->operators, $this->operands, $this->currentClassName);
     }
 
     public function resetMetrics(): void
@@ -259,156 +274,6 @@ class HalsteadMetricsVisitor extends NodeVisitorAbstract
         $this->methodOperators = [];
         $this->methodOperands = [];
         $this->methodMetrics = [];
-    }
-
-    private function calculateMetrics(): array
-    {
-        // Step 1: Count distinct and total occurrences of operators and operands
-        $distinctOperators = $this->countDistinctOperators();
-        $distinctOperands = $this->countDistinctOperands();
-        $totalOperators = $this->countTotalOperators();
-        $totalOperands = $this->countTotalOperands();
-
-        // Step 2: Calculate basic metrics
-        $programLength = $this->calculateProgramLength($totalOperators, $totalOperands);
-        $programVocabulary = $this->calculateProgramVocabulary($distinctOperators, $distinctOperands);
-
-        // Step 3: Calculate advanced metrics
-        $volume = $this->calculateVolume($programLength, $programVocabulary);
-        $difficulty = $this->calculateDifficulty($distinctOperators, $totalOperands, $distinctOperands);
-        $effort = $difficulty * $volume;
-
-        // Step 4: Prepare the results array
-        return [
-            'n1' => $distinctOperators,
-            'n2' => $distinctOperands,
-            'N1' => $totalOperators,
-            'N2' => $totalOperands,
-            'programLength' => $programLength,
-            'programVocabulary' => $programVocabulary,
-            'volume' => $volume,
-            'difficulty' => $difficulty,
-            'effort' => $effort,
-            'className' => $this->currentClassName, // Include the FQCN
-        ];
-    }
-
-    private function calculateMetricsFor(array $operators, array $operands, string $fqName): array
-    {
-        $distinctOperators = count(array_unique($operators));
-        $distinctOperands = count(array_unique($operands));
-        $totalOperators = count($operators);
-        $totalOperands = count($operands);
-        $programLength = $totalOperators + $totalOperands;
-        $programVocabulary = $distinctOperators + $distinctOperands;
-        $volume = $programVocabulary > 0 ? $programLength * log($programVocabulary, 2) : 0.0;
-        $difficulty = ($distinctOperators > 0 && $distinctOperands > 0) ? ($distinctOperators / 2) * ($totalOperands / $distinctOperands) : 0.0;
-        $effort = $difficulty * $volume;
-
-        return [
-            'n1' => $distinctOperators,
-            'n2' => $distinctOperands,
-            'N1' => $totalOperators,
-            'N2' => $totalOperands,
-            'programLength' => $programLength,
-            'programVocabulary' => $programVocabulary,
-            'volume' => $volume,
-            'difficulty' => $difficulty,
-            'effort' => $effort,
-            'fqName' => $fqName,
-        ];
-    }
-
-    /**
-     * Calculate the program length.
-     *
-     * @param int $N1 The total occurrences of operators.
-     * @param int $N2 The total occurrences of operands.
-     * @return int The program length.
-     */
-    private function calculateProgramLength(int $N1, int $N2): int
-    {
-        return $N1 + $N2;
-    }
-
-    /**
-     * Calculate the program vocabulary.
-     *
-     * @param int $n1 The count of distinct operators.
-     * @param int $n2 The count of distinct operands.
-     * @return int The program vocabulary.
-     */
-    private function calculateProgramVocabulary(int $n1, int $n2): int
-    {
-        return $n1 + $n2;
-    }
-
-    /**
-     * Calculate the volume of the program.
-     *
-     * @param int $programLength The length of the program.
-     * @param int $programVocabulary The vocabulary of the program.
-     * @return float The volume of the program.
-     */
-    private function calculateVolume(int $programLength, int $programVocabulary): float
-    {
-        return $programLength * log($programVocabulary, 2);
-    }
-
-    /**
-     * Calculate the difficulty of the program.
-     *
-     * @param int $n1 The count of distinct operators.
-     * @param int $N2 The total occurrences of operands.
-     * @param int $n2 The count of distinct operands.
-     * @return float The difficulty of the program.
-     */
-    private function calculateDifficulty(int $n1, int $N2, int $n2): float
-    {
-        if ($n2 === 0) {
-            return 0.0;
-        }
-        return ($n1 / 2) * ($N2 / $n2);
-    }
-
-    /**
-     * Count the number of distinct operators.
-     *
-     * @return int The count of distinct operators.
-     */
-    private function countDistinctOperators(): int
-    {
-        return count(array_unique($this->operators));
-    }
-
-    /**
-     * Count the number of distinct operands.
-     *
-     * @return int The count of distinct operands.
-     */
-    private function countDistinctOperands(): int
-    {
-        return count(array_unique($this->operands));
-    }
-
-    /**
-     * Count the total occurrences of operators.
-     *
-     * @return int The total occurrences of operators.
-     */
-    private function countTotalOperators(): int
-    {
-        return count($this->operators);
-    }
-
-    /**
-     * Count the total occurrences of operands.
-     *
-     * @return int The total occurrences of operands.
-     */
-    private function countTotalOperands(): int
-    {
-        return count($this->operands);
     }
 
     public function getMetrics(): array

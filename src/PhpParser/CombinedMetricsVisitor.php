@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\PhpParser;
 
+use Phauthentic\CognitiveCodeAnalysis\Business\Halstead\HalsteadMetricsCalculator;
 use PhpParser\Node;
 use PhpParser\NodeVisitor;
 
@@ -18,13 +19,15 @@ class CombinedMetricsVisitor implements NodeVisitor
     private CognitiveMetricsVisitor $cognitiveVisitor;
     private CyclomaticComplexityVisitor $cyclomaticVisitor;
     private HalsteadMetricsVisitor $halsteadVisitor;
+    private HalsteadMetricsCalculator $halsteadCalculator;
 
     public function __construct()
     {
         $this->annotationVisitor = new AnnotationVisitor();
         $this->cognitiveVisitor = new CognitiveMetricsVisitor();
         $this->cyclomaticVisitor = new CyclomaticComplexityVisitor();
-        $this->halsteadVisitor = new HalsteadMetricsVisitor();
+        $this->halsteadCalculator = new HalsteadMetricsCalculator();
+        $this->halsteadVisitor = new HalsteadMetricsVisitor($this->halsteadCalculator);
     }
 
     /**
