@@ -15,9 +15,9 @@ cognitive:
   customExporters:
     cognitive:
       test:
-        class: 'Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter\JsonExporter'
+        class: 'Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report\JsonReport'
         file: null
     churn:
       test:
-        class: 'Phauthentic\CognitiveCodeAnalysis\Business\Churn\Exporter\JsonExporter'
+        class: 'Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report\JsonReport'
         file: null

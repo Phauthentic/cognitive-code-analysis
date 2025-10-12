@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Cognitive\Exporter;
+namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Cognitive\Report;
 
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetrics;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
@@ -14,7 +14,7 @@ use PHPUnit\Framework\TestCase;
 /**
  *
  */
-class CsvExporterTest extends TestCase
+class CsvReporterTest extends TestCase
 {
     private CsvReport $csvExporter;
     private string $filename;

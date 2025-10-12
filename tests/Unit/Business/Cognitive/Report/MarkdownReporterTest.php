@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Cognitive\Exporter;
+namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Cognitive\Report;
 
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetrics;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
@@ -15,7 +15,7 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Config\Definition\Processor;
 
-class MarkdownExporterTest extends TestCase
+class MarkdownReporterTest extends TestCase
 {
     private string $filename;
 
@@ -41,13 +41,13 @@ class MarkdownExporterTest extends TestCase
     public static function configurationProvider(): array
     {
         return [
-            'All metrics' => ['all-metrics-config.yml', 'MarkdownExporterContent_AllMetrics.md'],
-            'Minimal' => ['minimal-config.yml', 'MarkdownExporterContent_Minimal.md'],
-            'Single table' => ['single-table-config.yml', 'MarkdownExporterContent_SingleTable.md'],
-            'Halstead only' => ['halstead-only-config.yml', 'MarkdownExporterContent_HalsteadOnly.md'],
-            'Cyclomatic only' => ['cyclomatic-only-config.yml', 'MarkdownExporterContent_CyclomaticOnly.md'],
-            'No detailed metrics' => ['no-detailed-metrics-config.yml', 'MarkdownExporterContent_NoDetailedMetrics.md'],
-            'Threshold' => ['threshold-config.yml', 'MarkdownExporterContent_Threshold.md'],
+            'All metrics' => ['all-metrics-config.yml', 'MarkdownReporterContent_AllMetrics.md'],
+            'Minimal' => ['minimal-config.yml', 'MarkdownReporterContent_Minimal.md'],
+            'Single table' => ['single-table-config.yml', 'MarkdownReporterContent_SingleTable.md'],
+            'Halstead only' => ['halstead-only-config.yml', 'MarkdownReporterContent_HalsteadOnly.md'],
+            'Cyclomatic only' => ['cyclomatic-only-config.yml', 'MarkdownReporterContent_CyclomaticOnly.md'],
+            'No detailed metrics' => ['no-detailed-metrics-config.yml', 'MarkdownReporterContent_NoDetailedMetrics.md'],
+            'Threshold' => ['threshold-config.yml', 'MarkdownReporterContent_Threshold.md'],
         ];
     }
 

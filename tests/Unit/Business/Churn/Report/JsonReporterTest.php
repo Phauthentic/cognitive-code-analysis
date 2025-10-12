@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Churn\Exporter;
+namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Churn\Report;
 
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report\JsonReport;
 use PHPUnit\Framework\Attributes\Test;
@@ -10,7 +10,7 @@ use PHPUnit\Framework\Attributes\Test;
 /**
  *
  */
-class JsonExporterTest extends AbstractExporterTestCase
+class JsonReporterTest extends AbstractReporterTestCase
 {
     protected function setUp(): void
     {
@@ -28,7 +28,7 @@ class JsonExporterTest extends AbstractExporterTestCase
         $this->exporter->export($classes, $this->filename);
 
         $this->assertFileEquals(
-            expected: __DIR__ . '/JsonExporterContent.json',
+            expected: __DIR__ . '/JsonReporterContent.json',
             actual: $this->filename
         );
     }

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Churn\Exporter;
+namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Churn\Report;
 
 use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
 

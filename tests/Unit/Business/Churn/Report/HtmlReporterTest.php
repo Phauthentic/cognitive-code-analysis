@@ -2,22 +2,21 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Churn\Exporter;
+namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Churn\Report;
 
-use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report\SvgTreemapReport;
+use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report\CsvReport;
 use PHPUnit\Framework\Attributes\Test;
 
 /**
  *
  */
-class SvgTreemapExporterTest extends AbstractExporterTestCase
+class HtmlReporterTest extends AbstractReporterTestCase
 {
     protected function setUp(): void
     {
         parent::setUp();
-
-        $this->exporter = new SvgTreemapReport();
-        $this->filename = sys_get_temp_dir() . '/test_metrics.json';
+        $this->exporter = new CsvReport();
+        $this->filename = sys_get_temp_dir() . '/test_metrics.html';
     }
 
     #[Test]
@@ -28,7 +27,7 @@ class SvgTreemapExporterTest extends AbstractExporterTestCase
         $this->exporter->export($classes, $this->filename);
 
         $this->assertFileEquals(
-            expected: __DIR__ . '/SvgTreemapExporterTest.svg',
+            expected: __DIR__ . '/HtmlReporterContent.html',
             actual: $this->filename
         );
     }

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Churn\Exporter;
+namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Churn\Report;
 
 use InvalidArgumentException;
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report\ChurnReportFactory;
@@ -13,12 +13,12 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\MockObject\Exception;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\MockObject\MockObject;
-use Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Churn\Exporter\TestCognitiveConfig;
+use Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Churn\Report\TestCognitiveConfig;
 
 /**
  * Test case for ChurnReportFactory with custom exporters.
  */
-class ChurnExporterFactoryCustomTest extends TestCase
+class ChurnReporterFactoryCustomTest extends TestCase
 {
     /**
      * @throws Exception

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Churn\Exporter;
+namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Churn\Report;
 
 use Phauthentic\CognitiveCodeAnalysis\Business\Utility\Datetime;
 use PHPUnit\Framework\TestCase;
@@ -10,7 +10,7 @@ use PHPUnit\Framework\TestCase;
 /**
  *
  */
-class AbstractExporterTestCase extends TestCase
+class AbstractReporterTestCase extends TestCase
 {
     protected string $filename;
 

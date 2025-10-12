@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Cognitive\Exporter;
+namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Cognitive\Report;
 
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetrics;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
@@ -13,7 +13,7 @@ use PHPUnit\Framework\TestCase;
 /**
  * Test case for JsonReport class.
  */
-class JsonExporterTest extends TestCase
+class JsonReporterTest extends TestCase
 {
     #[Test]
     public function testExport(): void

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Churn\Exporter;
+namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Churn\Report;
 
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report\CsvReport;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
@@ -11,7 +11,7 @@ use PHPUnit\Framework\Attributes\Test;
 /**
  *
  */
-class CsvExportTest extends AbstractExporterTestCase
+class CsvExportTest extends AbstractReporterTestCase
 {
     protected function setUp(): void
     {
@@ -28,7 +28,7 @@ class CsvExportTest extends AbstractExporterTestCase
         $this->exporter->export($classes, $this->filename);
 
         $this->assertFileEquals(
-            expected: __DIR__ . '/CsvExporterContent.csv',
+            expected: __DIR__ . '/CsvReporterContent.csv',
             actual: $this->filename
         );
     }

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Cognitive\Exporter;
+namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Cognitive\Report;
 
 use InvalidArgumentException;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report\CognitiveReportFactory;
@@ -17,7 +17,7 @@ use PHPUnit\Framework\MockObject\MockObject;
  * Test case for CognitiveReportFactory with custom exporters.
  * @SuppressWarnings(PHPMD.TooManyPublicMethods)
  */
-class CognitiveExporterFactoryCustomTest extends TestCase
+class CognitiveReporterFactoryCustomTest extends TestCase
 {
     private CognitiveConfig $config;
 

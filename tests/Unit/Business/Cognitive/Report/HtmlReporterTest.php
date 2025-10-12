@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Cognitive\Exporter;
+namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Cognitive\Report;
 
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetrics;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
@@ -14,7 +14,7 @@ use PHPUnit\Framework\TestCase;
 /**
  *
  */
-class HtmlExporterTest extends TestCase
+class HtmlReporterTest extends TestCase
 {
     private HtmlReport $csvExporter;
     private string $filename;
@@ -67,7 +67,7 @@ class HtmlExporterTest extends TestCase
         $this->csvExporter->export($metricsCollection, $this->filename);
 
         $this->assertFileEquals(
-            __DIR__ . '/HtmlExporterContent.html',
+            __DIR__ . '/HtmlReporterContent.html',
             $this->filename
         );
     }
