@@ -60,10 +60,32 @@ class MetricsFacade
     }
 
     /**
+     * Get supported exporter types.
+     *
+     * @return array<string>
+     */
+    public function getSupportedExporterTypes(): array
+    {
+        return $this->getCognitiveExporterFactory()->getSupportedTypes();
+    }
+
+    /**
+     * Check if an exporter type is supported.
+     *
+     * @param string $type
+     * @return bool
+     */
+    public function isExporterTypeSupported(string $type): bool
+    {
+        return $this->getCognitiveExporterFactory()->isSupported($type);
+    }
+
+    /**
      * Collects and returns cognitive metrics for the given path.
      *
      * @param string $path The file or directory path to collect metrics from.
      * @return CognitiveMetricsCollection The collected cognitive metrics.
+     * @throws \Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException
      */
     public function getCognitiveMetrics(string $path): CognitiveMetricsCollection
     {
@@ -82,6 +104,7 @@ class MetricsFacade
      * @param array<string> $paths Array of file or directory paths to collect metrics from.
      * @param CoverageReportReaderInterface|null $coverageReader Optional coverage reader for coverage data.
      * @return CognitiveMetricsCollection The collected cognitive metrics from all paths.
+     * @throws \Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException
      */
     public function getCognitiveMetricsFromPaths(
         array $paths,
@@ -109,6 +132,7 @@ class MetricsFacade
      * @param string $since
      * @param CoverageReportReaderInterface|null $coverageReader
      * @return array<string, array<string, mixed>>
+     * @throws \Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException
      */
     public function calculateChurn(
         string $path,

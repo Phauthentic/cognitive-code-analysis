@@ -20,7 +20,7 @@ class CognitiveExporterFactory
     /**
      * Create an exporter instance based on the report type.
      *
-     * @param string $type The type of exporter to create (json, csv, html, markdown)
+     * @param string $type The type of exporter to create (json, csv, html, markdown, refactoring-suggestions)
      * @return DataExporterInterface
      * @throws InvalidArgumentException If the type is not supported
      */
@@ -31,6 +31,7 @@ class CognitiveExporterFactory
             'csv' => new CsvExporter(),
             'html' => new HtmlExporter(),
             'markdown' => new MarkdownExporter($this->config),
+            'refactoring-suggestions', 'refactoring' => new RefactoringSuggestionsExporter($this->config),
             default => throw new InvalidArgumentException("Unsupported exporter type: {$type}"),
         };
     }
@@ -42,7 +43,7 @@ class CognitiveExporterFactory
      */
     public function getSupportedTypes(): array
     {
-        return ['json', 'csv', 'html', 'markdown'];
+        return ['json', 'csv', 'html', 'markdown', 'refactoring-suggestions', 'refactoring'];
     }
 
     /**

@@ -56,7 +56,11 @@ class CognitiveMetricsReportHandler
 
     private function isValidReportType(?string $reportType): bool
     {
-        return in_array($reportType, ['json', 'csv', 'html', 'markdown']);
+        if ($reportType === null) {
+            return false;
+        }
+
+        return $this->metricsFacade->isExporterTypeSupported($reportType);
     }
 
     private function handleExceptions(Exception $exception): int
@@ -71,9 +75,11 @@ class CognitiveMetricsReportHandler
 
     public function handleInvalidReporType(?string $reportType): int
     {
+        $supportedTypes = implode('`, `', $this->metricsFacade->getSupportedExporterTypes());
         $this->output->writeln(sprintf(
-            '<error>Invalid report type `%s` provided. Only `json`, `csv`, `html`, and `markdown` are accepted.</error>',
-            $reportType
+            '<error>Invalid report type `%s` provided. Supported types: `%s`</error>',
+            $reportType,
+            $supportedTypes
         ));
 
         return Command::FAILURE;
