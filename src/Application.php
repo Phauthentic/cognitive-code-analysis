@@ -8,9 +8,6 @@ use Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChangeCounter\ChangeCounter
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChurnCalculator;
 use Phauthentic\CognitiveCodeAnalysis\Business\CodeCoverage\CodeCoverageFactory;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Baseline;
-use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Cache\MetricsCacheStrategy;
-use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Cache\MetricsCacheStrategyInterface;
-use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Cache\NullCacheStrategy;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollector;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsSorter;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Events\FileProcessed;
@@ -172,48 +169,15 @@ class Application
 
     private function bootstrapMetricsCollectors(): void
     {
-        // Register cache strategies
-        $this->containerBuilder->register(MetricsCacheStrategy::class, MetricsCacheStrategy::class)
-            ->setArguments([
-                new Reference(CacheItemPoolInterface::class)
-            ])
-            ->setPublic(true);
-
-        $this->containerBuilder->register(NullCacheStrategy::class, NullCacheStrategy::class)
-            ->setPublic(true);
-
-        // Register cache strategy interface with factory
-        $this->containerBuilder->register(MetricsCacheStrategyInterface::class)
-            ->setFactory([$this, 'createCacheStrategy'])
-            ->setPublic(true);
-
-        // Register the collector with cache strategy
         $this->containerBuilder->register(CognitiveMetricsCollector::class, CognitiveMetricsCollector::class)
             ->setArguments([
                 new Reference(Parser::class),
                 new Reference(DirectoryScanner::class),
                 new Reference(ConfigService::class),
                 new Reference(MessageBusInterface::class),
-                new Reference(MetricsCacheStrategyInterface::class)
+                new Reference(CacheItemPoolInterface::class)
             ])
             ->setPublic(true);
-    }
-
-    /**
-     * Factory method to create the appropriate cache strategy based on config
-     */
-    public function createCacheStrategy(): MetricsCacheStrategyInterface
-    {
-        $configService = $this->get(ConfigService::class);
-        $config = $configService->getConfig();
-
-        // If caching is enabled, use active cache strategy
-        if ($config->cache?->enabled === true) {
-            return $this->get(MetricsCacheStrategy::class);
-        }
-
-        // Otherwise use null cache strategy
-        return $this->get(NullCacheStrategy::class);
     }
 
     private function configureEventBus(): void

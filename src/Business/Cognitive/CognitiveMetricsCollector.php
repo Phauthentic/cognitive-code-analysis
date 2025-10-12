@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Business\Cognitive;
 
-use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Cache\MetricsCacheStrategyInterface;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Events\FileProcessed;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Events\ParserFailed;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Events\SourceFilesFound;
@@ -12,6 +11,8 @@ use Phauthentic\CognitiveCodeAnalysis\Business\Utility\DirectoryScanner;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
 use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
+use Psr\Cache\CacheItemInterface;
+use Psr\Cache\CacheItemPoolInterface;
 use SplFileInfo;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Throwable;
@@ -31,7 +32,7 @@ class CognitiveMetricsCollector
         protected readonly DirectoryScanner $directoryScanner,
         protected readonly ConfigService $configService,
         protected readonly MessageBusInterface $messageBus,
-        protected readonly MetricsCacheStrategyInterface $cacheStrategy,
+        protected readonly CacheItemPoolInterface $cachePool,
     ) {
     }
 
@@ -97,13 +98,17 @@ class CognitiveMetricsCollector
         $metricsCollection = new CognitiveMetricsCollection();
         $fileCount = 0;
         $config = $this->configService->getConfig();
-        $configHash = $this->cacheStrategy->generateConfigHash($config);
+        $configHash = $this->generateConfigHash($config);
+        $useCache = $config->cache?->enabled === true;
 
         foreach ($files as $file) {
-            $metrics = $this->cacheStrategy->getCachedMetrics($file, $configHash);
+            // Try to get cached metrics
+            $cached = $this->getCachedMetrics($file, $configHash, $useCache);
+            $metrics = $cached['metrics'];
 
+            // If not cached, process the file
             if ($metrics === null) {
-                $metrics = $this->processAndCacheFile($file, $fileCount, $configHash);
+                $metrics = $this->processFile($file, $fileCount, $cached['cacheItem'], $useCache, $configHash);
 
                 if ($metrics === null) {
                     continue;
@@ -208,9 +213,51 @@ class CognitiveMetricsCollector
         return null;
     }
 
+    /**
+     * Generate a cache key for a file based on path, modification time, and config hash
+     */
+    private function generateCacheKey(SplFileInfo $file, string $configHash): string
+    {
+        $filePath = $file->getRealPath();
+        $fileMtime = $file->getMTime();
+
+        return 'phpcca_' . md5($filePath . '|' . $fileMtime . '|' . $configHash);
+    }
+
+    /**
+     * Generate configuration hash for cache invalidation
+     */
+    private function generateConfigHash(CognitiveConfig $config): string
+    {
+        return md5(serialize($config->toArray()));
+    }
+
+    /**
+     * Cache the analysis result for a file
+     */
+    /** @param array<string, mixed> $metrics */
+    private function cacheResult(
+        CacheItemInterface $cacheItem,
+        SplFileInfo $file,
+        array $metrics,
+        string $configHash
+    ): void {
+        $cacheItem->set([
+            'version' => '1.0',
+            'file_path' => $file->getRealPath(),
+            'file_mtime' => $file->getMTime(),
+            'config_hash' => $configHash,
+            'analysis_result' => $metrics,
+            'ignored_items' => $this->ignoredItems,
+            'cached_at' => time()
+        ]);
+
+        $this->cachePool->save($cacheItem);
+    }
+
     public function clearCache(): void
     {
-        $this->cacheStrategy->clear();
+        $this->cachePool->clear();
     }
 
     /**
@@ -235,6 +282,32 @@ class CognitiveMetricsCollector
     }
 
     /**
+     * Try to get cached metrics for a file
+     *
+     * @return array{metrics: array<string, mixed>|null, cacheItem: CacheItemInterface|null}
+     * @throws \InvalidArgumentException
+     */
+    private function getCachedMetrics(SplFileInfo $file, string $configHash, bool $useCache): array
+    {
+        if (!$useCache) {
+            return ['metrics' => null, 'cacheItem' => null];
+        }
+
+        $cacheKey = $this->generateCacheKey($file, $configHash);
+        $cacheItem = $this->cachePool->getItem($cacheKey);
+
+        if (!$cacheItem->isHit()) {
+            return ['metrics' => null, 'cacheItem' => $cacheItem];
+        }
+
+        $cachedData = $cacheItem->get();
+        $this->ignoredItems = $cachedData['ignored_items'] ?? [];
+        $this->messageBus->dispatch(new FileProcessed($file));
+
+        return ['metrics' => $cachedData['analysis_result'], 'cacheItem' => $cacheItem];
+    }
+
+    /**
      * Process a single file and parse its metrics
      *
      * @return array<string, mixed>|null
@@ -242,7 +315,10 @@ class CognitiveMetricsCollector
      */
     private function processFile(
         SplFileInfo $file,
-        int &$fileCount
+        int &$fileCount,
+        ?CacheItemInterface $cacheItem,
+        bool $useCache,
+        string $configHash
     ): ?array {
         try {
             $metrics = $this->parser->parse(
@@ -257,6 +333,11 @@ class CognitiveMetricsCollector
                 gc_collect_cycles();
             }
 
+            // Cache the result if caching is enabled
+            if ($useCache && $cacheItem !== null) {
+                $this->cacheResult($cacheItem, $file, $metrics, $configHash);
+            }
+
             $this->messageBus->dispatch(new FileProcessed($file));
 
             return $metrics;
@@ -268,30 +349,5 @@ class CognitiveMetricsCollector
 
             return null;
         }
-    }
-
-    /**
-     * Process a file and cache the metrics
-     *
-     * @param SplFileInfo $file
-     * @param int &$fileCount
-     * @param string $configHash
-     * @return array<string, mixed>|null
-     */
-    private function processAndCacheFile(
-        SplFileInfo $file,
-        int &$fileCount,
-        string $configHash
-    ): ?array {
-        $metrics = $this->processFile($file, $fileCount);
-
-        if ($metrics === null) {
-            return null;
-        }
-
-        // Cache the metrics
-        $this->cacheStrategy->cacheMetrics($file, $metrics, $configHash, $this->ignoredItems);
-
-        return $metrics;
     }
 }
