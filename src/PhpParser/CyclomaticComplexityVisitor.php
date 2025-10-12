@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\PhpParser;
 
+use Phauthentic\CognitiveCodeAnalysis\Business\CyclomaticComplexity\CyclomaticComplexityCalculatorInterface;
 use PhpParser\Node;
 use PhpParser\NodeVisitorAbstract;
 
@@ -15,8 +16,7 @@ use PhpParser\NodeVisitorAbstract;
  * - +1 for each decision point (if, while, for, foreach, switch case, catch, etc.)
  * - +1 for each logical operator (&&, ||, and, or, xor)
  *
- * @SuppressWarnings(TooManyFields)
- * @SuppressWarnings(ExcessiveClassComplexity)
+ * @SuppressWarnings("PHPMD")
  */
 class CyclomaticComplexityVisitor extends NodeVisitorAbstract
 {
@@ -31,7 +31,7 @@ class CyclomaticComplexityVisitor extends NodeVisitorAbstract
     private array $methodComplexity = [];
 
     /**
-     * @var array<string, array> Detailed breakdown of complexity factors per method
+     * @var array<string, array<string, int>> Detailed breakdown of complexity factors per method
      */
     private array $methodComplexityBreakdown = [];
 
@@ -48,6 +48,11 @@ class CyclomaticComplexityVisitor extends NodeVisitorAbstract
      * @var AnnotationVisitor|null The annotation visitor to check for ignored items
      */
     private ?AnnotationVisitor $annotationVisitor = null;
+
+    /**
+     * @var CyclomaticComplexityCalculatorInterface The calculator for cyclomatic complexity
+     */
+    private CyclomaticComplexityCalculatorInterface $calculator;
 
     // Complexity counters for the current method
     private int $currentMethodComplexity = 1; // Base complexity
@@ -66,6 +71,16 @@ class CyclomaticComplexityVisitor extends NodeVisitorAbstract
     private int $logicalOrCount = 0;
     private int $logicalXorCount = 0;
     private int $ternaryCount = 0;
+
+    /**
+     * Constructor for CyclomaticComplexityVisitor.
+     *
+     * @param CyclomaticComplexityCalculatorInterface $calculator The calculator for cyclomatic complexity
+     */
+    public function __construct(CyclomaticComplexityCalculatorInterface $calculator)
+    {
+        $this->calculator = $calculator;
+    }
 
     /**
      * Set the annotation visitor to check for ignored items.
@@ -311,13 +326,8 @@ class CyclomaticComplexityVisitor extends NodeVisitorAbstract
 
         $methodKey = "{$this->currentClassName}::{$this->currentMethod}";
 
-        // Store method complexity
-        $this->methodComplexity[$methodKey] = $this->currentMethodComplexity;
-
-        // Store detailed breakdown
-        $this->methodComplexityBreakdown[$methodKey] = [
-            'total' => $this->currentMethodComplexity,
-            'base' => 1,
+        // Create decision point counts array
+        $decisionPointCounts = [
             'if' => $this->ifCount,
             'elseif' => $this->elseIfCount,
             'else' => $this->elseCount,
@@ -334,6 +344,15 @@ class CyclomaticComplexityVisitor extends NodeVisitorAbstract
             'logical_xor' => $this->logicalXorCount,
             'ternary' => $this->ternaryCount,
         ];
+
+        // Calculate complexity using calculator
+        $this->currentMethodComplexity = $this->calculator->calculateComplexity($decisionPointCounts);
+
+        // Store method complexity
+        $this->methodComplexity[$methodKey] = $this->currentMethodComplexity;
+
+        // Store detailed breakdown using calculator
+        $this->methodComplexityBreakdown[$methodKey] = $this->calculator->createBreakdown($decisionPointCounts, $this->currentMethodComplexity);
 
         // Add method complexity to class complexity
         if (isset($this->classComplexity[$this->currentClassName])) {
@@ -394,60 +413,10 @@ class CyclomaticComplexityVisitor extends NodeVisitorAbstract
     /**
      * Get complexity summary with risk levels.
      *
-     * @return array<string, array> Summary with risk assessment
+     * @return array<string, mixed> Summary with risk assessment
      */
     public function getComplexitySummary(): array
     {
-        $summary = [
-            'classes' => [],
-            'methods' => [],
-            'high_risk_methods' => [],
-            'very_high_risk_methods' => [],
-        ];
-
-        // Class summary
-        foreach ($this->classComplexity as $className => $complexity) {
-            $summary['classes'][$className] = [
-                'complexity' => $complexity,
-                'risk_level' => $this->getRiskLevel($complexity),
-            ];
-        }
-
-        // Method summary
-        foreach ($this->methodComplexity as $methodKey => $complexity) {
-            $riskLevel = $this->getRiskLevel($complexity);
-            $summary['methods'][$methodKey] = [
-                'complexity' => $complexity,
-                'risk_level' => $riskLevel,
-                'breakdown' => $this->methodComplexityBreakdown[$methodKey] ?? [],
-            ];
-
-            if ($complexity >= 10) {
-                $summary['high_risk_methods'][$methodKey] = $complexity;
-            }
-            if ($complexity < 15) {
-                continue;
-            }
-
-            $summary['very_high_risk_methods'][$methodKey] = $complexity;
-        }
-
-        return $summary;
-    }
-
-    /**
-     * Determine risk level based on complexity.
-     *
-     * @param int $complexity The cyclomatic complexity value
-     * @return string Risk level: 'low', 'medium', 'high', 'very_high'
-     */
-    private function getRiskLevel(int $complexity): string
-    {
-        return match (true) {
-            $complexity <= 5 => 'low',
-            $complexity <= 10 => 'medium',
-            $complexity <= 15 => 'high',
-            default => 'very_high',
-        };
+        return $this->calculator->createSummary($this->classComplexity, $this->methodComplexity, $this->methodComplexityBreakdown);
     }
 }
