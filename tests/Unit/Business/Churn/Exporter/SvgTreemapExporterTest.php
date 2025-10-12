@@ -7,9 +7,6 @@ namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Churn\Exporter;
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Exporter\SvgTreemapExporter;
 use PHPUnit\Framework\Attributes\Test;
 
-/**
- *
- */
 class SvgTreemapExporterTest extends AbstractExporterTestCase
 {
     protected function setUp(): void

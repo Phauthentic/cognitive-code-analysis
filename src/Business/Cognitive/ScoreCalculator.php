@@ -6,9 +6,6 @@ namespace Phauthentic\CognitiveCodeAnalysis\Business\Cognitive;
 
 use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
 
-/**
- *
- */
 class ScoreCalculator
 {
     /**
@@ -39,11 +36,6 @@ class ScoreCalculator
         'ElseCount' => 'elseCount',
     ];
 
-    /**
-     * @param CognitiveMetrics $metrics
-     * @param CognitiveConfig $config
-     * @return void
-     */
     public function calculate(CognitiveMetrics $metrics, CognitiveConfig $config): void
     {
         $this->calculateMetricWeights($this->metricTypes, $metrics, $config);
@@ -67,8 +59,11 @@ class ScoreCalculator
      * @param CognitiveConfig $config
      * @return void
      */
-    private function calculateMetricWeights(array $metricTypes, CognitiveMetrics $metrics, CognitiveConfig $config): void
-    {
+    private function calculateMetricWeights(
+        array $metricTypes,
+        CognitiveMetrics $metrics,
+        CognitiveConfig $config
+    ): void {
         $metricConfigs = $config->metrics;
 
         foreach ($metricTypes as $methodSuffix => $configKey) {

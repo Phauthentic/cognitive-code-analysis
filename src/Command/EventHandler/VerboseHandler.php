@@ -10,9 +10,6 @@ use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-/**
- *
- */
 class VerboseHandler
 {
     private float $startTime = 0.0;
@@ -33,12 +30,14 @@ class VerboseHandler
             $this->startTime = microtime(true);
         }
 
-        if ($event instanceof FileProcessed) {
-            $runtime = (microtime(true) - $this->startTime);
-
-            $this->output->writeln('Processed ' . $event->file->getRealPath());
-            $this->output->writeln(' Memory: ' . $this->formatBytes(memory_get_usage(true)) . ' || Total Time: ' . round($runtime, 4) . 's');
+        if (!($event instanceof FileProcessed)) {
+            return;
         }
+
+        $runtime = (microtime(true) - $this->startTime);
+
+        $this->output->writeln('Processed ' . $event->file->getRealPath());
+        $this->output->writeln(' Memory: ' . $this->formatBytes(memory_get_usage(true)) . ' || Total Time: ' . round($runtime, 4) . 's');
     }
 
     /**
@@ -60,9 +59,6 @@ class VerboseHandler
         return round($size, 2) . ' ' . $units[$index];
     }
 
-    /**
-     * @return bool
-     */
     public function isDebugEnabled(): bool
     {
         return $this->input->hasOption(CognitiveMetricsCommand::OPTION_DEBUG)

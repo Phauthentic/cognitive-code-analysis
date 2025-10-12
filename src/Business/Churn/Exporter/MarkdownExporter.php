@@ -7,7 +7,6 @@ namespace Phauthentic\CognitiveCodeAnalysis\Business\Churn\Exporter;
 use Phauthentic\CognitiveCodeAnalysis\Business\Exporter\MarkdownFormatterTrait;
 use Phauthentic\CognitiveCodeAnalysis\Business\Traits\CoverageDataDetector;
 use Phauthentic\CognitiveCodeAnalysis\Business\Utility\Datetime;
-use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 
 /**
  * MarkdownExporter for Churn metrics.
@@ -43,7 +42,7 @@ class MarkdownExporter extends AbstractExporter
     /**
      * @param array<string, array<string, mixed>> $classes
      * @param string $filename
-     * @throws CognitiveAnalysisException
+     * @throws \Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException
      */
     public function export(array $classes, string $filename): void
     {

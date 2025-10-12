@@ -12,9 +12,6 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Config\Definition\Processor;
 
-/**
- *
- */
 class ScoreCalculatorTest extends TestCase
 {
     private ScoreCalculator $scoreCalculator;

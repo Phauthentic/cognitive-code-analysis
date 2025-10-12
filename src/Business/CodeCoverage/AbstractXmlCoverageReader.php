@@ -54,9 +54,11 @@ abstract class AbstractXmlCoverageReader implements CoverageReportReaderInterfac
         }
 
         foreach ($classes as $class) {
-            if ($class instanceof DOMElement) {
-                $fqcns[] = $class->getAttribute('name');
+            if (!($class instanceof DOMElement)) {
+                continue;
             }
+
+            $fqcns[] = $class->getAttribute('name');
         }
 
         return $fqcns;

@@ -169,20 +169,22 @@ class CloverReader extends AbstractXmlCoverageReader
         }
 
         foreach ($methodLines as $methodLine) {
-            if ($methodLine instanceof DOMElement) {
-                $methodName = $methodLine->getAttribute('name');
-                $complexity = (int)$methodLine->getAttribute('complexity');
-
-                // Calculate coverage for this method by looking at subsequent statement lines
-                $methodCoverage = $this->calculateMethodCoverage($fileNode, $methodLine);
-
-                $methods[$methodName] = new MethodCoverage(
-                    name: $methodName,
-                    lineRate: $methodCoverage,
-                    branchRate: 0.0, // Clover doesn't provide per-method branch coverage
-                    complexity: $complexity,
-                );
+            if (!($methodLine instanceof DOMElement)) {
+                continue;
             }
+
+            $methodName = $methodLine->getAttribute('name');
+            $complexity = (int)$methodLine->getAttribute('complexity');
+
+            // Calculate coverage for this method by looking at subsequent statement lines
+            $methodCoverage = $this->calculateMethodCoverage($fileNode, $methodLine);
+
+            $methods[$methodName] = new MethodCoverage(
+                name: $methodName,
+                lineRate: $methodCoverage,
+                branchRate: 0.0, // Clover doesn't provide per-method branch coverage
+                complexity: $complexity,
+            );
         }
 
         return $methods;
@@ -235,12 +237,16 @@ class CloverReader extends AbstractXmlCoverageReader
                 break;
             }
 
-            if ($this->isMethodStatement($inMethod, $type)) {
-                $statements++;
-                if ($this->isStatementCovered($line)) {
-                    $coveredStatements++;
-                }
+            if (!$this->isMethodStatement($inMethod, $type)) {
+                continue;
             }
+
+            $statements++;
+            if (!$this->isStatementCovered($line)) {
+                continue;
+            }
+
+            $coveredStatements++;
         }
 
         return [

@@ -185,10 +185,12 @@ class CognitiveMetricsCommand extends Command
     private function handleBaseLine(InputInterface $input, CognitiveMetricsCollection $metricsCollection): void
     {
         $baselineFile = $input->getOption(self::OPTION_BASELINE);
-        if ($baselineFile) {
-            $baseline = $this->baselineService->loadBaseline($baselineFile);
-            $this->baselineService->calculateDeltas($metricsCollection, $baseline);
+        if (!$baselineFile) {
+            return;
         }
+
+        $baseline = $this->baselineService->loadBaseline($baselineFile);
+        $this->baselineService->calculateDeltas($metricsCollection, $baseline);
     }
 
     /**
@@ -196,8 +198,10 @@ class CognitiveMetricsCommand extends Command
      *
      * @return CoverageReportReaderInterface|null|false Returns reader, null if no coverage, or false on error
      */
-    private function handleCoverageOptions(InputInterface $input, OutputInterface $output): CoverageReportReaderInterface|null|false
-    {
+    private function handleCoverageOptions(
+        InputInterface $input,
+        OutputInterface $output
+    ): CoverageReportReaderInterface|null|false {
         $coberturaFile = $input->getOption(self::OPTION_COVERAGE_COBERTURA);
         $cloverFile = $input->getOption(self::OPTION_COVERAGE_CLOVER);
 

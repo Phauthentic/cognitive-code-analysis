@@ -8,9 +8,6 @@ use PhpParser\ParserFactory;
 use PhpParser\NodeTraverser;
 use PHPUnit\Framework\TestCase;
 
-/**
- *
- */
 class HalsteadMetricsVisitorTest extends TestCase
 {
     public function testHalsteadMetricsCalculation(): void

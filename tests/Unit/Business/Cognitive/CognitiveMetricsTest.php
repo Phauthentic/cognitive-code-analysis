@@ -9,9 +9,6 @@ use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Delta;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
-/**
- *
- */
 class CognitiveMetricsTest extends TestCase
 {
     private array $testMetricsData;

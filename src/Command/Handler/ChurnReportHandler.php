@@ -10,9 +10,6 @@ use Phauthentic\CognitiveCodeAnalysis\Business\MetricsFacade;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Output\OutputInterface;
 
-/**
- *
- */
 class ChurnReportHandler
 {
     private ChurnExporterFactory $exporterFactory;
@@ -70,10 +67,6 @@ class ChurnReportHandler
         return $this->exporterFactory->isSupported($reportType);
     }
 
-    /**
-     * @param Exception $exception
-     * @return int
-     */
     private function handleExceptions(Exception $exception): int
     {
         $this->output->writeln(sprintf(
@@ -84,10 +77,6 @@ class ChurnReportHandler
         return Command::FAILURE;
     }
 
-    /**
-     * @param string|null $reportType
-     * @return int
-     */
     private function handleInvalidReportType(?string $reportType): int
     {
         $supportedTypes = implode('`, `', $this->exporterFactory->getSupportedTypes());

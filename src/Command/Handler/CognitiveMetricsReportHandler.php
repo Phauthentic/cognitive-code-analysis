@@ -59,10 +59,6 @@ class CognitiveMetricsReportHandler
         return in_array($reportType, ['json', 'csv', 'html', 'markdown']);
     }
 
-    /**
-     * @param Exception $exception
-     * @return int
-     */
     private function handleExceptions(Exception $exception): int
     {
         $this->output->writeln(sprintf(
@@ -73,10 +69,6 @@ class CognitiveMetricsReportHandler
         return Command::FAILURE;
     }
 
-    /**
-     * @param string|null $reportType
-     * @return int
-     */
     public function handleInvalidReporType(?string $reportType): int
     {
         $this->output->writeln(sprintf(
