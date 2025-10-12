@@ -7,8 +7,10 @@ namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Churn\Exporter;
 use InvalidArgumentException;
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report\ChurnReportFactory;
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report\ReportGeneratorInterface;
+use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\MockObject\Exception;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\MockObject\MockObject;
 use Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Churn\Exporter\TestCognitiveConfig;
@@ -18,6 +20,9 @@ use Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Churn\Exporter\TestCog
  */
 class ChurnExporterFactoryCustomTest extends TestCase
 {
+    /**
+     * @throws Exception
+     */
     private function createMockConfigService(array $customExporters = []): ConfigService&MockObject
     {
         // Create TestCognitiveConfig with the custom exporters
@@ -28,6 +33,7 @@ class ChurnExporterFactoryCustomTest extends TestCase
 
         return $configService;
     }
+
     #[Test]
     public function testCreateBuiltInExporter(): void
     {
@@ -197,7 +203,7 @@ PHP;
 
             $factory = new ChurnReportFactory($this->createMockConfigService($customExporters));
 
-            $this->expectException(\Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException::class);
+            $this->expectException(CognitiveAnalysisException::class);
             $this->expectExceptionMessage('Exporter must implement Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report\ReportGeneratorInterface');
 
             $factory->create('invalid');
@@ -218,7 +224,7 @@ PHP;
 
         $factory = new ChurnReportFactory($this->createMockConfigService($customExporters));
 
-        $this->expectException(\Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException::class);
+        $this->expectException(CognitiveAnalysisException::class);
         $this->expectExceptionMessage('Exporter file not found: /non/existent/file.php');
 
         $factory->create('missing');
