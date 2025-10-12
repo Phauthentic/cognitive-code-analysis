@@ -156,7 +156,7 @@ class CognitiveMetricsCommandTest extends TestCase
         ]);
 
         $this->assertEquals(Command::FAILURE, $tester->getStatusCode(), 'Command should fail with invalid sort field');
-        $this->assertStringContainsString('Sorting error', $tester->getDisplay());
+        $this->assertStringContainsString('Invalid sort field "invalid-field"', $tester->getDisplay());
     }
 
     #[Test]
@@ -173,7 +173,7 @@ class CognitiveMetricsCommandTest extends TestCase
         ]);
 
         $this->assertEquals(Command::FAILURE, $tester->getStatusCode(), 'Command should fail with invalid sort order');
-        $this->assertStringContainsString('Sorting error', $tester->getDisplay());
+        $this->assertStringContainsString('Sort order must be "asc" or "desc", got "invalid"', $tester->getDisplay());
     }
 
     public function testOutputWithoutOptions(): void

@@ -14,6 +14,13 @@ use Phauthentic\CognitiveCodeAnalysis\Business\MetricsFacade;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 use Phauthentic\CognitiveCodeAnalysis\Command\Handler\CognitiveMetricsReportHandler;
 use Phauthentic\CognitiveCodeAnalysis\Command\Presentation\CognitiveMetricTextRendererInterface;
+use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\CognitiveMetricsCommandContext;
+use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\CompositeCognitiveMetricsValidationSpecification;
+use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\CoverageFileExistsSpecification;
+use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\CoverageFormatExclusivitySpecification;
+use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\CoverageFormatSupportedSpecification;
+use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\SortFieldValidSpecification;
+use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\SortOrderValidSpecification;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -40,6 +47,8 @@ class CognitiveMetricsCommand extends Command
     public const OPTION_COVERAGE_CLOVER = 'coverage-clover';
     private const ARGUMENT_PATH = 'path';
 
+    private CompositeCognitiveMetricsValidationSpecification $validationSpecification;
+
     public function __construct(
         readonly private MetricsFacade $metricsFacade,
         readonly private CognitiveMetricTextRendererInterface $renderer,
@@ -49,6 +58,18 @@ class CognitiveMetricsCommand extends Command
         readonly private CodeCoverageFactory $coverageFactory
     ) {
         parent::__construct();
+        $this->initializeValidationSpecification();
+    }
+
+    private function initializeValidationSpecification(): void
+    {
+        $this->validationSpecification = new CompositeCognitiveMetricsValidationSpecification([
+            new CoverageFormatExclusivitySpecification(),
+            new CoverageFileExistsSpecification(),
+            new CoverageFormatSupportedSpecification(),
+            new SortFieldValidSpecification(),
+            new SortOrderValidSpecification(),
+        ]);
     }
 
     /**
@@ -126,95 +147,66 @@ class CognitiveMetricsCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $pathInput = $input->getArgument(self::ARGUMENT_PATH);
-        $paths = $this->parsePaths($pathInput);
+        $context = new CognitiveMetricsCommandContext($input);
 
-        $configFile = $input->getOption(self::OPTION_CONFIG_FILE);
-        if ($configFile && !$this->loadConfiguration($configFile, $output)) {
+        // Validate all specifications
+        if (!$this->validationSpecification->isSatisfiedBy($context)) {
+            $errorMessage = $this->validationSpecification->getDetailedErrorMessage($context);
+            $output->writeln('<error>' . $errorMessage . '</error>');
             return Command::FAILURE;
         }
 
-        $coverageReader = $this->handleCoverageOptions($input, $output);
+        $paths = $context->getPaths();
+
+        // Load configuration if provided
+        if ($context->hasConfigFile()) {
+            $configFile = $context->getConfigFile();
+            if ($configFile !== null && !$this->loadConfiguration($configFile, $output)) {
+                return Command::FAILURE;
+            }
+        }
+
+        // Load coverage reader
+        $coverageReader = $this->loadCoverageReader($context, $output);
         if ($coverageReader === false) {
             return Command::FAILURE;
         }
 
         $metricsCollection = $this->metricsFacade->getCognitiveMetricsFromPaths($paths, $coverageReader);
 
-        $this->handleBaseLine($input, $metricsCollection);
+        $this->handleBaseLine($context, $metricsCollection);
 
-        $sortResult = $this->applySorting($input, $output, $metricsCollection);
+        $sortResult = $this->applySorting($context, $output, $metricsCollection);
         if ($sortResult['status'] === Command::FAILURE) {
             return Command::FAILURE;
         }
         $metricsCollection = $sortResult['collection'];
 
-        $reportType = $input->getOption(self::OPTION_REPORT_TYPE);
-        $reportFile = $input->getOption(self::OPTION_REPORT_FILE);
-
-        if ($reportType !== null || $reportFile !== null) {
-            return $this->reportHandler->handle($metricsCollection, $reportType, $reportFile);
+        // Handle report generation or display
+        if ($context->hasReportOptions()) {
+            return $this->reportHandler->handle($metricsCollection, $context->getReportType(), $context->getReportFile());
         }
 
         $this->renderer->render($metricsCollection, $output);
-
         return Command::SUCCESS;
-    }
-
-    /**
-     * Parses the path input to handle both single paths and comma-separated multiple paths.
-     *
-     * @param string $pathInput The input path(s) from the command argument
-     * @return array<string> Array of paths to process
-     */
-    private function parsePaths(string $pathInput): array
-    {
-        $paths = array_map('trim', explode(',', $pathInput));
-        return array_filter($paths, function ($path) {
-            return !empty($path);
-        });
     }
 
     /**
      * Handles the baseline option and loads the baseline file if provided.
      *
-     * @param InputInterface $input
+     * @param CognitiveMetricsCommandContext $context
      * @param CognitiveMetricsCollection $metricsCollection
      * @throws Exception
      */
-    private function handleBaseLine(InputInterface $input, CognitiveMetricsCollection $metricsCollection): void
+    private function handleBaseLine(CognitiveMetricsCommandContext $context, CognitiveMetricsCollection $metricsCollection): void
     {
-        $baselineFile = $input->getOption(self::OPTION_BASELINE);
-        if ($baselineFile) {
-            $baseline = $this->baselineService->loadBaseline($baselineFile);
-            $this->baselineService->calculateDeltas($metricsCollection, $baseline);
+        if ($context->hasBaselineFile()) {
+            $baselineFile = $context->getBaselineFile();
+            if ($baselineFile !== null) {
+                $baseline = $this->baselineService->loadBaseline($baselineFile);
+                $this->baselineService->calculateDeltas($metricsCollection, $baseline);
+            }
         }
-    }
-
-    /**
-     * Handle coverage options and return coverage reader
-     *
-     * @return CoverageReportReaderInterface|null|false Returns reader, null if no coverage, or false on error
-     */
-    private function handleCoverageOptions(InputInterface $input, OutputInterface $output): CoverageReportReaderInterface|null|false
-    {
-        $coberturaFile = $input->getOption(self::OPTION_COVERAGE_COBERTURA);
-        $cloverFile = $input->getOption(self::OPTION_COVERAGE_CLOVER);
-
-        // Validate that only one coverage option is specified
-        if ($coberturaFile !== null && $cloverFile !== null) {
-            $output->writeln('<error>Only one coverage format can be specified at a time.</error>');
-            return false;
-        }
-
-        $coverageFile = $coberturaFile ?? $cloverFile;
-        $coverageFormat = $coberturaFile !== null ? 'cobertura' : ($cloverFile !== null ? 'clover' : null);
-
-        if (!$this->coverageFileExists($coverageFile, $output)) {
-            return false;
-        }
-
-        return $this->loadCoverageReader($coverageFile, $coverageFormat, $output);
     }
 
     /**
@@ -223,12 +215,12 @@ class CognitiveMetricsCommand extends Command
      * @return array{status: int, collection: CognitiveMetricsCollection}
      */
     private function applySorting(
-        InputInterface $input,
+        CognitiveMetricsCommandContext $context,
         OutputInterface $output,
         CognitiveMetricsCollection $metricsCollection
     ): array {
-        $sortBy = $input->getOption(self::OPTION_SORT_BY);
-        $sortOrder = $input->getOption(self::OPTION_SORT_ORDER);
+        $sortBy = $context->getSortBy();
+        $sortOrder = $context->getSortOrder();
 
         if ($sortBy === null) {
             return ['status' => Command::SUCCESS, 'collection' => $metricsCollection];
@@ -265,16 +257,17 @@ class CognitiveMetricsCommand extends Command
     /**
      * Load coverage reader from file
      *
-     * @param string|null $coverageFile Path to coverage file or null
-     * @param string|null $format Coverage format ('cobertura', 'clover') or null for auto-detect
+     * @param CognitiveMetricsCommandContext $context Command context containing coverage file information
      * @param OutputInterface $output Output interface for error messages
      * @return CoverageReportReaderInterface|null|false Returns reader instance, null if no file provided, or false on error
      */
     private function loadCoverageReader(
-        ?string $coverageFile,
-        ?string $format,
+        CognitiveMetricsCommandContext $context,
         OutputInterface $output
     ): CoverageReportReaderInterface|null|false {
+        $coverageFile = $context->getCoverageFile();
+        $format = $context->getCoverageFormat();
+
         if ($coverageFile === null) {
             return null;
         }
@@ -320,26 +313,5 @@ class CognitiveMetricsCommand extends Command
         }
 
         return null;
-    }
-
-    private function coverageFileExists(?string $coverageFile, OutputInterface $output): bool
-    {
-        // If no coverage file is provided, validation passes (backward compatibility)
-        if ($coverageFile === null) {
-            return true;
-        }
-
-        // If coverage file is provided, check if it exists
-        if (file_exists($coverageFile)) {
-            return true;
-        }
-
-        // Coverage file was provided but doesn't exist - show error
-        $output->writeln(sprintf(
-            '<error>Coverage file not found: %s</error>',
-            $coverageFile
-        ));
-
-        return false;
     }
 }

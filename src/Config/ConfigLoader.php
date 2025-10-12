@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phauthentic\CognitiveCodeAnalysis\Config;
 
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\MetricNames;
+use PhpBench\Benchmark\Metadata\Annotations\Subject;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 
@@ -70,6 +71,9 @@ class ConfigLoader implements ConfigurationInterface
         ];
     }
 
+    /**
+     * @SuppressWarnings("ExcessiveMethodLength")
+     */
     public function getConfigTreeBuilder(): TreeBuilder
     {
         $treeBuilder = new TreeBuilder('config');
@@ -156,6 +160,9 @@ class ConfigLoader implements ConfigurationInterface
                                             ->end()
                                             ->scalarNode('file')
                                                 ->defaultValue(null)
+                                            ->end()
+                                            ->booleanNode('requiresConfig')
+                                                ->defaultValue(false)
                                             ->end()
                                         ->end()
                                     ->end()

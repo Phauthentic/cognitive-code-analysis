@@ -63,11 +63,13 @@ class ChurnReportFactory implements ChurnReportFactoryInterface
      */
     private function createCustomExporter(array $config): ReportGeneratorInterface
     {
+        $cognitiveConfig = $this->configService->getConfig();
+
         $this->registry->loadExporter($config['class'], $config['file'] ?? null);
         $exporter = $this->registry->instantiate(
             $config['class'],
-            false, // Churn exporters don't need config
-            null
+            $config['requiresConfig'] ?? false,
+            $cognitiveConfig
         );
         $this->registry->validateInterface($exporter, ReportGeneratorInterface::class);
 
