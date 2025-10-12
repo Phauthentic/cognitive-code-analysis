@@ -7,12 +7,10 @@ namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Churn\Exporter;
 use InvalidArgumentException;
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report\ChurnReportFactory;
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report\ReportGeneratorInterface;
-use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
 use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\MockObject\MockObject;
-use ReflectionClass;
 use Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Churn\Exporter\TestCognitiveConfig;
 
 /**
@@ -22,14 +20,8 @@ class ChurnExporterFactoryCustomTest extends TestCase
 {
     private function createMockConfigService(array $customExporters = []): ConfigService&MockObject
     {
-        // Create a mock that allows property access by using reflection
-        $config = $this->createMock(CognitiveConfig::class);
-
-        // Use reflection to set the readonly property
-        $reflection = new ReflectionClass($config);
-        $property = $reflection->getProperty('customExporters');
-        $property->setAccessible(true);
-        $property->setValue($config, ['churn' => $customExporters]);
+        // Create TestCognitiveConfig with the custom exporters
+        $config = new TestCognitiveConfig(customExporters: ['churn' => $customExporters]);
 
         $configService = $this->createMock(ConfigService::class);
         $configService->method('getConfig')->willReturn($config);
