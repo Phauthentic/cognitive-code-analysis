@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\PhpParser;
 
+use Phauthentic\CognitiveCodeAnalysis\Business\CyclomaticComplexity\CyclomaticComplexityCalculator;
+use Phauthentic\CognitiveCodeAnalysis\PhpParser\CyclomaticComplexityVisitor;
 use PhpParser\ParserFactory;
 use PhpParser\NodeTraverser;
 use PHPUnit\Framework\TestCase;
@@ -35,7 +37,8 @@ class CyclomaticComplexityVisitorTest extends TestCase
         $parser = (new ParserFactory())->createForHostVersion();
         $ast = $parser->parse($code);
         $traverser = new NodeTraverser();
-        $visitor = new \Phauthentic\CognitiveCodeAnalysis\PhpParser\CyclomaticComplexityVisitor();
+        $calculator = new CyclomaticComplexityCalculator();
+        $visitor = new CyclomaticComplexityVisitor($calculator);
         $traverser->addVisitor($visitor);
         $traverser->traverse($ast);
         $classKey = '\\MyNamespace\\MyClass';
