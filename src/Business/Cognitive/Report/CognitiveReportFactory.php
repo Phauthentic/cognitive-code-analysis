@@ -66,7 +66,6 @@ class CognitiveReportFactory implements CognitiveReportFactoryInterface
         $this->registry->loadExporter($config['class'], $config['file'] ?? null);
         $exporter = $this->registry->instantiate(
             $config['class'],
-            $config['requiresConfig'] ?? false,
             $cognitiveConfig
         );
         $this->registry->validateInterface($exporter, ReportGeneratorInterface::class);

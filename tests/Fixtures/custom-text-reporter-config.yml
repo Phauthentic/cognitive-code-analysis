@@ -17,4 +17,3 @@ cognitive:
       customtext:
         class: 'Tests\Fixtures\CustomReporters\CustomTextReporter'
         file: 'tests/Fixtures/CustomReporters/CustomTextReporter.php'
-        requiresConfig: false

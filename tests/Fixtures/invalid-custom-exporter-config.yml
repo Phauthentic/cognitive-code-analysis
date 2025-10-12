@@ -17,4 +17,3 @@ cognitive:
       invalid:
         class: 'NonExistent\Exporter'
         file: null
-        requiresConfig: false

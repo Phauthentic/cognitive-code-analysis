@@ -81,7 +81,6 @@ PHP;
     {
         $exporter = $this->registry->instantiate(
             'Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report\JsonReport',
-            false,
             null
         );
 
@@ -101,7 +100,6 @@ PHP;
 
         $exporter = $this->registry->instantiate(
             'Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report\MarkdownReport',
-            true,
             $config
         );
 

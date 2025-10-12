@@ -96,7 +96,6 @@ PHP;
                 'custom' => [
                     'class' => 'TestCustomCognitive\CustomCognitiveExporter',
                     'file' => $tempFile,
-                    'requiresConfig' => false
                 ]
             ];
 
@@ -141,7 +140,6 @@ PHP;
                 'config' => [
                     'class' => 'TestConfigCognitive\ConfigCognitiveExporter',
                     'file' => $tempFile,
-                    'requiresConfig' => true
                 ]
             ];
 
@@ -180,7 +178,6 @@ PHP;
                 'autoloaded' => [
                     'class' => 'TestAutoloadedCognitive\AutoloadedCognitiveExporter',
                     'file' => null,
-                    'requiresConfig' => false
                 ]
             ];
 
@@ -217,7 +214,6 @@ PHP;
             'custom2' => [
                 'class' => 'TestCustom2\Exporter',
                 'file' => null,
-                'requiresConfig' => true
             ]
         ];
 
@@ -276,7 +272,6 @@ PHP;
                 'invalid' => [
                     'class' => 'TestInvalidCognitive\InvalidCognitiveExporter',
                     'file' => $tempFile,
-                    'requiresConfig' => false
                 ]
             ];
 
@@ -341,7 +336,7 @@ PHP;
                 'nullconfig' => [
                     'class' => 'TestNullConfigCognitive\NullConfigCognitiveExporter',
                     'file' => $tempFile,
-                    'requiresConfig' => false // This should create without config
+ // This should create without config
                 ]
             ];
 

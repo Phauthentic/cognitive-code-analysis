@@ -71,7 +71,6 @@ cognitive:
       pdf:  # Custom reporter name
         class: 'My\Custom\PdfReporter'
         file: '/path/to/PdfReporter.php'
-        requiresConfig: true
     churn:
       xml:  # Custom reporter name
         class: 'My\Custom\XmlChurnReporter'
@@ -82,9 +81,40 @@ cognitive:
 
 - **`class`** (required): Fully qualified class name of your reporter
 - **`file`** (optional): Path to the PHP file containing your reporter class. Set to `null` if using autoloading
-- **`requiresConfig`** (cognitive only): Whether your reporter needs the `CognitiveConfig` object in its constructor
 
-## Creating a Custom Cognitive Reporter
+## Constructor Patterns
+
+The system automatically detects whether your reporter needs the `CognitiveConfig` object:
+
+### Reporter with Config Access
+
+```php
+class PdfReporter implements ReportGeneratorInterface
+{
+    private CognitiveConfig $config;
+
+    public function __construct(CognitiveConfig $config)
+    {
+        $this->config = $config;
+    }
+    // ... rest of implementation
+}
+```
+
+### Reporter without Config
+
+```php
+class SimpleReporter implements ReportGeneratorInterface
+{
+    public function __construct()
+    {
+        // No config needed
+    }
+    // ... rest of implementation
+}
+```
+
+The system will automatically try to pass the config to your constructor. If your constructor doesn't accept it, the system will fall back to calling the constructor without arguments.
 
 Here's a complete example of a custom PDF reporter for cognitive metrics:
 
@@ -248,7 +278,7 @@ For inspiration, examine the built-in reporters:
 1. **Class not found**: Ensure the `class` parameter uses the full namespace
 2. **File not found**: Check the `file` path is correct and accessible
 3. **Interface not implemented**: Ensure your class implements the correct `ReportGeneratorInterface`
-4. **Constructor issues**: Set `requiresConfig: true` if your reporter needs `CognitiveConfig`
+4. **Constructor issues**: Your reporter can optionally accept `CognitiveConfig` in its constructor - the system will automatically detect this
 
 **Debug Tips:**
 

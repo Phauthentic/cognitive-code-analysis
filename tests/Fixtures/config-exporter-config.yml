@@ -17,4 +17,3 @@ cognitive:
       config:
         class: 'TestConfigExporter\ConfigExporter'
         file: null
-        requiresConfig: true

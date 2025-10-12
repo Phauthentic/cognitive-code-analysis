@@ -46,9 +46,7 @@ cognitive:
   #     pdf:
   #       class: 'My\Custom\PdfExporter'
   #       file: '/path/to/PdfExporter.php'
-  #       requiresConfig: true
   #   churn:
   #     xml:
   #       class: 'My\Custom\XmlChurnExporter'
   #       file: null
-  #       requiresConfig: false

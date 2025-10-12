@@ -17,4 +17,3 @@ cognitive:
       configchurn:
         class: 'Phauthentic\CognitiveCodeAnalysis\Tests\Fixtures\CustomReporters\ConfigAwareChurnTextReporter'
         file: 'tests/Fixtures/CustomReporters/ConfigAwareChurnTextReporter.php'
-        requiresConfig: true

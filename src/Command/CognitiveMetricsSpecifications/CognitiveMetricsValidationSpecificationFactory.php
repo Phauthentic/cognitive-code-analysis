@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications;
 
 /**
- * Factory for creating the composite validation specification.
+ * @SuppressWarnings("LongClassName")
  */
 class CognitiveMetricsValidationSpecificationFactory
 {

@@ -17,7 +17,6 @@ cognitive:
       test:
         class: 'Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter\JsonExporter'
         file: null
-        requiresConfig: false
     churn:
       test:
         class: 'Phauthentic\CognitiveCodeAnalysis\Business\Churn\Exporter\JsonExporter'

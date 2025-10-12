@@ -46,12 +46,10 @@ class CustomExportersConfigTest extends TestCase
                         'pdf' => [
                             'class' => 'My\Custom\PdfExporter',
                             'file' => '/path/to/PdfExporter.php',
-                            'requiresConfig' => true
                         ],
                         'xml' => [
                             'class' => 'My\Custom\XmlExporter',
                             'file' => null,
-                            'requiresConfig' => false
                         ]
                     ],
                     'churn' => [
@@ -78,11 +76,9 @@ class CustomExportersConfigTest extends TestCase
 
         $this->assertEquals('My\Custom\PdfExporter', $cognitiveExporters['pdf']['class']);
         $this->assertEquals('/path/to/PdfExporter.php', $cognitiveExporters['pdf']['file']);
-        $this->assertTrue($cognitiveExporters['pdf']['requiresConfig']);
 
         $this->assertEquals('My\Custom\XmlExporter', $cognitiveExporters['xml']['class']);
         $this->assertNull($cognitiveExporters['xml']['file']);
-        $this->assertFalse($cognitiveExporters['xml']['requiresConfig']);
 
         // Test churn exporters
         $churnExporters = $processedConfig['cognitive']['customExporters']['churn'];
@@ -120,7 +116,7 @@ class CustomExportersConfigTest extends TestCase
                     'cognitive' => [
                         'minimal' => [
                             'class' => 'My\Custom\MinimalExporter'
-                            // file and requiresConfig should default to null and false
+                            // file should default to null
                         ]
                     ]
                 ]
@@ -133,7 +129,6 @@ class CustomExportersConfigTest extends TestCase
         $this->assertArrayHasKey('minimal', $cognitiveExporters);
         $this->assertEquals('My\Custom\MinimalExporter', $cognitiveExporters['minimal']['class']);
         $this->assertNull($cognitiveExporters['minimal']['file']);
-        $this->assertFalse($cognitiveExporters['minimal']['requiresConfig']);
     }
 
     #[Test]
@@ -203,7 +198,6 @@ class CustomExportersConfigTest extends TestCase
                         'test' => [
                             'class' => 'Test\Exporter',
                             'file' => '/test/file.php',
-                            'requiresConfig' => true
                         ]
                     ],
                     'churn' => [
@@ -227,7 +221,6 @@ class CustomExportersConfigTest extends TestCase
         $this->assertArrayHasKey('test', $cognitiveExporters);
         $this->assertEquals('Test\Exporter', $cognitiveExporters['test']['class']);
         $this->assertEquals('/test/file.php', $cognitiveExporters['test']['file']);
-        $this->assertTrue($cognitiveExporters['test']['requiresConfig']);
 
         $churnExporters = $cognitiveConfig->customExporters['churn'];
         $this->assertArrayHasKey('test', $churnExporters);
@@ -296,7 +289,6 @@ class CustomExportersConfigTest extends TestCase
                         'invalid' => [
                             // Missing required 'class' field
                             'file' => '/test/file.php',
-                            'requiresConfig' => true
                         ]
                     ]
                 ]

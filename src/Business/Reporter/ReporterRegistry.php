@@ -41,16 +41,21 @@ class ReporterRegistry
      * Instantiate an exporter class with optional CognitiveConfig dependency.
      *
      * @param string $class The fully qualified class name
-     * @param bool $requiresConfig Whether the exporter needs CognitiveConfig
-     * @param CognitiveConfig|null $config The config to pass if required
+     * @param CognitiveConfig|null $config The config to pass if available
      * @return object The instantiated exporter
      */
-    public function instantiate(string $class, bool $requiresConfig, ?CognitiveConfig $config): object
+    public function instantiate(string $class, ?CognitiveConfig $config): object
     {
-        if ($requiresConfig && $config !== null) {
-            return new $class($config);
+        // Always try to pass config first, fallback to no-arg constructor if it fails
+        try {
+            if ($config !== null) {
+                return new $class($config);
+            }
+            return new $class();
+        } catch (\ArgumentCountError $e) {
+            // Constructor doesn't accept config parameter, try without it
+            return new $class();
         }
-        return new $class();
     }
 
     /**
