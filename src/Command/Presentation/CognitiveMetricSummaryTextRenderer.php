@@ -10,9 +10,6 @@ use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Output\OutputInterface;
 
-/**
- *
- */
 class CognitiveMetricSummaryTextRenderer implements CognitiveMetricTextRendererInterface
 {
     public function __construct(
@@ -24,9 +21,11 @@ class CognitiveMetricSummaryTextRenderer implements CognitiveMetricTextRendererI
     {
         $highlighted = [];
         foreach ($metricsCollection as $metric) {
-            if ($metric->getScore() > $this->configService->getConfig()->scoreThreshold) {
-                $highlighted[] = $metric;
+            if ($metric->getScore() <= $this->configService->getConfig()->scoreThreshold) {
+                continue;
             }
+
+            $highlighted[] = $metric;
         }
 
         usort(

@@ -6,15 +6,8 @@ namespace Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChangeCounter;
 
 use InvalidArgumentException;
 
-/**
- *
- */
 class ChangeCounterFactory
 {
-    /**
-     * @param string $type
-     * @return ChangeCounterInterface
-     */
     public function create(string $type): ChangeCounterInterface
     {
         return match ($type) {

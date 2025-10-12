@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Business\Cognitive;
 
+use Phauthentic\CognitiveCodeAnalysis\Business\Halstead\HalsteadMetricsCalculator;
+use Phauthentic\CognitiveCodeAnalysis\Business\CyclomaticComplexity\CyclomaticComplexityCalculator;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 use Phauthentic\CognitiveCodeAnalysis\PhpParser\AnnotationVisitor;
 use Phauthentic\CognitiveCodeAnalysis\PhpParser\CognitiveMetricsVisitor;
@@ -17,9 +19,6 @@ use PhpParser\Parser as PhpParser;
 use PhpParser\ParserFactory;
 use ReflectionClass;
 
-/**
- *
- */
 class Parser
 {
     protected PhpParser $parser;
@@ -28,6 +27,8 @@ class Parser
     protected CyclomaticComplexityVisitor $cyclomaticComplexityVisitor;
     protected HalsteadMetricsVisitor $halsteadMetricsVisitor;
     protected CombinedMetricsVisitor $combinedVisitor;
+    protected HalsteadMetricsCalculator $halsteadCalculator;
+    protected CyclomaticComplexityCalculator $cyclomaticCalculator;
 
     public function __construct(
         ParserFactory $parserFactory,
@@ -43,11 +44,13 @@ class Parser
         $this->cognitiveMetricsVisitor->setAnnotationVisitor($this->annotationVisitor);
         $this->traverser->addVisitor($this->cognitiveMetricsVisitor);
 
-        $this->cyclomaticComplexityVisitor = new CyclomaticComplexityVisitor();
+        $this->cyclomaticCalculator = new CyclomaticComplexityCalculator();
+        $this->cyclomaticComplexityVisitor = new CyclomaticComplexityVisitor($this->cyclomaticCalculator);
         $this->cyclomaticComplexityVisitor->setAnnotationVisitor($this->annotationVisitor);
         $this->traverser->addVisitor($this->cyclomaticComplexityVisitor);
 
-        $this->halsteadMetricsVisitor = new HalsteadMetricsVisitor();
+        $this->halsteadCalculator = new HalsteadMetricsCalculator();
+        $this->halsteadMetricsVisitor = new HalsteadMetricsVisitor($this->halsteadCalculator);
         $this->halsteadMetricsVisitor->setAnnotationVisitor($this->annotationVisitor);
         $this->traverser->addVisitor($this->halsteadMetricsVisitor);
 
@@ -78,21 +81,25 @@ class Parser
 
         // Add cyclomatic complexity to method metrics
         foreach ($cyclomaticMetrics as $method => $complexityData) {
-            if (isset($methodMetrics[$method])) {
-                $complexity = $complexityData['complexity'] ?? $complexityData;
-                $riskLevel = $complexityData['risk_level'] ?? $this->getRiskLevel($complexity);
-                $methodMetrics[$method]['cyclomatic_complexity'] = [
-                    'complexity' => $complexity,
-                    'risk_level' => $riskLevel
-                ];
+            if (!isset($methodMetrics[$method])) {
+                continue;
             }
+
+            $complexity = $complexityData['complexity'] ?? $complexityData;
+            $riskLevel = $complexityData['risk_level'] ?? $this->getRiskLevel($complexity);
+            $methodMetrics[$method]['cyclomatic_complexity'] = [
+                'complexity' => $complexity,
+                'risk_level' => $riskLevel
+            ];
         }
 
         // Add Halstead metrics to method metrics
         foreach ($halsteadMetrics as $method => $metrics) {
-            if (isset($methodMetrics[$method])) {
-                $methodMetrics[$method]['halstead'] = $metrics;
+            if (!isset($methodMetrics[$method])) {
+                continue;
             }
+
+            $methodMetrics[$method]['halstead'] = $metrics;
         }
 
         return $methodMetrics;

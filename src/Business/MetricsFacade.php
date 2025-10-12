@@ -13,10 +13,8 @@ use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollect
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollector;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter\CognitiveExporterFactory;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\ScoreCalculator;
-use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
 use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
-use Symfony\Component\Messenger\Exception\ExceptionInterface;
 
 /**
  * Facade class for collecting and managing code quality metrics.
@@ -66,8 +64,6 @@ class MetricsFacade
      *
      * @param string $path The file or directory path to collect metrics from.
      * @return CognitiveMetricsCollection The collected cognitive metrics.
-     * @throws CognitiveAnalysisException
-     * @throws ExceptionInterface
      */
     public function getCognitiveMetrics(string $path): CognitiveMetricsCollection
     {
@@ -86,21 +82,22 @@ class MetricsFacade
      * @param array<string> $paths Array of file or directory paths to collect metrics from.
      * @param CoverageReportReaderInterface|null $coverageReader Optional coverage reader for coverage data.
      * @return CognitiveMetricsCollection The collected cognitive metrics from all paths.
-     * @throws CognitiveAnalysisException
-     * @throws ExceptionInterface
      */
-    public function getCognitiveMetricsFromPaths(array $paths, ?CoverageReportReaderInterface $coverageReader = null): CognitiveMetricsCollection
-    {
-        $config = $this->configService->getConfig();
-
-        $metricsCollection = $this->cognitiveMetricsCollector->collectFromPaths($paths, $config);
+    public function getCognitiveMetricsFromPaths(
+        array $paths,
+        ?CoverageReportReaderInterface $coverageReader = null
+    ): CognitiveMetricsCollection {
+        $metricsCollection = $this->cognitiveMetricsCollector->collectFromPaths($paths, $this->configService->getConfig());
 
         foreach ($metricsCollection as $metric) {
             $this->scoreCalculator->calculate($metric, $this->configService->getConfig());
+
             // Add coverage data if reader is provided
-            if ($coverageReader !== null) {
-                $this->addCoverageToMetric($metric, $coverageReader);
+            if ($coverageReader === null) {
+                continue;
             }
+
+            $this->addCoverageToMetric($metric, $coverageReader);
         }
 
         return $metricsCollection;
@@ -112,8 +109,6 @@ class MetricsFacade
      * @param string $since
      * @param CoverageReportReaderInterface|null $coverageReader
      * @return array<string, array<string, mixed>>
-     * @throws CognitiveAnalysisException
-     * @throws ExceptionInterface
      */
     public function calculateChurn(
         string $path,
@@ -158,13 +153,10 @@ class MetricsFacade
         string $reportType,
         string $filename
     ): void {
-        $this->getChurnExporterFactory()
-            ->create($reportType)
-            ->export($classes, $filename);
+        $exporter = $this->getChurnExporterFactory()->create($reportType);
+        $exporter->export($classes, $filename);
     }
 
-    /**
-     */
     public function exportMetricsReport(
         CognitiveMetricsCollection $metricsCollection,
         string $reportType,
@@ -172,11 +164,6 @@ class MetricsFacade
     ): void {
         $exporter = $this->getCognitiveExporterFactory()->create($reportType);
         $exporter->export($metricsCollection, $filename);
-    }
-
-    public function clearCache(): void
-    {
-        $this->cognitiveMetricsCollector->clearCache();
     }
 
     /**
@@ -198,9 +185,11 @@ class MetricsFacade
 
         // Fall back to class-level coverage if details not available
         $coverage = $coverageReader->getLineCoverage($className);
-        if ($coverage !== null) {
-            $metric->setCoverage($coverage);
+        if ($coverage === null) {
+            return;
         }
+
+        $metric->setCoverage($coverage);
     }
 
     /**
@@ -221,5 +210,10 @@ class MetricsFacade
 
         // Fall back to class-level coverage if method not found
         $metric->setCoverage($coverageDetails->getLineRate());
+    }
+
+    public function clearCache(): void
+    {
+        $this->cognitiveMetricsCollector->clearCache();
     }
 }

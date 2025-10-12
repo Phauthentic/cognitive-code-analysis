@@ -25,9 +25,11 @@ class FileCacheTest extends TestCase
 
     protected function tearDown(): void
     {
-        if (is_dir($this->testCacheDir)) {
-            $this->removeDirectory($this->testCacheDir);
+        if (!is_dir($this->testCacheDir)) {
+            return;
         }
+
+        $this->removeDirectory($this->testCacheDir);
     }
 
     public function testConstructorCreatesCacheDirectory(): void
@@ -382,10 +384,12 @@ class FileCacheTest extends TestCase
         $result = $this->cache->save($item);
 
         // The save might succeed due to UTF-8 sanitization
-        if ($result) {
-            $retrievedItem = $this->cache->getItem($key);
-            $this->assertTrue($retrievedItem->isHit());
+        if (!$result) {
+            return;
         }
+
+        $retrievedItem = $this->cache->getItem($key);
+        $this->assertTrue($retrievedItem->isHit());
     }
 
     public function testLargeDataHandling(): void

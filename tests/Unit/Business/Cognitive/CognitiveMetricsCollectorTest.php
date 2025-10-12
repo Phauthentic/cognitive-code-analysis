@@ -8,7 +8,6 @@ use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollect
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollector;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Parser;
 use Phauthentic\CognitiveCodeAnalysis\Business\Utility\DirectoryScanner;
-use Phauthentic\CognitiveCodeAnalysis\Cache\Exception\CacheException;
 use Phauthentic\CognitiveCodeAnalysis\Cache\FileCache;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
@@ -20,12 +19,8 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Config\Definition\Processor;
 use Symfony\Component\Messenger\Envelope;
-use Symfony\Component\Messenger\Exception\ExceptionInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
 
-/**
- *
- */
 class CognitiveMetricsCollectorTest extends TestCase
 {
     private CognitiveMetricsCollector $metricsCollector;

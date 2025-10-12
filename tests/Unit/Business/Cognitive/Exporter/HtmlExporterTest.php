@@ -11,9 +11,6 @@ use Phauthentic\CognitiveCodeAnalysis\Business\Utility\Datetime;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
-/**
- *
- */
 class HtmlExporterTest extends TestCase
 {
     private HtmlExporter $csvExporter;

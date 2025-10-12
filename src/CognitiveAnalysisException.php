@@ -6,9 +6,6 @@ namespace Phauthentic\CognitiveCodeAnalysis;
 
 use Exception;
 
-/**
- *
- */
 class CognitiveAnalysisException extends Exception
 {
 }

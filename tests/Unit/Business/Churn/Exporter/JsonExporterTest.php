@@ -7,9 +7,6 @@ namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Churn\Exporter;
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Exporter\JsonExporter;
 use PHPUnit\Framework\Attributes\Test;
 
-/**
- *
- */
 class JsonExporterTest extends AbstractExporterTestCase
 {
     protected function setUp(): void

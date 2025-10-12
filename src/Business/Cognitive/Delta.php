@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Business\Cognitive;
 
-/**
- *
- */
 final class Delta
 {
     private bool $hasIncreased;

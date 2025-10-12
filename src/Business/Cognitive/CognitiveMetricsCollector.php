@@ -13,9 +13,7 @@ use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
 use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
 use Psr\Cache\CacheItemInterface;
 use Psr\Cache\CacheItemPoolInterface;
-use Psr\Cache\InvalidArgumentException;
 use SplFileInfo;
-use Symfony\Component\Messenger\Exception\ExceptionInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Throwable;
 
@@ -44,7 +42,7 @@ class CognitiveMetricsCollector
      * @param string $path
      * @param CognitiveConfig $config
      * @return CognitiveMetricsCollection
-     * @throws CognitiveAnalysisException|ExceptionInterface|InvalidArgumentException
+     * @throws \Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException|\InvalidArgumentException
      */
     public function collect(string $path, CognitiveConfig $config): CognitiveMetricsCollection
     {
@@ -57,7 +55,7 @@ class CognitiveMetricsCollector
      * @param array<string> $paths Array of paths to process
      * @param CognitiveConfig $config
      * @return CognitiveMetricsCollection Merged collection of metrics from all paths
-     * @throws CognitiveAnalysisException|ExceptionInterface|InvalidArgumentException
+     * @throws \Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException|\InvalidArgumentException
      */
     public function collectFromPaths(array $paths, CognitiveConfig $config): CognitiveMetricsCollection
     {
@@ -68,7 +66,7 @@ class CognitiveMetricsCollector
             $allFiles = array_merge($allFiles, iterator_to_array($files));
         }
 
-        $this->messageBus->dispatch(new SourceFilesFound($allFiles));
+        $this->messageBus->dispatch(new SourceFilesFound(array_values($allFiles)));
 
         return $this->findMetrics($allFiles);
     }
@@ -92,8 +90,8 @@ class CognitiveMetricsCollector
      *
      * @param iterable<SplFileInfo> $files
      * @return CognitiveMetricsCollection
-     * @throws ExceptionInterface
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     private function findMetrics(iterable $files): CognitiveMetricsCollection
     {
@@ -155,9 +153,11 @@ class CognitiveMetricsCollector
 
             $metric = new CognitiveMetrics($metricsArray);
 
-            if (!$metricsCollection->contains($metric)) {
-                $metricsCollection->add($metric);
+            if ($metricsCollection->contains($metric)) {
+                continue;
             }
+
+            $metricsCollection->add($metric);
         }
 
         return $metricsCollection;
@@ -236,8 +236,12 @@ class CognitiveMetricsCollector
      * Cache the analysis result for a file
      */
     /** @param array<string, mixed> $metrics */
-    private function cacheResult(CacheItemInterface $cacheItem, SplFileInfo $file, array $metrics, string $configHash): void
-    {
+    private function cacheResult(
+        CacheItemInterface $cacheItem,
+        SplFileInfo $file,
+        array $metrics,
+        string $configHash
+    ): void {
         $cacheItem->set([
             'version' => '1.0',
             'file_path' => $file->getRealPath(),
@@ -281,7 +285,7 @@ class CognitiveMetricsCollector
      * Try to get cached metrics for a file
      *
      * @return array{metrics: array<string, mixed>|null, cacheItem: CacheItemInterface|null}
-     * @throws InvalidArgumentException|ExceptionInterface
+     * @throws \InvalidArgumentException
      */
     private function getCachedMetrics(SplFileInfo $file, string $configHash, bool $useCache): array
     {
@@ -307,7 +311,7 @@ class CognitiveMetricsCollector
      * Process a single file and parse its metrics
      *
      * @return array<string, mixed>|null
-     * @throws ExceptionInterface
+     * @throws \InvalidArgumentException
      */
     private function processFile(
         SplFileInfo $file,

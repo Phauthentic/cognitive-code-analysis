@@ -4,17 +4,13 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter;
 
-use JsonException;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 
-/**
- *
- */
 class JsonExporter implements DataExporterInterface
 {
     /**
-     * @throws JsonException|CognitiveAnalysisException
+     * @throws \JsonException|\Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException
      */
     public function export(CognitiveMetricsCollection $metricsCollection, string $filename): void
     {

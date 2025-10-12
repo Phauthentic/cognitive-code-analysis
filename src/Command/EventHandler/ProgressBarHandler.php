@@ -9,9 +9,6 @@ use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Events\SourceFilesFound
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Helper\ProgressBar;
 
-/**
- *
- */
 class ProgressBarHandler
 {
     private ProgressBar $progressBar;
@@ -30,9 +27,11 @@ class ProgressBarHandler
             $event instanceof FileProcessed => $this->handleFileProcessed(),
         };
 
-        if ($this->processedFiles === $this->totalFiles) {
-            $this->handleAllFilesProcessed();
+        if ($this->processedFiles !== $this->totalFiles) {
+            return;
         }
+
+        $this->handleAllFilesProcessed();
     }
 
     private function handleSourceFilesFound(SourceFilesFound $event): void

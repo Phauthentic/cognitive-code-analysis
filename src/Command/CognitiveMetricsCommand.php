@@ -21,7 +21,6 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Messenger\Exception\ExceptionInterface;
 
 /**
  * Command to parse PHP files or directories and output method metrics.
@@ -143,7 +142,7 @@ class CognitiveMetricsCommand extends Command
      * @param InputInterface $input
      * @param OutputInterface $output
      * @return int Command status code.
-     * @throws Exception|ExceptionInterface|ExceptionInterface
+     * @throws \Exception
      * @SuppressWarnings("PHPMD.CyclomaticComplexity")
      * @SuppressWarnings("PHPMD.NPathComplexity")
      */
@@ -219,15 +218,17 @@ class CognitiveMetricsCommand extends Command
      *
      * @param InputInterface $input
      * @param CognitiveMetricsCollection $metricsCollection
-     * @throws Exception
+     * @throws \Exception
      */
     private function handleBaseLine(InputInterface $input, CognitiveMetricsCollection $metricsCollection): void
     {
         $baselineFile = $input->getOption(self::OPTION_BASELINE);
-        if ($baselineFile) {
-            $baseline = $this->baselineService->loadBaseline($baselineFile);
-            $this->baselineService->calculateDeltas($metricsCollection, $baseline);
+        if (!$baselineFile) {
+            return;
         }
+
+        $baseline = $this->baselineService->loadBaseline($baselineFile);
+        $this->baselineService->calculateDeltas($metricsCollection, $baseline);
     }
 
     /**
@@ -235,8 +236,10 @@ class CognitiveMetricsCommand extends Command
      *
      * @return CoverageReportReaderInterface|null|false Returns reader, null if no coverage, or false on error
      */
-    private function handleCoverageOptions(InputInterface $input, OutputInterface $output): CoverageReportReaderInterface|null|false
-    {
+    private function handleCoverageOptions(
+        InputInterface $input,
+        OutputInterface $output
+    ): CoverageReportReaderInterface|null|false {
         $coberturaFile = $input->getOption(self::OPTION_COVERAGE_COBERTURA);
         $cloverFile = $input->getOption(self::OPTION_COVERAGE_CLOVER);
 

@@ -104,9 +104,11 @@ class FileCache implements CacheItemPoolInterface
     {
         $success = true;
         foreach ($keys as $key) {
-            if (!$this->deleteItem($key)) {
-                $success = false;
+            if ($this->deleteItem($key)) {
+                continue;
             }
+
+            $success = false;
         }
         return $success;
     }
@@ -137,9 +139,11 @@ class FileCache implements CacheItemPoolInterface
     {
         $success = true;
         foreach ($this->deferred as $item) {
-            if (!$this->save($item)) {
-                $success = false;
+            if ($this->save($item)) {
+                continue;
             }
+
+            $success = false;
         }
         $this->deferred = [];
         return $success;
@@ -181,9 +185,6 @@ class FileCache implements CacheItemPoolInterface
         return $dir . '/' . $hash . '.cache';
     }
 
-    /**
-     * @return mixed|null
-     */
     private function loadCacheData(string $filePath): mixed
     {
         $content = file_get_contents($filePath);
