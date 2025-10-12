@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report;
 
-/**
- *
- */
 interface ReportGeneratorInterface
 {
     /**

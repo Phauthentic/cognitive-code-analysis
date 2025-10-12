@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications;
 
-use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsSorter;
-
 class SortFieldValidSpecification implements CognitiveMetricsCommandValidationSpecification
 {
     private const SORTABLE_FIELDS = [

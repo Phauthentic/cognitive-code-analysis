@@ -185,15 +185,21 @@ class CognitiveMetricsCommand extends Command
      * @param CognitiveMetricsCollection $metricsCollection
      * @throws Exception
      */
-    private function handleBaseLine(CognitiveMetricsCommandContext $context, CognitiveMetricsCollection $metricsCollection): void
-    {
-        if ($context->hasBaselineFile()) {
-            $baselineFile = $context->getBaselineFile();
-            if ($baselineFile !== null) {
-                $baseline = $this->baselineService->loadBaseline($baselineFile);
-                $this->baselineService->calculateDeltas($metricsCollection, $baseline);
-            }
+    private function handleBaseLine(
+        CognitiveMetricsCommandContext $context,
+        CognitiveMetricsCollection $metricsCollection
+    ): void {
+        if (!$context->hasBaselineFile()) {
+            return;
         }
+
+        $baselineFile = $context->getBaselineFile();
+        if ($baselineFile === null) {
+            return;
+        }
+
+        $baseline = $this->baselineService->loadBaseline($baselineFile);
+        $this->baselineService->calculateDeltas($metricsCollection, $baseline);
     }
 
     /**

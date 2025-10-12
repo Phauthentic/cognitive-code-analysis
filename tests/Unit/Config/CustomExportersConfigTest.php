@@ -165,12 +165,14 @@ class CustomExportersConfigTest extends TestCase
         $this->assertArrayHasKey('cognitive', $processedConfig);
 
         // customExporters might not be present if not provided
-        if (isset($processedConfig['cognitive']['customExporters'])) {
-            $this->assertArrayHasKey('cognitive', $processedConfig['cognitive']['customExporters']);
-            $this->assertArrayHasKey('churn', $processedConfig['cognitive']['customExporters']);
-            $this->assertEmpty($processedConfig['cognitive']['customExporters']['cognitive']);
-            $this->assertEmpty($processedConfig['cognitive']['customExporters']['churn']);
+        if (!isset($processedConfig['cognitive']['customExporters'])) {
+            return;
         }
+
+        $this->assertArrayHasKey('cognitive', $processedConfig['cognitive']['customExporters']);
+        $this->assertArrayHasKey('churn', $processedConfig['cognitive']['customExporters']);
+        $this->assertEmpty($processedConfig['cognitive']['customExporters']['cognitive']);
+        $this->assertEmpty($processedConfig['cognitive']['customExporters']['churn']);
     }
 
     #[Test]

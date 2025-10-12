@@ -74,9 +74,11 @@ class ConfigAwareTextReporter implements ReportGeneratorInterface
             $totalMethods++;
             $totalScore += $metric->getScore();
 
-            if ($isAboveThreshold) {
-                $methodsAboveThreshold++;
+            if (!$isAboveThreshold) {
+                continue;
             }
+
+            $methodsAboveThreshold++;
         }
 
         $content .= "\n===============================================\n";

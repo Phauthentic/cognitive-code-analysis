@@ -10,7 +10,6 @@ use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report\ReportGeneratorInter
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
 use PHPUnit\Framework\Attributes\Test;
-use PHPUnit\Framework\MockObject\Exception;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\MockObject\MockObject;
 use Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Churn\Report\TestCognitiveConfig;

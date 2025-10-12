@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Tests\Command\CognitiveMetricsSpecifications;
 
-use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsCommand;
 use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\CognitiveMetricsCommandContext;
 use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\CoverageFormatExclusivitySpecification;
 use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\CoverageFileExistsSpecification;

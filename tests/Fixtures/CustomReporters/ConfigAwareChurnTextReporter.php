@@ -44,9 +44,11 @@ class ConfigAwareChurnTextReporter implements ReportGeneratorInterface
 
         $totalMethods = 0;
         foreach ($classes as $classData) {
-            if (isset($classData['methods'])) {
-                $totalMethods += count($classData['methods']);
+            if (!isset($classData['methods'])) {
+                continue;
             }
+
+            $totalMethods += count($classData['methods']);
         }
         $output .= "Total Methods: " . $totalMethods . "\n\n";
 

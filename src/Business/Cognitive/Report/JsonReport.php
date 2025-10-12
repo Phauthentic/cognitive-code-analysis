@@ -7,9 +7,6 @@ namespace Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 
-/**
- *
- */
 class JsonReport implements ReportGeneratorInterface
 {
     /**

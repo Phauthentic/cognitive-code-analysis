@@ -32,8 +32,9 @@ class CompositeCognitiveMetricsValidationSpecification implements CognitiveMetri
         return 'Validation failed';
     }
 
-    public function getFirstFailedSpecification(CognitiveMetricsCommandContext $context): ?CognitiveMetricsCommandValidationSpecification
-    {
+    public function getFirstFailedSpecification(
+        CognitiveMetricsCommandContext $context
+    ): ?CognitiveMetricsCommandValidationSpecification {
         foreach ($this->specifications as $specification) {
             if (!$specification->isSatisfiedBy($context)) {
                 return $specification;

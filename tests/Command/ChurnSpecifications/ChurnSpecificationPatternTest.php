@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Tests\Command\ChurnSpecifications;
 
-use Phauthentic\CognitiveCodeAnalysis\Command\ChurnCommand;
 use Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications\ChurnCommandContext;
 use Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications\CoverageFormatExclusivitySpecification;
 use Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications\CoverageFileExistsSpecification;

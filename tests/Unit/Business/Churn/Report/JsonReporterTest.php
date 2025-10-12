@@ -7,9 +7,6 @@ namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Churn\Report;
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report\JsonReport;
 use PHPUnit\Framework\Attributes\Test;
 
-/**
- *
- */
 class JsonReporterTest extends AbstractReporterTestCase
 {
     protected function setUp(): void

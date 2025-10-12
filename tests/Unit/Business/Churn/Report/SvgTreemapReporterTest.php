@@ -7,9 +7,6 @@ namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Churn\Report;
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report\SvgTreemapReport;
 use PHPUnit\Framework\Attributes\Test;
 
-/**
- *
- */
 class SvgTreemapReporterTest extends AbstractReporterTestCase
 {
     protected function setUp(): void

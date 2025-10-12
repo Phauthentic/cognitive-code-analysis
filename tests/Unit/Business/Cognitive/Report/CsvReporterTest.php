@@ -11,9 +11,6 @@ use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
-/**
- *
- */
 class CsvReporterTest extends TestCase
 {
     private CsvReport $csvExporter;
