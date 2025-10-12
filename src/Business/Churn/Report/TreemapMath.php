@@ -31,13 +31,15 @@ class TreemapMath
         foreach ($classes as $class => $data) {
             $churn = (float)($data['churn'] ?? 0);
             $score = (float)($data['score'] ?? 0);
-            if ($churn > 0) {
-                $items[] = [
-                    'class' => $class,
-                    'churn' => $churn,
-                    'score' => $score,
-                ];
+            if ($churn <= 0) {
+                continue;
             }
+
+            $items[] = [
+                'class' => $class,
+                'churn' => $churn,
+                'score' => $score,
+            ];
         }
         usort($items, fn($a, $b) => $b['churn'] <=> $a['churn']);
 

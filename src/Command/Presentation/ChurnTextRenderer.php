@@ -8,9 +8,6 @@ use Phauthentic\CognitiveCodeAnalysis\Business\Utility\CoverageDataDetector;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Output\OutputInterface;
 
-/**
- *
- */
 class ChurnTextRenderer
 {
     use CoverageDataDetector;

@@ -7,7 +7,6 @@ namespace Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report;
 use Phauthentic\CognitiveCodeAnalysis\Business\Reporter\MarkdownFormatterTrait;
 use Phauthentic\CognitiveCodeAnalysis\Business\Utility\CoverageDataDetector;
 use Phauthentic\CognitiveCodeAnalysis\Business\Utility\Datetime;
-use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 
 /**
  * MarkdownReport for Churn metrics.
@@ -43,7 +42,7 @@ class MarkdownReport extends AbstractReport
     /**
      * @param array<string, array<string, mixed>> $classes
      * @param string $filename
-     * @throws CognitiveAnalysisException
+     * @throws \Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException
      */
     public function export(array $classes, string $filename): void
     {

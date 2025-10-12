@@ -35,9 +35,11 @@ class DirectoryScanner
                 yield from $this->yieldFileIfNotExcluded($path, $exclude);
             }
 
-            if (is_dir($path)) {
-                yield from $this->traverseDirectory($path, $exclude);
+            if (!is_dir($path)) {
+                continue;
             }
+
+            yield from $this->traverseDirectory($path, $exclude);
         }
     }
 
@@ -60,9 +62,11 @@ class DirectoryScanner
     {
         $fileInfo = new SplFileInfo($path);
 
-        if (!$this->isExcluded($fileInfo, $exclude)) {
-            yield $fileInfo;
+        if ($this->isExcluded($fileInfo, $exclude)) {
+            return;
         }
+
+        yield $fileInfo;
     }
 
     /**
@@ -112,9 +116,11 @@ class DirectoryScanner
     {
         $files = [];
         foreach ($iterator as $fileInfo) {
-            if ($fileInfo->isFile() && !$this->isExcluded($fileInfo, $exclude)) {
-                $files[] = $fileInfo;
+            if (!$fileInfo->isFile() || $this->isExcluded($fileInfo, $exclude)) {
+                continue;
             }
+
+            $files[] = $fileInfo;
         }
 
         return $files;

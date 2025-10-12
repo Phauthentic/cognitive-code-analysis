@@ -7,9 +7,6 @@ namespace Phauthentic\CognitiveCodeAnalysis\Config;
 use Symfony\Component\Yaml\Yaml;
 use Symfony\Component\Config\Definition\Processor;
 
-/**
- *
- */
 class ConfigService
 {
     private CognitiveConfig $config;

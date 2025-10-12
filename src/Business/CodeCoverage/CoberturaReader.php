@@ -88,15 +88,17 @@ class CoberturaReader extends AbstractXmlCoverageReader
         }
 
         foreach ($methodNodes as $methodNode) {
-            if ($methodNode instanceof DOMElement) {
-                $methodName = $methodNode->getAttribute('name');
-                $methods[$methodName] = new MethodCoverage(
-                    name: $methodName,
-                    lineRate: (float)$methodNode->getAttribute('line-rate'),
-                    branchRate: (float)$methodNode->getAttribute('branch-rate'),
-                    complexity: (int)$methodNode->getAttribute('complexity'),
-                );
+            if (!($methodNode instanceof DOMElement)) {
+                continue;
             }
+
+            $methodName = $methodNode->getAttribute('name');
+            $methods[$methodName] = new MethodCoverage(
+                name: $methodName,
+                lineRate: (float)$methodNode->getAttribute('line-rate'),
+                branchRate: (float)$methodNode->getAttribute('branch-rate'),
+                complexity: (int)$methodNode->getAttribute('complexity'),
+            );
         }
 
         return $methods;

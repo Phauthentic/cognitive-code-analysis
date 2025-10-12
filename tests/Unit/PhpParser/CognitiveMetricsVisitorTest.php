@@ -9,9 +9,6 @@ use PhpParser\NodeTraverser;
 use Phauthentic\CognitiveCodeAnalysis\PhpParser\CognitiveMetricsVisitor;
 use PHPUnit\Framework\TestCase;
 
-/**
- *
- */
 class CognitiveMetricsVisitorTest extends TestCase
 {
     protected function getTestCode(): string

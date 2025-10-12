@@ -6,9 +6,6 @@ namespace Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChangeCounter;
 
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 
-/**
- *
- */
 class GitChangeCounter implements ChangeCounterInterface
 {
     /**

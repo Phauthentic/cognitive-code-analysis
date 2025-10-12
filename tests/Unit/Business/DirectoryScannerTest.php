@@ -10,9 +10,6 @@ use PHPUnit\Framework\TestCase;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 
-/**
- *
- */
 class DirectoryScannerTest extends TestCase
 {
     private string $testDir = '';

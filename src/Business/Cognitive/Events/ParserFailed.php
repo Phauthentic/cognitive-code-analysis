@@ -7,9 +7,6 @@ namespace Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Events;
 use SplFileInfo;
 use Throwable;
 
-/**
- *
- */
 class ParserFailed
 {
     public function __construct(

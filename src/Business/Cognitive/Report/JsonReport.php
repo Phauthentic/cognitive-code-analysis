@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report;
 
-use JsonException;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 
@@ -14,7 +13,7 @@ use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 class JsonReport implements ReportGeneratorInterface
 {
     /**
-     * @throws JsonException|CognitiveAnalysisException
+     * @throws \JsonException|\Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException
      */
     public function export(CognitiveMetricsCollection $metricsCollection, string $filename): void
     {

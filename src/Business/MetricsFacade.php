@@ -60,17 +60,21 @@ class MetricsFacade
      * @param CoverageReportReaderInterface|null $coverageReader Optional coverage reader for coverage data.
      * @return CognitiveMetricsCollection The collected cognitive metrics from all paths.
      */
-    public function getCognitiveMetricsFromPaths(array $paths, ?CoverageReportReaderInterface $coverageReader = null): CognitiveMetricsCollection
-    {
+    public function getCognitiveMetricsFromPaths(
+        array $paths,
+        ?CoverageReportReaderInterface $coverageReader = null
+    ): CognitiveMetricsCollection {
         $metricsCollection = $this->cognitiveMetricsCollector->collectFromPaths($paths, $this->configService->getConfig());
 
         foreach ($metricsCollection as $metric) {
             $this->scoreCalculator->calculate($metric, $this->configService->getConfig());
 
             // Add coverage data if reader is provided
-            if ($coverageReader !== null) {
-                $this->addCoverageToMetric($metric, $coverageReader);
+            if ($coverageReader === null) {
+                continue;
             }
+
+            $this->addCoverageToMetric($metric, $coverageReader);
         }
 
         return $metricsCollection;
@@ -130,8 +134,6 @@ class MetricsFacade
         $exporter->export($classes, $filename);
     }
 
-    /**
-     */
     public function exportMetricsReport(
         CognitiveMetricsCollection $metricsCollection,
         string $reportType,
@@ -160,9 +162,11 @@ class MetricsFacade
 
         // Fall back to class-level coverage if details not available
         $coverage = $coverageReader->getLineCoverage($className);
-        if ($coverage !== null) {
-            $metric->setCoverage($coverage);
+        if ($coverage === null) {
+            return;
         }
+
+        $metric->setCoverage($coverage);
     }
 
     /**

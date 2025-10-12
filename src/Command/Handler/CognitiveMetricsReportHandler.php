@@ -64,10 +64,6 @@ class CognitiveMetricsReportHandler
         return $this->reportFactory->isSupported($reportType);
     }
 
-    /**
-     * @param Exception $exception
-     * @return int
-     */
     private function handleExceptions(Exception $exception): int
     {
         $this->output->writeln(sprintf(
@@ -78,10 +74,6 @@ class CognitiveMetricsReportHandler
         return Command::FAILURE;
     }
 
-    /**
-     * @param string|null $reportType
-     * @return int
-     */
     public function handleInvalidReporType(?string $reportType): int
     {
         $supportedTypes = $this->reportFactory->getSupportedTypes();

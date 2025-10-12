@@ -29,9 +29,11 @@ class CsvReporterTest extends TestCase
     protected function tearDown(): void
     {
         parent::tearDown();
-        if (file_exists($this->filename)) {
-            unlink($this->filename);
+        if (!file_exists($this->filename)) {
+            return;
         }
+
+        unlink($this->filename);
     }
 
     #[Test]
