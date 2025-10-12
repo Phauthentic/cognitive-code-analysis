@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Business\Cognitive;
 
+use Phauthentic\CognitiveCodeAnalysis\Business\Halstead\HalsteadMetricsCalculator;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 use Phauthentic\CognitiveCodeAnalysis\PhpParser\AnnotationVisitor;
 use Phauthentic\CognitiveCodeAnalysis\PhpParser\CognitiveMetricsVisitor;
@@ -28,6 +29,7 @@ class Parser
     protected CyclomaticComplexityVisitor $cyclomaticComplexityVisitor;
     protected HalsteadMetricsVisitor $halsteadMetricsVisitor;
     protected CombinedMetricsVisitor $combinedVisitor;
+    protected HalsteadMetricsCalculator $halsteadCalculator;
 
     public function __construct(
         ParserFactory $parserFactory,
@@ -47,7 +49,8 @@ class Parser
         $this->cyclomaticComplexityVisitor->setAnnotationVisitor($this->annotationVisitor);
         $this->traverser->addVisitor($this->cyclomaticComplexityVisitor);
 
-        $this->halsteadMetricsVisitor = new HalsteadMetricsVisitor();
+        $this->halsteadCalculator = new HalsteadMetricsCalculator();
+        $this->halsteadMetricsVisitor = new HalsteadMetricsVisitor($this->halsteadCalculator);
         $this->halsteadMetricsVisitor->setAnnotationVisitor($this->annotationVisitor);
         $this->traverser->addVisitor($this->halsteadMetricsVisitor);
 
