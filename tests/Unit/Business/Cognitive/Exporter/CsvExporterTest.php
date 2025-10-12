@@ -11,9 +11,6 @@ use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
-/**
- *
- */
 class CsvExporterTest extends TestCase
 {
     private CsvExporter $csvExporter;
@@ -29,9 +26,11 @@ class CsvExporterTest extends TestCase
     protected function tearDown(): void
     {
         parent::tearDown();
-        if (file_exists($this->filename)) {
-            unlink($this->filename);
+        if (!file_exists($this->filename)) {
+            return;
         }
+
+        unlink($this->filename);
     }
 
     #[Test]

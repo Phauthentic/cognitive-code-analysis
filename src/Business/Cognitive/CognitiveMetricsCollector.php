@@ -58,7 +58,7 @@ class CognitiveMetricsCollector
             $allFiles = array_merge($allFiles, iterator_to_array($files));
         }
 
-        $this->messageBus->dispatch(new SourceFilesFound($allFiles));
+        $this->messageBus->dispatch(new SourceFilesFound(array_values($allFiles)));
 
         return $this->findMetrics($allFiles);
     }
@@ -160,9 +160,11 @@ class CognitiveMetricsCollector
 
             $metric = new CognitiveMetrics($metricsArray);
 
-            if (!$metricsCollection->contains($metric)) {
-                $metricsCollection->add($metric);
+            if ($metricsCollection->contains($metric)) {
+                continue;
             }
+
+            $metricsCollection->add($metric);
         }
 
         return $metricsCollection;

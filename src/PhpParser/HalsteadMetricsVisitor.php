@@ -86,12 +86,14 @@ class HalsteadMetricsVisitor extends NodeVisitorAbstract
 
                 // Check if this class should be ignored
                 if (
-                    $this->currentClassName !== null
-                    && $this->annotationVisitor !== null
-                    && $this->annotationVisitor->isClassIgnored($this->currentClassName)
+                    $this->currentClassName === null
+                    || $this->annotationVisitor === null
+                    || !$this->annotationVisitor->isClassIgnored($this->currentClassName)
                 ) {
-                    $this->currentClassName = null; // Clear the class name if ignored
+                    return;
                 }
+
+                $this->currentClassName = null; // Clear the class name if ignored
             },
             $node instanceof Node\Stmt\ClassMethod => function () use ($node) {
                 // Skip methods that don't have a class or trait context (interfaces, global functions)
@@ -112,22 +114,28 @@ class HalsteadMetricsVisitor extends NodeVisitorAbstract
             },
             $this->isOperator($node) => function () use ($node) {
                 $this->addOperator($node);
-                if ($this->currentMethodName !== null) {
-                    $this->methodOperators[] = $node->getType();
+                if ($this->currentMethodName === null) {
+                    return;
                 }
+
+                $this->methodOperators[] = $node->getType();
             },
             $this->isOperand($node) => function () use ($node) {
                 $this->addOperand($node);
-                if ($this->currentMethodName !== null) {
-                    $this->methodOperands[] = $this->getOperandValue($node);
+                if ($this->currentMethodName === null) {
+                    return;
                 }
+
+                $this->methodOperands[] = $this->getOperandValue($node);
             },
             default => null,
         };
 
-        if ($result !== null) {
-            $result();
+        if ($result === null) {
+            return;
         }
+
+        $result();
     }
 
     private function setCurrentNamespace(Namespace_ $node): void
@@ -190,9 +198,11 @@ class HalsteadMetricsVisitor extends NodeVisitorAbstract
             $this->resetMetrics();
         }
 
-        if ($node instanceof Namespace_) {
-            $this->currentNamespace = '';
+        if (!($node instanceof Namespace_)) {
+            return;
         }
+
+        $this->currentNamespace = '';
     }
 
     private function isOperator(Node $node): bool
@@ -230,9 +240,11 @@ class HalsteadMetricsVisitor extends NodeVisitorAbstract
 
     private function storeClassMetrics(): void
     {
-        if ($this->currentClassName !== null) {
-            $this->classMetrics[$this->currentClassName] = $this->calculator->calculateMetrics($this->operators, $this->operands, $this->currentClassName);
+        if ($this->currentClassName === null) {
+            return;
         }
+
+        $this->classMetrics[$this->currentClassName] = $this->calculator->calculateMetrics($this->operators, $this->operands, $this->currentClassName);
     }
 
     public function resetMetrics(): void

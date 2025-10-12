@@ -20,9 +20,6 @@ use Symfony\Component\Config\Definition\Processor;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\MessageBusInterface;
 
-/**
- *
- */
 class CognitiveMetricsCollectorTest extends TestCase
 {
     private CognitiveMetricsCollector $metricsCollector;

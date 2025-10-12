@@ -7,9 +7,6 @@ namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Churn\Exporter;
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Exporter\MarkdownExporter;
 use PHPUnit\Framework\Attributes\Test;
 
-/**
- *
- */
 class MarkdownExporterTest extends AbstractExporterTestCase
 {
     protected function setUp(): void

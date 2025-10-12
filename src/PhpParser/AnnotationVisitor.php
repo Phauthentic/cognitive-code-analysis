@@ -57,9 +57,11 @@ class AnnotationVisitor extends NodeVisitorAbstract
      */
     private function setCurrentNamespace(Node $node): void
     {
-        if ($node instanceof Node\Stmt\Namespace_) {
-            $this->currentNamespace = $node->name instanceof Node\Name ? $node->name->toString() : '';
+        if (!($node instanceof Node\Stmt\Namespace_)) {
+            return;
         }
+
+        $this->currentNamespace = $node->name instanceof Node\Name ? $node->name->toString() : '';
     }
 
     /**
@@ -67,12 +69,16 @@ class AnnotationVisitor extends NodeVisitorAbstract
      */
     private function setCurrentClass(Node $node): void
     {
-        if ($node instanceof Node\Stmt\Class_ || $node instanceof Node\Stmt\Trait_) {
-            if ($node->name !== null) {
-                $fqcn = $this->currentNamespace . '\\' . $node->name->toString();
-                $this->currentClassName = $this->normalizeFqcn($fqcn);
-            }
+        if (!($node instanceof Node\Stmt\Class_) && !($node instanceof Node\Stmt\Trait_)) {
+            return;
         }
+
+        if ($node->name === null) {
+            return;
+        }
+
+        $fqcn = $this->currentNamespace . '\\' . $node->name->toString();
+        $this->currentClassName = $this->normalizeFqcn($fqcn);
     }
 
     /**
@@ -92,9 +98,11 @@ class AnnotationVisitor extends NodeVisitorAbstract
             return;
         }
 
-        if ($this->hasIgnoreAnnotation($node)) {
-            $this->ignoredClasses[$this->currentClassName] = $this->currentClassName;
+        if (!$this->hasIgnoreAnnotation($node)) {
+            return;
         }
+
+        $this->ignoredClasses[$this->currentClassName] = $this->currentClassName;
     }
 
     /**
@@ -111,10 +119,12 @@ class AnnotationVisitor extends NodeVisitorAbstract
             return;
         }
 
-        if ($this->hasIgnoreAnnotation($node)) {
-            $methodKey = $this->currentClassName . '::' . $node->name->toString();
-            $this->ignoredMethods[$methodKey] = $methodKey;
+        if (!$this->hasIgnoreAnnotation($node)) {
+            return;
         }
+
+        $methodKey = $this->currentClassName . '::' . $node->name->toString();
+        $this->ignoredMethods[$methodKey] = $methodKey;
     }
 
     public function enterNode(Node $node): void
@@ -131,9 +141,11 @@ class AnnotationVisitor extends NodeVisitorAbstract
             $this->currentNamespace = '';
         }
 
-        if ($node instanceof Node\Stmt\Class_ || $node instanceof Node\Stmt\Trait_) {
-            $this->currentClassName = '';
+        if (!($node instanceof Node\Stmt\Class_) && !($node instanceof Node\Stmt\Trait_)) {
+            return;
         }
+
+        $this->currentClassName = '';
     }
 
     /**

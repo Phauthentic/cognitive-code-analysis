@@ -7,9 +7,6 @@ namespace Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Exporter;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 
-/**
- *
- */
 class CsvExporter implements DataExporterInterface
 {
     /**

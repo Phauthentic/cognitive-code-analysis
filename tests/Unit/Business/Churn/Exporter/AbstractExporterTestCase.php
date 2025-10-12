@@ -7,9 +7,6 @@ namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Churn\Exporter;
 use Phauthentic\CognitiveCodeAnalysis\Business\Utility\Datetime;
 use PHPUnit\Framework\TestCase;
 
-/**
- *
- */
 class AbstractExporterTestCase extends TestCase
 {
     protected string $filename;

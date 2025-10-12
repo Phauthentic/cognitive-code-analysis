@@ -109,8 +109,12 @@ class CognitiveMetricsCommandCoverageTest extends TestCase
 
     #[Test]
     #[DataProvider('methodLevelCoverageProvider')]
-    public function testAnalyseShowsMethodLevelCoverage(string $format, string $file, string $zeroMethod, string $fullMethod): void
-    {
+    public function testAnalyseShowsMethodLevelCoverage(
+        string $format,
+        string $file,
+        string $zeroMethod,
+        string $fullMethod
+    ): void {
         $application = new Application();
         $command = $application->getContainer()->get(CognitiveMetricsCommand::class);
         $tester = new CommandTester($command);

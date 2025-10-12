@@ -46,9 +46,6 @@ use Symfony\Component\Messenger\MessageBus;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Messenger\Middleware\HandleMessageMiddleware;
 
-/**
- *
- */
 class Application
 {
     public const VERSION = '1.3.1';
@@ -271,13 +268,10 @@ class Application
         return $this->containerBuilder;
     }
 
-    /**
-     * @param ProgressBarHandler $progressbar
-     * @param VerboseHandler $verbose
-     * @return HandlersLocator
-     */
-    private function setUpEventHandlersLocator(ProgressBarHandler $progressbar, VerboseHandler $verbose): HandlersLocator
-    {
+    private function setUpEventHandlersLocator(
+        ProgressBarHandler $progressbar,
+        VerboseHandler $verbose
+    ): HandlersLocator {
         return new HandlersLocator([
             SourceFilesFound::class => [
                 $progressbar,

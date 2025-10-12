@@ -6,9 +6,6 @@ namespace Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Events;
 
 use SplFileInfo;
 
-/**
- *
- */
 class FileProcessed
 {
     public function __construct(
