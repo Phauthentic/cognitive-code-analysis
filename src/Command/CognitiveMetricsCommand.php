@@ -43,7 +43,7 @@ class CognitiveMetricsCommand extends Command
     public const OPTION_COVERAGE_CLOVER = 'coverage-clover';
     private const ARGUMENT_PATH = 'path';
 
-    private CompositeCognitiveMetricsValidationSpecification $validationSpecification;
+    private CompositeCognitiveMetricsValidationSpecification $specification;
 
     public function __construct(
         readonly private MetricsFacade $metricsFacade,
@@ -53,10 +53,10 @@ class CognitiveMetricsCommand extends Command
         readonly private CoverageLoadHandler $coverageHandler,
         readonly private BaselineHandler $baselineHandler,
         readonly private SortingHandler $sortingHandler,
-        readonly private CognitiveMetricsValidationSpecificationFactory $validationSpecificationFactory
+        readonly private CognitiveMetricsValidationSpecificationFactory $specificationFactory
     ) {
         parent::__construct();
-        $this->validationSpecification = $this->validationSpecificationFactory->create();
+        $this->specification = $this->specificationFactory->create();
     }
 
 
@@ -131,13 +131,14 @@ class CognitiveMetricsCommand extends Command
      * @param InputInterface $input
      * @param OutputInterface $output
      * @return int Command status code.
+     * @throws \Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $context = new CognitiveMetricsCommandContext($input);
 
         // Validate all specifications
-        if (!$this->validationSpecification->isSatisfiedBy($context)) {
+        if (!$this->specification->isSatisfiedBy($context)) {
             return $this->handleValidationError($context, $output);
         }
 
@@ -193,6 +194,7 @@ class CognitiveMetricsCommand extends Command
         }
 
         $this->renderer->render($sortResult->getData(), $output);
+
         return Command::SUCCESS;
     }
 
@@ -207,9 +209,10 @@ class CognitiveMetricsCommand extends Command
     ): int {
         $errorMessage = $customExporterValidation !== null
             ? $customExporterValidation->getErrorMessageWithContext($context)
-            : $this->validationSpecification->getDetailedErrorMessage($context);
+            : $this->specification->getDetailedErrorMessage($context);
 
         $output->writeln('<error>' . $errorMessage . '</error>');
+
         return Command::FAILURE;
     }
 }
