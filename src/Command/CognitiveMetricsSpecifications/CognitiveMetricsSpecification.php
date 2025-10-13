@@ -7,7 +7,7 @@ namespace Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecificatio
 /**
  * @SuppressWarnings("LongClassName")
  */
-interface CognitiveMetricsCommandValidationSpecification
+interface CognitiveMetricsSpecification
 {
     public function isSatisfiedBy(CognitiveMetricsCommandContext $context): bool;
     public function getErrorMessage(): string;

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications;
 
-class CoverageFormatExclusivitySpecification implements ChurnCommandValidationSpecification
+class CoverageFormatExclusivitySpecification implements ChurnCommandSpecification
 {
     public function isSatisfiedBy(ChurnCommandContext $context): bool
     {

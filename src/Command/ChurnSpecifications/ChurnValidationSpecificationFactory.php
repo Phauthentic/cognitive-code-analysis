@@ -9,9 +9,9 @@ namespace Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications;
  */
 class ChurnValidationSpecificationFactory
 {
-    public function create(): CompositeChurnValidationSpecification
+    public function create(): CompositeChurnSpecification
     {
-        return new CompositeChurnValidationSpecification([
+        return new CompositeChurnSpecification([
             new CoverageFormatExclusivitySpecification(),
             new CoverageFileExistsSpecification(),
             new CoverageFormatSupportedSpecification(),

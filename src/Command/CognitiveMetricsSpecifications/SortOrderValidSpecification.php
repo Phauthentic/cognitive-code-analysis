@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications;
 
-class SortOrderValidSpecification implements CognitiveMetricsCommandValidationSpecification
+class SortOrderValidSpecification implements CognitiveMetricsSpecification
 {
     private const VALID_SORT_ORDERS = ['asc', 'desc'];
 

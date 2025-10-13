@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications;
 
-class CoverageFileExistsSpecification implements CognitiveMetricsCommandValidationSpecification
+class CoverageFileExistsSpecification implements CognitiveMetricsSpecification
 {
     public function isSatisfiedBy(CognitiveMetricsCommandContext $context): bool
     {

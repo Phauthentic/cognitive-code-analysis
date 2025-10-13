@@ -11,7 +11,7 @@ use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
  * Validation specification for custom exporters.
  * Ensures custom exporters are loadable before starting analysis.
  */
-class CustomExporterValidationSpecification implements ChurnCommandValidationSpecification
+class CustomExporterSpecification implements ChurnCommandSpecification
 {
     public function __construct(
         private readonly ChurnReportFactoryInterface $reportFactory,

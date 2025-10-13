@@ -7,7 +7,7 @@ namespace Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications;
 /**
  * @SuppressWarnings("LongClassName")
  */
-interface ChurnCommandValidationSpecification
+interface ChurnCommandSpecification
 {
     public function isSatisfiedBy(ChurnCommandContext $context): bool;
     public function getErrorMessage(): string;

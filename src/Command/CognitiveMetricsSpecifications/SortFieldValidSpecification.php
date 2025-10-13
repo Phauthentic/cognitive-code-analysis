@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications;
 
-class SortFieldValidSpecification implements CognitiveMetricsCommandValidationSpecification
+class SortFieldValidSpecification implements CognitiveMetricsSpecification
 {
     private const SORTABLE_FIELDS = [
         'score',

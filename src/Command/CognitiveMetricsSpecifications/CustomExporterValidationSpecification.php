@@ -11,7 +11,7 @@ use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
  * Validation specification for custom exporters in cognitive metrics command.
  * Ensures custom exporters are loadable before starting analysis.
  */
-class CustomExporterValidationSpecification implements CognitiveMetricsCommandValidationSpecification
+class CustomExporterValidationSpecification implements CognitiveMetricsSpecification
 {
     public function __construct(
         private readonly CognitiveReportFactoryInterface $reportFactory,

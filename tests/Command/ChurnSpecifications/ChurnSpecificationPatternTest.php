@@ -7,7 +7,7 @@ namespace Phauthentic\CognitiveCodeAnalysis\Tests\Command\ChurnSpecifications;
 use Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications\ChurnCommandContext;
 use Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications\CoverageFormatExclusivitySpecification;
 use Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications\CoverageFileExistsSpecification;
-use Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications\CompositeChurnValidationSpecification;
+use Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications\CompositeChurnSpecification;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputDefinition;
@@ -83,7 +83,7 @@ class ChurnSpecificationPatternTest extends TestCase
 
     public function testCompositeValidationSpecification(): void
     {
-        $spec = new CompositeChurnValidationSpecification([
+        $spec = new CompositeChurnSpecification([
             new CoverageFormatExclusivitySpecification(),
             new CoverageFileExistsSpecification(),
         ]);

@@ -13,9 +13,9 @@ use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 use Phauthentic\CognitiveCodeAnalysis\Command\Handler\ChurnReportHandler;
 use Phauthentic\CognitiveCodeAnalysis\Command\Presentation\ChurnTextRenderer;
 use Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications\ChurnCommandContext;
-use Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications\CompositeChurnValidationSpecification;
+use Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications\CompositeChurnSpecification;
 use Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications\ChurnValidationSpecificationFactory;
-use Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications\CustomExporterValidationSpecification;
+use Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications\CustomExporterSpecification;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -38,7 +38,7 @@ class ChurnCommand extends Command
     public const OPTION_COVERAGE_COBERTURA = 'coverage-cobertura';
     public const OPTION_COVERAGE_CLOVER = 'coverage-clover';
 
-    private CompositeChurnValidationSpecification $validationSpecification;
+    private CompositeChurnSpecification $validationSpecification;
 
     /**
      * Constructor to initialize dependencies.
@@ -144,7 +144,7 @@ class ChurnCommand extends Command
 
         // Validate custom exporters after config is loaded
         if ($context->hasReportOptions()) {
-            $customExporterValidation = new CustomExporterValidationSpecification(
+            $customExporterValidation = new CustomExporterSpecification(
                 $this->report->getReportFactory(),
                 $this->report->getConfigService()
             );

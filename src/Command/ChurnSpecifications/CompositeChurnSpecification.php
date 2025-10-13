@@ -7,10 +7,10 @@ namespace Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications;
 /**
  * @SuppressWarnings("LongClassName")
  */
-class CompositeChurnValidationSpecification implements ChurnCommandValidationSpecification
+class CompositeChurnSpecification implements ChurnCommandSpecification
 {
     /**
-     * @param ChurnCommandValidationSpecification[] $specifications
+     * @param ChurnCommandSpecification[] $specifications
      */
     public function __construct(
         private readonly array $specifications
@@ -46,7 +46,7 @@ class CompositeChurnValidationSpecification implements ChurnCommandValidationSpe
         return '';
     }
 
-    public function getFirstFailedSpecification(ChurnCommandContext $context): ?ChurnCommandValidationSpecification
+    public function getFirstFailedSpecification(ChurnCommandContext $context): ?ChurnCommandSpecification
     {
         foreach ($this->specifications as $specification) {
             if (!$specification->isSatisfiedBy($context)) {

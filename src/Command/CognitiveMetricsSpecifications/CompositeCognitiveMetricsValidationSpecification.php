@@ -7,10 +7,10 @@ namespace Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecificatio
 /**
  * @SuppressWarnings("LongClassName")
  */
-class CompositeCognitiveMetricsValidationSpecification implements CognitiveMetricsCommandValidationSpecification
+class CompositeCognitiveMetricsValidationSpecification implements CognitiveMetricsSpecification
 {
     /**
-     * @param CognitiveMetricsCommandValidationSpecification[] $specifications
+     * @param CognitiveMetricsSpecification[] $specifications
      */
     public function __construct(
         private array $specifications
@@ -34,7 +34,7 @@ class CompositeCognitiveMetricsValidationSpecification implements CognitiveMetri
 
     public function getFirstFailedSpecification(
         CognitiveMetricsCommandContext $context
-    ): ?CognitiveMetricsCommandValidationSpecification {
+    ): ?CognitiveMetricsSpecification {
         foreach ($this->specifications as $specification) {
             if (!$specification->isSatisfiedBy($context)) {
                 return $specification;
