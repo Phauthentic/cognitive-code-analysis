@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CognitiveCodeAnalysis\Business\CyclomaticComplexity;
+namespace Phauthentic\CognitiveCodeAnalysis\Business\Cyclomatic;
 
 class CyclomaticComplexityCalculator implements CyclomaticComplexityCalculatorInterface
 {
@@ -30,7 +30,7 @@ class CyclomaticComplexityCalculator implements CyclomaticComplexityCalculatorIn
     }
 
     /**
-     * Create detailed breakdown of complexity factors.
+     * Create a detailed breakdown of complexity factors.
      *
      * @param array<string, int> $decisionPointCounts Array of decision point counts
      * @param int $totalComplexity Total complexity value
@@ -77,15 +77,22 @@ class CyclomaticComplexityCalculator implements CyclomaticComplexityCalculatorIn
             'very_high_risk_methods' => [],
         ];
 
-        // Class summary
-        foreach ($classComplexities as $className => $complexity) {
-            $summary['classes'][$className] = [
-                'complexity' => $complexity,
-                'risk_level' => $this->getRiskLevel($complexity),
-            ];
-        }
+        $summary = $this->classSummary($classComplexities, $summary);
+        $summary = $this->methodSummary($methodComplexities, $methodBreakdowns, $summary);
 
-        // Method summary
+        return $summary;
+    }
+
+    /**
+     * Create method summary with risk assessment.
+     *
+     * @param array<string, int> $methodComplexities Method complexities indexed by "ClassName::methodName"
+     * @param array<string, array<string, int>> $methodBreakdowns Method breakdowns indexed by "ClassName::methodName"
+     * @param array<string, mixed> $summary Summary array to populate
+     * @return array<string, mixed> Updated summary with method data
+     */
+    public function methodSummary(array $methodComplexities, array $methodBreakdowns, array $summary): array
+    {
         foreach ($methodComplexities as $methodKey => $complexity) {
             $riskLevel = $this->getRiskLevel($complexity);
             $summary['methods'][$methodKey] = [
@@ -97,11 +104,31 @@ class CyclomaticComplexityCalculator implements CyclomaticComplexityCalculatorIn
             if ($complexity >= 10) {
                 $summary['high_risk_methods'][$methodKey] = $complexity;
             }
+
             if ($complexity < 15) {
                 continue;
             }
 
             $summary['very_high_risk_methods'][$methodKey] = $complexity;
+        }
+
+        return $summary;
+    }
+
+    /**
+     * Create class summary with risk assessment.
+     *
+     * @param array<string, int> $classComplexities Class complexities indexed by class name
+     * @param array<string, mixed> $summary Summary array to populate
+     * @return array<string, mixed> Updated summary with class data
+     */
+    public function classSummary(array $classComplexities, array $summary): array
+    {
+        foreach ($classComplexities as $className => $complexity) {
+            $summary['classes'][$className] = [
+                'complexity' => $complexity,
+                'risk_level' => $this->getRiskLevel($complexity),
+            ];
         }
 
         return $summary;
