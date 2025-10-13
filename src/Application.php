@@ -10,6 +10,7 @@ use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report\ChurnReportFactory;
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report\ChurnReportFactoryInterface;
 use Phauthentic\CognitiveCodeAnalysis\Business\CodeCoverage\CodeCoverageFactory;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Baseline;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\ClassMetricsStatistics;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollector;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsSorter;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Events\FileProcessed;
@@ -109,9 +110,12 @@ class Application
             ->setPublic(true);
 
         $this->containerBuilder->register(CognitiveMetricsValidationSpecificationFactory::class, CognitiveMetricsValidationSpecificationFactory::class)
-            ->setPublic(true);
+->setPublic(true);
 
         $this->containerBuilder->register(ChurnValidationSpecificationFactory::class, ChurnValidationSpecificationFactory::class)
+            ->setPublic(true);
+
+        $this->containerBuilder->register(ClassMetricsStatistics::class, ClassMetricsStatistics::class)
             ->setPublic(true);
     }
 
@@ -140,7 +144,8 @@ class Application
 
         $this->containerBuilder->register(CognitiveMetricTextRendererInterface::class, CognitiveMetricTextRenderer::class)
             ->setArguments([
-                new Reference(ConfigService::class)
+                new Reference(ConfigService::class),
+                new Reference(ClassMetricsStatistics::class)
             ])
             ->setPublic(true);
     }

@@ -6,6 +6,7 @@ namespace Phauthentic\CognitiveCodeAnalysis\Command\Presentation;
 
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetrics;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\ClassMetricsStatistics;
 use Phauthentic\CognitiveCodeAnalysis\Business\Utility\CoverageDataDetector;
 use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
 use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
@@ -23,6 +24,7 @@ class CognitiveMetricTextRenderer implements CognitiveMetricTextRendererInterfac
 
     public function __construct(
         private readonly ConfigService $configService,
+        private readonly ClassMetricsStatistics $statistics,
     ) {
         // Don't initialize components here - they'll be created with current config when rendering
     }
@@ -84,7 +86,12 @@ class CognitiveMetricTextRenderer implements CognitiveMetricTextRendererInterfac
             }
 
             $filename = $this->getFilenameFromMetrics($metrics);
-            $this->renderTable((string)$className, $rows, $filename, $output);
+            $this->renderTable((string)$className, $rows, $filename, $metrics, $config, $output);
+        }
+
+        // Display overall statistics if threshold filtering is enabled
+        if ($config->showOnlyMethodsExceedingThreshold) {
+            $this->renderOverallStatistics($groupedByClass, $config, $output);
         }
     }
 
@@ -184,6 +191,8 @@ class CognitiveMetricTextRenderer implements CognitiveMetricTextRendererInterfac
         string $className,
         array $rows,
         string $filename,
+        CognitiveMetricsCollection $metrics,
+        CognitiveConfig $config,
         OutputInterface $output
     ): void {
         $headers = $this->headerBuilder->getGroupedTableHeaders();
@@ -191,6 +200,18 @@ class CognitiveMetricTextRenderer implements CognitiveMetricTextRendererInterfac
             "<info>Class: $className</info>",
             "<info>File: $filename</info>"
         ];
+
+        // Add statistics if threshold filtering is enabled
+        if ($config->showOnlyMethodsExceedingThreshold) {
+            $totalMethods = $metrics->count();
+            $exceedingCount = $metrics->countMethodsExceedingThreshold($config->scoreThreshold);
+            $percentage = $totalMethods > 0 ? round(($exceedingCount / $totalMethods) * 100, 1) : 0.0;
+            $averageScore = $metrics->getAverageScore();
+
+            $infoLines[] = "<info>Methods exceeding threshold: $exceedingCount of $totalMethods ($percentage%)</info>";
+            $infoLines[] = "<info>Average class score: $averageScore</info>";
+        }
+
         $this->renderTableCommon($rows, $headers, $infoLines, $output);
     }
 
@@ -207,5 +228,22 @@ class CognitiveMetricTextRenderer implements CognitiveMetricTextRendererInterfac
             "<info>All Methods ($totalMethods total)</info>"
         ];
         $this->renderTableCommon($rows, $headers, $infoLines, $output);
+    }
+
+    /**
+     * Render overall statistics for all classes.
+     * 
+     * @param array<string, CognitiveMetricsCollection> $groupedByClass
+     */
+    private function renderOverallStatistics(
+        array $groupedByClass,
+        CognitiveConfig $config,
+        OutputInterface $output
+    ): void {
+        $overallStats = $this->statistics->calculateOverallStatistics($groupedByClass, $config->scoreThreshold);
+        
+        $output->writeln("");
+        $output->writeln("<info>Overall Statistics:</info>");
+        $output->writeln("<info>Classes with methods exceeding threshold: {$overallStats['classesExceedingThreshold']} of {$overallStats['totalClasses']} ({$overallStats['percentageExceedingThreshold']}%)</info>");
     }
 }

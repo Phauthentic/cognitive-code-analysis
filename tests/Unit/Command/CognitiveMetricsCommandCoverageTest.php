@@ -122,6 +122,7 @@ class CognitiveMetricsCommandCoverageTest extends TestCase
         $tester->execute([
             'path' => __DIR__ . '/../../TestCode/Paginator.php',
             "--coverage-{$format}" => __DIR__ . '/../../Fixtures/Coverage/' . $file,
+            '--config' => __DIR__ . '/../../Fixtures/coverage-test-config.yml',
         ]);
 
         $this->assertEquals(Command::SUCCESS, $tester->getStatusCode());

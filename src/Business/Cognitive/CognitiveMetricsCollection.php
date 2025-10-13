@@ -134,6 +134,43 @@ class CognitiveMetricsCollection implements IteratorAggregate, Countable, JsonSe
     }
 
     /**
+     * Calculate the average score across all metrics in this collection.
+     * 
+     * @return float The average score, or 0.0 if collection is empty
+     */
+    public function getAverageScore(): float
+    {
+        if ($this->count() === 0) {
+            return 0.0;
+        }
+
+        $totalScore = 0.0;
+        foreach ($this->metrics as $metric) {
+            $totalScore += $metric->getScore();
+        }
+
+        return round($totalScore / $this->count(), 3);
+    }
+
+    /**
+     * Count the number of methods that exceed the given threshold.
+     * 
+     * @param float $threshold
+     * @return int Number of methods exceeding the threshold
+     */
+    public function countMethodsExceedingThreshold(float $threshold): int
+    {
+        $count = 0;
+        foreach ($this->metrics as $metric) {
+            if ($metric->getScore() > $threshold) {
+                $count++;
+            }
+        }
+
+        return $count;
+    }
+
+    /**
      * @return array<int, CognitiveMetrics>
      */
     public function jsonSerialize(): array

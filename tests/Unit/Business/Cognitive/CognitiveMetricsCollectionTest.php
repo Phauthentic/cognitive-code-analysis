@@ -204,4 +204,253 @@ class CognitiveMetricsCollectionTest extends TestCase
         $this->assertTrue($metricsCollection->contains($metrics2));
         $this->assertFalse($metricsCollection->contains($metrics3));
     }
+
+    #[Test]
+    public function testGetAverageScoreWithEmptyCollection(): void
+    {
+        $metricsCollection = new CognitiveMetricsCollection();
+        
+        $result = $metricsCollection->getAverageScore();
+        
+        $this->assertEquals(0.0, $result);
+    }
+
+    #[Test]
+    public function testGetAverageScoreWithSingleMetric(): void
+    {
+        $metricsCollection = new CognitiveMetricsCollection();
+        $metrics = $this->createCognitiveMetrics([
+            'class' => 'TestClass',
+            'method' => 'testMethod',
+            'file' => 'test.php',
+            'lineCount' => 1,
+            'argCount' => 0,
+            'returnCount' => 0,
+            'variableCount' => 0,
+            'propertyCallCount' => 0,
+            'ifCount' => 0,
+            'ifNestingLevel' => 0,
+            'elseCount' => 0
+        ]);
+        $metrics->setScore(2.5);
+        $metricsCollection->add($metrics);
+        
+        $result = $metricsCollection->getAverageScore();
+        
+        $this->assertEquals(2.5, $result);
+    }
+
+    #[Test]
+    public function testGetAverageScoreWithMultipleMetrics(): void
+    {
+        $metricsCollection = new CognitiveMetricsCollection();
+        
+        $metrics1 = $this->createCognitiveMetrics([
+            'class' => 'TestClass',
+            'method' => 'method1',
+            'file' => 'test.php',
+            'lineCount' => 1,
+            'argCount' => 0,
+            'returnCount' => 0,
+            'variableCount' => 0,
+            'propertyCallCount' => 0,
+            'ifCount' => 0,
+            'ifNestingLevel' => 0,
+            'elseCount' => 0
+        ]);
+        $metrics1->setScore(1.0);
+        
+        $metrics2 = $this->createCognitiveMetrics([
+            'class' => 'TestClass',
+            'method' => 'method2',
+            'file' => 'test.php',
+            'lineCount' => 1,
+            'argCount' => 0,
+            'returnCount' => 0,
+            'variableCount' => 0,
+            'propertyCallCount' => 0,
+            'ifCount' => 0,
+            'ifNestingLevel' => 0,
+            'elseCount' => 0
+        ]);
+        $metrics2->setScore(2.0);
+        
+        $metrics3 = $this->createCognitiveMetrics([
+            'class' => 'TestClass',
+            'method' => 'method3',
+            'file' => 'test.php',
+            'lineCount' => 1,
+            'argCount' => 0,
+            'returnCount' => 0,
+            'variableCount' => 0,
+            'propertyCallCount' => 0,
+            'ifCount' => 0,
+            'ifNestingLevel' => 0,
+            'elseCount' => 0
+        ]);
+        $metrics3->setScore(3.0);
+        
+        $metricsCollection->add($metrics1);
+        $metricsCollection->add($metrics2);
+        $metricsCollection->add($metrics3);
+        
+        $result = $metricsCollection->getAverageScore();
+        
+        $this->assertEquals(2.0, $result);
+    }
+
+    #[Test]
+    public function testCountMethodsExceedingThresholdWithEmptyCollection(): void
+    {
+        $metricsCollection = new CognitiveMetricsCollection();
+        
+        $result = $metricsCollection->countMethodsExceedingThreshold(1.0);
+        
+        $this->assertEquals(0, $result);
+    }
+
+    #[Test]
+    public function testCountMethodsExceedingThresholdWithNoMethodsExceeding(): void
+    {
+        $metricsCollection = new CognitiveMetricsCollection();
+        
+        $metrics1 = $this->createCognitiveMetrics([
+            'class' => 'TestClass',
+            'method' => 'method1',
+            'file' => 'test.php',
+            'lineCount' => 1,
+            'argCount' => 0,
+            'returnCount' => 0,
+            'variableCount' => 0,
+            'propertyCallCount' => 0,
+            'ifCount' => 0,
+            'ifNestingLevel' => 0,
+            'elseCount' => 0
+        ]);
+        $metrics1->setScore(0.5);
+        
+        $metrics2 = $this->createCognitiveMetrics([
+            'class' => 'TestClass',
+            'method' => 'method2',
+            'file' => 'test.php',
+            'lineCount' => 1,
+            'argCount' => 0,
+            'returnCount' => 0,
+            'variableCount' => 0,
+            'propertyCallCount' => 0,
+            'ifCount' => 0,
+            'ifNestingLevel' => 0,
+            'elseCount' => 0
+        ]);
+        $metrics2->setScore(0.8);
+        
+        $metricsCollection->add($metrics1);
+        $metricsCollection->add($metrics2);
+        
+        $result = $metricsCollection->countMethodsExceedingThreshold(1.0);
+        
+        $this->assertEquals(0, $result);
+    }
+
+    #[Test]
+    public function testCountMethodsExceedingThresholdWithSomeMethodsExceeding(): void
+    {
+        $metricsCollection = new CognitiveMetricsCollection();
+        
+        $metrics1 = $this->createCognitiveMetrics([
+            'class' => 'TestClass',
+            'method' => 'method1',
+            'file' => 'test.php',
+            'lineCount' => 1,
+            'argCount' => 0,
+            'returnCount' => 0,
+            'variableCount' => 0,
+            'propertyCallCount' => 0,
+            'ifCount' => 0,
+            'ifNestingLevel' => 0,
+            'elseCount' => 0
+        ]);
+        $metrics1->setScore(0.5);
+        
+        $metrics2 = $this->createCognitiveMetrics([
+            'class' => 'TestClass',
+            'method' => 'method2',
+            'file' => 'test.php',
+            'lineCount' => 1,
+            'argCount' => 0,
+            'returnCount' => 0,
+            'variableCount' => 0,
+            'propertyCallCount' => 0,
+            'ifCount' => 0,
+            'ifNestingLevel' => 0,
+            'elseCount' => 0
+        ]);
+        $metrics2->setScore(1.5);
+        
+        $metrics3 = $this->createCognitiveMetrics([
+            'class' => 'TestClass',
+            'method' => 'method3',
+            'file' => 'test.php',
+            'lineCount' => 1,
+            'argCount' => 0,
+            'returnCount' => 0,
+            'variableCount' => 0,
+            'propertyCallCount' => 0,
+            'ifCount' => 0,
+            'ifNestingLevel' => 0,
+            'elseCount' => 0
+        ]);
+        $metrics3->setScore(2.0);
+        
+        $metricsCollection->add($metrics1);
+        $metricsCollection->add($metrics2);
+        $metricsCollection->add($metrics3);
+        
+        $result = $metricsCollection->countMethodsExceedingThreshold(1.0);
+        
+        $this->assertEquals(2, $result);
+    }
+
+    #[Test]
+    public function testCountMethodsExceedingThresholdWithAllMethodsExceeding(): void
+    {
+        $metricsCollection = new CognitiveMetricsCollection();
+        
+        $metrics1 = $this->createCognitiveMetrics([
+            'class' => 'TestClass',
+            'method' => 'method1',
+            'file' => 'test.php',
+            'lineCount' => 1,
+            'argCount' => 0,
+            'returnCount' => 0,
+            'variableCount' => 0,
+            'propertyCallCount' => 0,
+            'ifCount' => 0,
+            'ifNestingLevel' => 0,
+            'elseCount' => 0
+        ]);
+        $metrics1->setScore(1.5);
+        
+        $metrics2 = $this->createCognitiveMetrics([
+            'class' => 'TestClass',
+            'method' => 'method2',
+            'file' => 'test.php',
+            'lineCount' => 1,
+            'argCount' => 0,
+            'returnCount' => 0,
+            'variableCount' => 0,
+            'propertyCallCount' => 0,
+            'ifCount' => 0,
+            'ifNestingLevel' => 0,
+            'elseCount' => 0
+        ]);
+        $metrics2->setScore(2.0);
+        
+        $metricsCollection->add($metrics1);
+        $metricsCollection->add($metrics2);
+        
+        $result = $metricsCollection->countMethodsExceedingThreshold(1.0);
+        
+        $this->assertEquals(2, $result);
+    }
 }
