@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report;
 
+use Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChurnMetricsCollection;
+
 /**
  * CsvReport for Churn metrics.
  */
@@ -21,11 +23,10 @@ class CsvReport extends AbstractReport
     ];
 
     /**
-     * @param array<string, array<string, mixed>> $classes
      * @param string $filename
      * @throws \Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException
      */
-    public function export(array $classes, string $filename): void
+    public function export(ChurnMetricsCollection $metrics, string $filename): void
     {
         $this->assertFileIsWritable($filename);
 
@@ -34,14 +35,14 @@ class CsvReport extends AbstractReport
         /* @phpstan-ignore argument.type */
         fputcsv($file, $this->header, ',', '"', '\\');
 
-        foreach ($classes as $class => $data) {
+        foreach ($metrics as $metric) {
             /* @phpstan-ignore argument.type */
             fputcsv($file, [
-                $class,
-                $data['file'] ?? '',
-                $data['score'] ?? 0,
-                $data['churn'] ?? 0,
-                $data['timesChanged'] ?? 0,
+                $metric->getClassName(),
+                $metric->getFile(),
+                $metric->getScore(),
+                $metric->getChurn(),
+                $metric->getTimesChanged(),
             ], ',', '"', '\\');
         }
 

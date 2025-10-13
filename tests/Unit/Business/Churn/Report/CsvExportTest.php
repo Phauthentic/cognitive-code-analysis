@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Churn\Report;
 
+use Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChurnMetricsCollection;
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report\CsvReport;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 use PHPUnit\Framework\Attributes\Test;
@@ -36,6 +37,7 @@ class CsvExportTest extends AbstractReporterTestCase
         $this->expectException(CognitiveAnalysisException::class);
         $this->expectExceptionMessage('Directory /not/writable does not exist for file /not/writable/file.csv');
 
-        $this->exporter->export([], '/not/writable/file.csv');
+        $emptyCollection = new ChurnMetricsCollection();
+        $this->exporter->export($emptyCollection, '/not/writable/file.csv');
     }
 }

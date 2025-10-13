@@ -53,10 +53,11 @@ class ChurnReporterFactoryCustomTest extends TestCase
         $classContent = <<<'PHP'
 <?php
 namespace TestCustomChurn;
+use Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChurnMetricsCollection;
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report\ReportGeneratorInterface;
 
 class CustomChurnExporter implements ReportGeneratorInterface {
-    public function export(array $classes, string $filename): void {
+    public function export(ChurnMetricsCollection $metrics, string $filename): void {
         file_put_contents($filename, 'custom churn data');
     }
 }
@@ -89,10 +90,11 @@ PHP;
         $classContent = <<<'PHP'
 <?php
 namespace TestAutoloadedChurn;
+use Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChurnMetricsCollection;
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report\ReportGeneratorInterface;
 
 class AutoloadedChurnExporter implements ReportGeneratorInterface {
-    public function export(array $classes, string $filename): void {
+    public function export(ChurnMetricsCollection $metrics, string $filename): void {
         file_put_contents($filename, 'autoloaded churn data');
     }
 }

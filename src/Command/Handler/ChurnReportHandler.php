@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phauthentic\CognitiveCodeAnalysis\Command\Handler;
 
 use Exception;
+use Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChurnMetricsCollection;
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report\ChurnReportFactoryInterface;
 use Phauthentic\CognitiveCodeAnalysis\Business\MetricsFacade;
 use Symfony\Component\Console\Command\Command;
@@ -22,10 +23,10 @@ class ChurnReportHandler
     /**
      * Handles report option validation and report generation.
      *
-     * @param array<string, array<string, mixed>> $classes
+     * @param ChurnMetricsCollection $metrics
      */
     public function exportToFile(
-        array $classes,
+        ChurnMetricsCollection $metrics,
         ?string $reportType,
         ?string $reportFile,
     ): int {
@@ -41,7 +42,7 @@ class ChurnReportHandler
 
         try {
             $this->metricsFacade->exportChurnReport(
-                classes: $classes,
+                metrics: $metrics,
                 reportType: (string)$reportType,
                 filename: (string)$reportFile
             );

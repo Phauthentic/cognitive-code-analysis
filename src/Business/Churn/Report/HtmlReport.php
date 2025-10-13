@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report;
 
+use Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChurnMetricsCollection;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 
 /**
@@ -21,15 +22,14 @@ class HtmlReport extends AbstractReport
     ];
 
     /**
-     * @param array<string, array<string, mixed>> $classes
      * @param string $filename
      * @throws CognitiveAnalysisException
      */
-    public function export(array $classes, string $filename): void
+    public function export(ChurnMetricsCollection $metrics, string $filename): void
     {
         $this->assertFileIsWritable($filename);
 
-        $html = $this->generateHtml($classes);
+        $html = $this->generateHtml($metrics);
 
         $this->writeFile($filename, $html);
     }
@@ -45,11 +45,10 @@ class HtmlReport extends AbstractReport
     }
 
     /**
-     * @param array<string, array<string, mixed>> $classes
      * @return string
      * @throws CognitiveAnalysisException
      */
-    private function generateHtml(array $classes): string
+    private function generateHtml(ChurnMetricsCollection $metrics): string
     {
         ob_start();
         ?>
@@ -65,7 +64,7 @@ class HtmlReport extends AbstractReport
         <div class="container-fluid">
             <h1 class="mb-4">Churn Metrics Report - <?php echo date('Y-m-d H:i:s') ?></h1>
             <p>
-                This report contains the churn metrics for <?php echo count($classes); ?> files.
+                This report contains the churn metrics for <?php echo count($metrics); ?> files.
             </p>
             <table class="table table-bordered">
                 <thead>
@@ -77,12 +76,12 @@ class HtmlReport extends AbstractReport
                 </tr>
                 </thead>
                 <tbody>
-                <?php foreach ($classes as $class => $data) : ?>
+                <?php foreach ($metrics as $metric) : ?>
                     <tr>
-                        <td><?php echo $class; ?></td>
-                        <td><?php echo $data['score'] ?? 0; ?></td>
-                        <td><?php echo $data['timesChanged'] ?? 0; ?></td>
-                        <td><?php echo $this->formatNumber((float)($data['churn'] ?? 0)); ?></td>
+                        <td><?php echo $this->escape($metric->getClassName()); ?></td>
+                        <td><?php echo $metric->getScore(); ?></td>
+                        <td><?php echo $metric->getTimesChanged(); ?></td>
+                        <td><?php echo $this->formatNumber($metric->getChurn()); ?></td>
                     </tr>
                 <?php endforeach; ?>
                 </tbody>

@@ -6,6 +6,7 @@ namespace Phauthentic\CognitiveCodeAnalysis\Business;
 
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChangeCounter\ChangeCounterFactory;
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChurnCalculator;
+use Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChurnMetricsCollection;
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report\ChurnReportFactoryInterface;
 use Phauthentic\CognitiveCodeAnalysis\Business\CodeCoverage\CoverageReportReaderInterface;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetrics;
@@ -80,19 +81,12 @@ class MetricsFacade
         return $metricsCollection;
     }
 
-    /**
-     * @param string $path
-     * @param string $vcsType
-     * @param string $since
-     * @param CoverageReportReaderInterface|null $coverageReader
-     * @return array<string, array<string, mixed>>
-     */
     public function calculateChurn(
         string $path,
         string $vcsType = 'git',
         string $since = '1900-01-01',
         ?CoverageReportReaderInterface $coverageReader = null
-    ): array {
+    ): ChurnMetricsCollection {
         $metricsCollection = $this->getCognitiveMetrics($path);
 
         $counter = $this->changeCounterFactory->create($vcsType);
@@ -122,16 +116,13 @@ class MetricsFacade
         return $this->configService->getConfig();
     }
 
-    /**
-     * @param array<string, array<string, mixed>> $classes
-     */
     public function exportChurnReport(
-        array $classes,
+        ChurnMetricsCollection $metrics,
         string $reportType,
         string $filename
     ): void {
         $exporter = $this->churnReportFactory->create($reportType);
-        $exporter->export($classes, $filename);
+        $exporter->export($metrics, $filename);
     }
 
     public function exportMetricsReport(

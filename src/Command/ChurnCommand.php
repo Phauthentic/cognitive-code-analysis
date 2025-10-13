@@ -148,7 +148,7 @@ class ChurnCommand extends Command
         }
 
         // Calculate churn metrics
-        $classes = $this->metricsFacade->calculateChurn(
+        $metrics = $this->metricsFacade->calculateChurn(
             path: $context->getPath(),
             vcsType: $context->getVcsType(),
             since: $context->getSince(),
@@ -158,13 +158,13 @@ class ChurnCommand extends Command
         // Handle report generation or display
         if ($context->hasReportOptions()) {
             return $this->report->exportToFile(
-                $classes,
+                $metrics,
                 $context->getReportType(),
                 $context->getReportFile()
             );
         }
 
-        $this->renderer->renderChurnTable(classes: $classes);
+        $this->renderer->renderChurnTable(metrics: $metrics);
         return self::SUCCESS;
     }
 

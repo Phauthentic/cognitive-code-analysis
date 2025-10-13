@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report;
 
+use Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChurnMetricsCollection;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 
 /**
@@ -29,15 +30,14 @@ class SvgTreemapReport extends AbstractReport
     }
 
     /**
-     * @param array<string, array<string, mixed>> $classes
      * @param string $filename
      * @throws CognitiveAnalysisException
      */
-    public function export(array $classes, string $filename): void
+    public function export(ChurnMetricsCollection $metrics, string $filename): void
     {
         $this->assertFileIsWritable($filename);
 
-        $svg = $this->generateSvgTreemap(classes: $classes);
+        $svg = $this->generateSvgTreemap(metrics: $metrics);
 
         if (file_put_contents($filename, $svg) === false) {
             throw new CognitiveAnalysisException("Unable to write to file: $filename");
@@ -47,12 +47,11 @@ class SvgTreemapReport extends AbstractReport
     /**
      * Generates a treemap SVG for the churn data.
      *
-     * @param array<string, array<string, mixed>> $classes
      * @return string
      */
-    private function generateSvgTreemap(array $classes): string
+    private function generateSvgTreemap(ChurnMetricsCollection $metrics): string
     {
-        $items = $this->treemapMath->prepareItems($classes);
+        $items = $this->treemapMath->prepareItems($metrics->toArray());
 
         [$minScore, $maxScore] = $this->treemapMath->findScoreRange($items);
 

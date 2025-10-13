@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report;
 
+use Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChurnMetrics;
+use Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChurnMetricsCollection;
 use Phauthentic\CognitiveCodeAnalysis\Business\Reporter\MarkdownFormatterTrait;
 use Phauthentic\CognitiveCodeAnalysis\Business\Utility\CoverageDataDetector;
 use Phauthentic\CognitiveCodeAnalysis\Business\Utility\Datetime;
@@ -40,43 +42,38 @@ class MarkdownReport extends AbstractReport
     ];
 
     /**
-     * @param array<string, array<string, mixed>> $classes
      * @param string $filename
      * @throws \Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException
      */
-    public function export(array $classes, string $filename): void
+    public function export(ChurnMetricsCollection $metrics, string $filename): void
     {
         $this->assertFileIsWritable($filename);
 
-        $markdown = $this->generateMarkdown($classes);
+        $markdown = $this->generateMarkdown($metrics);
 
         $this->writeFile($filename, $markdown);
     }
 
-    /**
-     * @param array<string, array<string, mixed>> $classes
-     * @return string
-     */
-    private function generateMarkdown(array $classes): string
+    private function generateMarkdown(ChurnMetricsCollection $metrics): string
     {
-        $hasCoverageData = $this->hasCoverageData($classes);
+        $hasCoverageData = $this->hasCoverageData($metrics);
         $header = $hasCoverageData ? $this->headerWithCoverage : $this->header;
 
         $markdown = "# Churn Metrics Report\n\n";
         $markdown .= "Generated: " . (new Datetime())->format('Y-m-d H:i:s') . "\n\n";
-        $markdown .= "Total Classes: " . count($classes) . "\n\n";
+        $markdown .= "Total Classes: " . count($metrics) . "\n\n";
 
         // Create table header
         $markdown .= $this->buildMarkdownTableHeader($header) . "\n";
         $markdown .= $this->buildMarkdownTableSeparator(count($header)) . "\n";
 
         // Add rows
-        foreach ($classes as $className => $data) {
-            if ($data['score'] == 0 || $data['churn'] == 0) {
+        foreach ($metrics as $metric) {
+            if ($metric->getScore() == 0 || $metric->getChurn() == 0) {
                 continue;
             }
 
-            $markdown .= $this->addRow($className, $data, $hasCoverageData);
+            $markdown .= $this->addRow($metric, $hasCoverageData);
         }
 
         return $markdown;
@@ -85,30 +82,42 @@ class MarkdownReport extends AbstractReport
     /**
      * Add a single row to the markdown table
      *
-     * @param string $className
-     * @param array<string, mixed> $data
+     * @param ChurnMetrics $metric
      * @param bool $hasCoverageData
      * @return string
      */
-    private function addRow(string $className, array $data, bool $hasCoverageData): string
+    private function addRow(ChurnMetrics $metric, bool $hasCoverageData): string
     {
         $row = [
-            $this->escapeMarkdown($className),
-            (string)$data['score'],
-            (string)round((float)$data['churn'], 3),
+            $this->escapeMarkdown($metric->getClassName()),
+            (string)$metric->getScore(),
+            (string)round($metric->getChurn(), 3),
         ];
 
         if ($hasCoverageData) {
-            $row[] = $data['riskChurn'] !== null ? (string)round((float)$data['riskChurn'], 3) : 'N/A';
+            $row[] = $metric->getRiskChurn() !== null ? (string)round($metric->getRiskChurn(), 3) : 'N/A';
         }
 
-        $row[] = (string)$data['timesChanged'];
+        $row[] = (string)$metric->getTimesChanged();
 
         if ($hasCoverageData) {
-            $row[] = $data['coverage'] !== null ? sprintf('%.2f%%', $data['coverage'] * 100) : 'N/A';
-            $row[] = $data['riskLevel'] ?? 'N/A';
+            $row[] = $metric->getCoverage() !== null ? sprintf('%.2f%%', $metric->getCoverage() * 100) : 'N/A';
+            $row[] = $metric->getRiskLevel() ?? 'N/A';
         }
 
         return "| " . implode(" | ", $row) . " |\n";
+    }
+
+    /**
+     * Check if the metrics collection has coverage data
+     */
+    private function hasCoverageData(ChurnMetricsCollection $metrics): bool
+    {
+        foreach ($metrics as $metric) {
+            if ($metric->hasCoverageData()) {
+                return true;
+            }
+        }
+        return false;
     }
 }

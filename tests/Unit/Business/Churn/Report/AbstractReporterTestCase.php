@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Churn\Report;
 
+use Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChurnMetrics;
+use Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChurnMetricsCollection;
 use Phauthentic\CognitiveCodeAnalysis\Business\Utility\Datetime;
 use PHPUnit\Framework\TestCase;
 
@@ -26,60 +28,74 @@ class AbstractReporterTestCase extends TestCase
         Datetime::$fixedDate = null;
     }
 
-    protected function getTestData(): array
+    protected function getTestData(): ChurnMetricsCollection
     {
-        return [
-            'Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetrics' => [
-                'timesChanged' => 6,
-                'score' => 2.042,
-                'file' => '/home/florian/projects/cognitive-code-checker/src/Business/Cognitive/CognitiveMetrics.php',
-                'churn' => 12.252,
-            ],
-            'Phauthentic\CognitiveCodeAnalysis\Command\Presentation\CognitiveMetricTextRenderer' => [
-                'timesChanged' => 10,
-                'score' => 0.806,
-                'file' => '/home/florian/projects/cognitive-code-checker/src/Command/Presentation/CognitiveMetricTextRenderer.php',
-                'churn' => 8.06,
-            ],
-            'Phauthentic\CognitiveCodeAnalysis\Business\MetricsFacade' => [
-                'timesChanged' => 8,
-                'score' => 0.693,
-                'file' => '/home/florian/projects/cognitive-code-checker/src/Business/MetricsFacade.php',
-                'churn' => 5.544,
-            ],
-        ];
+        $collection = new ChurnMetricsCollection();
+
+        $collection->add(new ChurnMetrics(
+            className: 'Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetrics',
+            file: '/home/florian/projects/cognitive-code-checker/src/Business/Cognitive/CognitiveMetrics.php',
+            score: 2.042,
+            timesChanged: 6,
+            churn: 12.252
+        ));
+
+        $collection->add(new ChurnMetrics(
+            className: 'Phauthentic\CognitiveCodeAnalysis\Command\Presentation\CognitiveMetricTextRenderer',
+            file: '/home/florian/projects/cognitive-code-checker/src/Command/Presentation/CognitiveMetricTextRenderer.php',
+            score: 0.806,
+            timesChanged: 10,
+            churn: 8.06
+        ));
+
+        $collection->add(new ChurnMetrics(
+            className: 'Phauthentic\CognitiveCodeAnalysis\Business\MetricsFacade',
+            file: '/home/florian/projects/cognitive-code-checker/src/Business/MetricsFacade.php',
+            score: 0.693,
+            timesChanged: 8,
+            churn: 5.544
+        ));
+
+        return $collection;
     }
 
-    protected function getTestDataWithCoverage(): array
+    protected function getTestDataWithCoverage(): ChurnMetricsCollection
     {
-        return [
-            'Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetrics' => [
-                'timesChanged' => 6,
-                'score' => 2.042,
-                'file' => '/home/florian/projects/cognitive-code-checker/src/Business/Cognitive/CognitiveMetrics.php',
-                'churn' => 12.252,
-                'coverage' => 0.85,
-                'riskChurn' => 1.8378,
-                'riskLevel' => 'low',
-            ],
-            'Phauthentic\CognitiveCodeAnalysis\Command\Presentation\CognitiveMetricTextRenderer' => [
-                'timesChanged' => 10,
-                'score' => 0.806,
-                'file' => '/home/florian/projects/cognitive-code-checker/src/Command/Presentation/CognitiveMetricTextRenderer.php',
-                'churn' => 8.06,
-                'coverage' => 0.65,
-                'riskChurn' => 2.821,
-                'riskLevel' => 'medium',
-            ],
-            'Phauthentic\CognitiveCodeAnalysis\Business\MetricsFacade' => [
-                'timesChanged' => 8,
-                'score' => 0.693,
-                'file' => '/home/florian/projects/cognitive-code-checker/src/Business/MetricsFacade.php',
-                'churn' => 5.544,
-                'coverage' => 0.92,
-                'riskChurn' => 0.443,
-                'riskLevel' => 'low',
-            ],
-        ];
+        $collection = new ChurnMetricsCollection();
+
+        $collection->add(new ChurnMetrics(
+            className: 'Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetrics',
+            file: '/home/florian/projects/cognitive-code-checker/src/Business/Cognitive/CognitiveMetrics.php',
+            score: 2.042,
+            timesChanged: 6,
+            churn: 12.252,
+            coverage: 0.85,
+            riskChurn: 1.8378,
+            riskLevel: 'low'
+        ));
+
+        $collection->add(new ChurnMetrics(
+            className: 'Phauthentic\CognitiveCodeAnalysis\Command\Presentation\CognitiveMetricTextRenderer',
+            file: '/home/florian/projects/cognitive-code-checker/src/Command/Presentation/CognitiveMetricTextRenderer.php',
+            score: 0.806,
+            timesChanged: 10,
+            churn: 8.06,
+            coverage: 0.65,
+            riskChurn: 2.821,
+            riskLevel: 'medium'
+        ));
+
+        $collection->add(new ChurnMetrics(
+            className: 'Phauthentic\CognitiveCodeAnalysis\Business\MetricsFacade',
+            file: '/home/florian/projects/cognitive-code-checker/src/Business/MetricsFacade.php',
+            score: 0.693,
+            timesChanged: 8,
+            churn: 5.544,
+            coverage: 0.92,
+            riskChurn: 0.443,
+            riskLevel: 'low'
+        ));
+
+        return $collection;
     }
 }

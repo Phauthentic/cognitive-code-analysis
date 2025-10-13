@@ -46,7 +46,8 @@ cognitive:
   #     pdf:
   #       class: 'My\Custom\PdfExporter'
   #       file: '/path/to/PdfExporter.php'
-  #   churn:
-  #     xml:
-  #       class: 'My\Custom\XmlChurnExporter'
-  #       file: null
+  customExporters:
+    cognitive:
+      test:
+        class: '\CustomCognitiveExporter'
+        file: 'Test.php'
