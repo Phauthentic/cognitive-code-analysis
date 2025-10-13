@@ -4,14 +4,11 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Command;
 
-use Exception;
-use Phauthentic\CognitiveCodeAnalysis\Business\CodeCoverage\CodeCoverageFactory;
-use Phauthentic\CognitiveCodeAnalysis\Business\CodeCoverage\CoverageReportReaderInterface;
-use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Baseline;
-use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
-use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsSorter;
 use Phauthentic\CognitiveCodeAnalysis\Business\MetricsFacade;
-use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
+use Phauthentic\CognitiveCodeAnalysis\Command\Handler\CognitiveAnalysis\BaselineHandler;
+use Phauthentic\CognitiveCodeAnalysis\Command\Handler\CognitiveAnalysis\ConfigurationLoadHandler;
+use Phauthentic\CognitiveCodeAnalysis\Command\Handler\CognitiveAnalysis\CoverageLoadHandler;
+use Phauthentic\CognitiveCodeAnalysis\Command\Handler\CognitiveAnalysis\SortingHandler;
 use Phauthentic\CognitiveCodeAnalysis\Command\Handler\CognitiveMetricsReportHandler;
 use Phauthentic\CognitiveCodeAnalysis\Command\Presentation\CognitiveMetricTextRendererInterface;
 use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\CognitiveMetricsCommandContext;
@@ -51,10 +48,11 @@ class CognitiveMetricsCommand extends Command
     public function __construct(
         readonly private MetricsFacade $metricsFacade,
         readonly private CognitiveMetricTextRendererInterface $renderer,
-        readonly private Baseline $baselineService,
         readonly private CognitiveMetricsReportHandler $reportHandler,
-        readonly private CognitiveMetricsSorter $sorter,
-        readonly private CodeCoverageFactory $coverageFactory,
+        readonly private ConfigurationLoadHandler $configHandler,
+        readonly private CoverageLoadHandler $coverageHandler,
+        readonly private BaselineHandler $baselineHandler,
+        readonly private SortingHandler $sortingHandler,
         readonly private CognitiveMetricsValidationSpecificationFactory $validationSpecificationFactory
     ) {
         parent::__construct();
@@ -133,7 +131,6 @@ class CognitiveMetricsCommand extends Command
      * @param InputInterface $input
      * @param OutputInterface $output
      * @return int Command status code.
-     * @throws Exception
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
@@ -141,19 +138,13 @@ class CognitiveMetricsCommand extends Command
 
         // Validate all specifications
         if (!$this->validationSpecification->isSatisfiedBy($context)) {
-            $errorMessage = $this->validationSpecification->getDetailedErrorMessage($context);
-            $output->writeln('<error>' . $errorMessage . '</error>');
-            return Command::FAILURE;
+            return $this->handleValidationError($context, $output);
         }
 
-        $paths = $context->getPaths();
-
-        // Load configuration if provided
-        if ($context->hasConfigFile()) {
-            $configFile = $context->getConfigFile();
-            if ($configFile !== null && !$this->loadConfiguration($configFile, $output)) {
-                return Command::FAILURE;
-            }
+        // Load configuration
+        $configResult = $this->configHandler->load($context);
+        if ($configResult->isFailure()) {
+            return $configResult->toCommandStatus($output);
         }
 
         // Validate custom exporters after config is loaded
@@ -164,164 +155,61 @@ class CognitiveMetricsCommand extends Command
             );
 
             if (!$customExporterValidation->isSatisfiedBy($context)) {
-                $errorMessage = $customExporterValidation->getErrorMessageWithContext($context);
-                $output->writeln('<error>' . $errorMessage . '</error>');
-                return Command::FAILURE;
+                return $this->handleValidationError($context, $output, $customExporterValidation);
             }
         }
 
         // Load coverage reader
-        $coverageReader = $this->loadCoverageReader($context, $output);
-        if ($coverageReader === false) {
-            return Command::FAILURE;
+        $coverageResult = $this->coverageHandler->load($context);
+        if ($coverageResult->isFailure()) {
+            return $coverageResult->toCommandStatus($output);
         }
 
-        $metricsCollection = $this->metricsFacade->getCognitiveMetricsFromPaths($paths, $coverageReader);
+        // Get metrics
+        $metricsCollection = $this->metricsFacade->getCognitiveMetricsFromPaths(
+            $context->getPaths(),
+            $coverageResult->getData()
+        );
 
-        $this->handleBaseLine($context, $metricsCollection);
-
-        $sortResult = $this->applySorting($context, $output, $metricsCollection);
-        if ($sortResult['status'] === Command::FAILURE) {
-            return Command::FAILURE;
+        // Apply baseline
+        $baselineResult = $this->baselineHandler->apply($context, $metricsCollection);
+        if ($baselineResult->isFailure()) {
+            return $baselineResult->toCommandStatus($output);
         }
-        $metricsCollection = $sortResult['collection'];
 
-        // Handle report generation or display
+        // Apply sorting
+        $sortResult = $this->sortingHandler->sort($context, $metricsCollection);
+        if ($sortResult->isFailure()) {
+            return $sortResult->toCommandStatus($output);
+        }
+
+        // Generate report or display results
         if ($context->hasReportOptions()) {
-            return $this->reportHandler->handle($metricsCollection, $context->getReportType(), $context->getReportFile());
+            return $this->reportHandler->handle(
+                $sortResult->getData(),
+                $context->getReportType(),
+                $context->getReportFile()
+            );
         }
 
-        $this->renderer->render($metricsCollection, $output);
+        $this->renderer->render($sortResult->getData(), $output);
         return Command::SUCCESS;
     }
 
-    /**
-     * Handles the baseline option and loads the baseline file if provided.
-     *
-     * @param CognitiveMetricsCommandContext $context
-     * @param CognitiveMetricsCollection $metricsCollection
-     * @throws Exception
-     */
-    private function handleBaseLine(
-        CognitiveMetricsCommandContext $context,
-        CognitiveMetricsCollection $metricsCollection
-    ): void {
-        if (!$context->hasBaselineFile()) {
-            return;
-        }
-
-        $baselineFile = $context->getBaselineFile();
-        if ($baselineFile === null) {
-            return;
-        }
-
-        $baseline = $this->baselineService->loadBaseline($baselineFile);
-        $this->baselineService->calculateDeltas($metricsCollection, $baseline);
-    }
 
     /**
-     * Apply sorting to metrics collection
-     *
-     * @return array{status: int, collection: CognitiveMetricsCollection}
+     * Handle validation errors with consistent error output.
      */
-    private function applySorting(
+    private function handleValidationError(
         CognitiveMetricsCommandContext $context,
         OutputInterface $output,
-        CognitiveMetricsCollection $metricsCollection
-    ): array {
-        $sortBy = $context->getSortBy();
-        $sortOrder = $context->getSortOrder();
+        ?CustomExporterValidationSpecification $customExporterValidation = null
+    ): int {
+        $errorMessage = $customExporterValidation !== null
+            ? $customExporterValidation->getErrorMessageWithContext($context)
+            : $this->validationSpecification->getDetailedErrorMessage($context);
 
-        if ($sortBy === null) {
-            return ['status' => Command::SUCCESS, 'collection' => $metricsCollection];
-        }
-
-        try {
-            $sorted = $this->sorter->sort($metricsCollection, $sortBy, $sortOrder);
-            return ['status' => Command::SUCCESS, 'collection' => $sorted];
-        } catch (\InvalidArgumentException $e) {
-            $output->writeln('<error>Sorting error: ' . $e->getMessage() . '</error>');
-            $output->writeln('<info>Available sort fields: ' . implode(', ', $this->sorter->getSortableFields()) . '</info>');
-            return ['status' => Command::FAILURE, 'collection' => $metricsCollection];
-        }
-    }
-
-    /**
-     * Loads configuration and handles errors.
-     *
-     * @param string $configFile
-     * @param OutputInterface $output
-     * @return bool Success or failure.
-     */
-    private function loadConfiguration(string $configFile, OutputInterface $output): bool
-    {
-        try {
-            $this->metricsFacade->loadConfig($configFile);
-            return true;
-        } catch (Exception $e) {
-            $output->writeln('<error>Failed to load configuration: ' . $e->getMessage() . '</error>');
-            return false;
-        }
-    }
-
-    /**
-     * Load coverage reader from file
-     *
-     * @param CognitiveMetricsCommandContext $context Command context containing coverage file information
-     * @param OutputInterface $output Output interface for error messages
-     * @return CoverageReportReaderInterface|null|false Returns reader instance, null if no file provided, or false on error
-     */
-    private function loadCoverageReader(
-        CognitiveMetricsCommandContext $context,
-        OutputInterface $output
-    ): CoverageReportReaderInterface|null|false {
-        $coverageFile = $context->getCoverageFile();
-        $format = $context->getCoverageFormat();
-
-        if ($coverageFile === null) {
-            return null;
-        }
-
-        // Auto-detect format if not specified
-        if ($format === null) {
-            $format = $this->detectCoverageFormat($coverageFile);
-            if ($format === null) {
-                $output->writeln('<error>Unable to detect coverage file format. Please specify format explicitly.</error>');
-                return false;
-            }
-        }
-
-        try {
-            return $this->coverageFactory->createFromName($format, $coverageFile);
-        } catch (CognitiveAnalysisException $e) {
-            $output->writeln(sprintf(
-                '<error>Failed to load coverage file: %s</error>',
-                $e->getMessage()
-            ));
-            return false;
-        }
-    }
-
-    /**
-     * Detect coverage file format by examining the XML structure
-     */
-    private function detectCoverageFormat(string $coverageFile): ?string
-    {
-        $content = file_get_contents($coverageFile);
-        if ($content === false) {
-            return null;
-        }
-
-        // Cobertura format has <coverage> root element with line-rate attribute
-        if (preg_match('/<coverage[^>]*line-rate=/', $content)) {
-            return 'cobertura';
-        }
-
-        // Clover format has <coverage> with generated attribute and <project> child
-        if (preg_match('/<coverage[^>]*generated=.*<project/', $content)) {
-            return 'clover';
-        }
-
-        return null;
+        $output->writeln('<error>' . $errorMessage . '</error>');
+        return Command::FAILURE;
     }
 }

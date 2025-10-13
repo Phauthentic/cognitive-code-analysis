@@ -29,6 +29,10 @@ use Phauthentic\CognitiveCodeAnalysis\Command\EventHandler\ParserErrorHandler;
 use Phauthentic\CognitiveCodeAnalysis\Command\EventHandler\ProgressBarHandler;
 use Phauthentic\CognitiveCodeAnalysis\Command\EventHandler\VerboseHandler;
 use Phauthentic\CognitiveCodeAnalysis\Command\Handler\ChurnReportHandler;
+use Phauthentic\CognitiveCodeAnalysis\Command\Handler\CognitiveAnalysis\BaselineHandler;
+use Phauthentic\CognitiveCodeAnalysis\Command\Handler\CognitiveAnalysis\ConfigurationLoadHandler;
+use Phauthentic\CognitiveCodeAnalysis\Command\Handler\CognitiveAnalysis\CoverageLoadHandler;
+use Phauthentic\CognitiveCodeAnalysis\Command\Handler\CognitiveAnalysis\SortingHandler;
 use Phauthentic\CognitiveCodeAnalysis\Command\Handler\CognitiveMetricsReportHandler;
 use Phauthentic\CognitiveCodeAnalysis\Command\Presentation\ChurnTextRenderer;
 use Phauthentic\CognitiveCodeAnalysis\Command\Presentation\CognitiveMetricTextRenderer;
@@ -193,6 +197,31 @@ class Application
                 new Reference(CognitiveReportFactoryInterface::class),
             ])
             ->setPublic(true);
+
+        // Register cognitive analysis handlers
+        $this->containerBuilder->register(ConfigurationLoadHandler::class, ConfigurationLoadHandler::class)
+            ->setArguments([
+                new Reference(MetricsFacade::class),
+            ])
+            ->setPublic(true);
+
+        $this->containerBuilder->register(CoverageLoadHandler::class, CoverageLoadHandler::class)
+            ->setArguments([
+                new Reference(CodeCoverageFactory::class),
+            ])
+            ->setPublic(true);
+
+        $this->containerBuilder->register(BaselineHandler::class, BaselineHandler::class)
+            ->setArguments([
+                new Reference(Baseline::class),
+            ])
+            ->setPublic(true);
+
+        $this->containerBuilder->register(SortingHandler::class, SortingHandler::class)
+            ->setArguments([
+                new Reference(CognitiveMetricsSorter::class),
+            ])
+            ->setPublic(true);
     }
 
     private function bootstrap(): void
@@ -269,10 +298,11 @@ class Application
             ->setArguments([
                 new Reference(MetricsFacade::class),
                 new Reference(CognitiveMetricTextRendererInterface::class),
-                new Reference(Baseline::class),
                 new Reference(CognitiveMetricsReportHandler::class),
-                new Reference(CognitiveMetricsSorter::class),
-                new Reference(CodeCoverageFactory::class),
+                new Reference(ConfigurationLoadHandler::class),
+                new Reference(CoverageLoadHandler::class),
+                new Reference(BaselineHandler::class),
+                new Reference(SortingHandler::class),
                 new Reference(CognitiveMetricsValidationSpecificationFactory::class),
             ])
             ->setPublic(true);
