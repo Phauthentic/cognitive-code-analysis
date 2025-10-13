@@ -8,6 +8,7 @@ use Exception;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report\CognitiveReportFactoryInterface;
 use Phauthentic\CognitiveCodeAnalysis\Business\MetricsFacade;
+use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -85,5 +86,15 @@ class CognitiveMetricsReportHandler
         ));
 
         return Command::FAILURE;
+    }
+
+    public function getReportFactory(): CognitiveReportFactoryInterface
+    {
+        return $this->reportFactory;
+    }
+
+    public function getConfigService(): ConfigService
+    {
+        return $this->metricsFacade->getConfigService();
     }
 }

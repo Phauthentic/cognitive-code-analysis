@@ -15,6 +15,7 @@ use Phauthentic\CognitiveCodeAnalysis\Command\Presentation\ChurnTextRenderer;
 use Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications\ChurnCommandContext;
 use Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications\CompositeChurnValidationSpecification;
 use Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications\ChurnValidationSpecificationFactory;
+use Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications\CustomExporterValidationSpecification;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -126,7 +127,7 @@ class ChurnCommand extends Command
     {
         $context = new ChurnCommandContext($input);
 
-        // Validate all specifications
+        // Validate all specifications (except custom exporters which need config)
         if (!$this->validationSpecification->isSatisfiedBy($context)) {
             $errorMessage = $this->validationSpecification->getDetailedErrorMessage($context);
             $output->writeln('<error>' . $errorMessage . '</error>');
@@ -137,6 +138,19 @@ class ChurnCommand extends Command
         if ($context->hasConfigFile()) {
             $configFile = $context->getConfigFile();
             if ($configFile !== null && !$this->loadConfiguration($configFile, $output)) {
+                return self::FAILURE;
+            }
+        }
+
+        // Validate custom exporters after config is loaded
+        if ($context->hasReportOptions()) {
+            $customExporterValidation = new CustomExporterValidationSpecification(
+                $this->report->getReportFactory(),
+                $this->report->getConfigService()
+            );
+            if (!$customExporterValidation->isSatisfiedBy($context)) {
+                $errorMessage = $customExporterValidation->getErrorMessageWithContext($context);
+                $output->writeln('<error>' . $errorMessage . '</error>');
                 return self::FAILURE;
             }
         }

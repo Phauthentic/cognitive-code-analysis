@@ -17,6 +17,7 @@ use Phauthentic\CognitiveCodeAnalysis\Command\Presentation\CognitiveMetricTextRe
 use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\CognitiveMetricsCommandContext;
 use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\CompositeCognitiveMetricsValidationSpecification;
 use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\CognitiveMetricsValidationSpecificationFactory;
+use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\CustomExporterValidationSpecification;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -25,6 +26,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 /**
  * Command to parse PHP files or directories and output method metrics.
+ *
+ * @SuppressWarnings("CyclomaticComplexity")
  */
 #[AsCommand(
     name: 'analyse',
@@ -149,6 +152,20 @@ class CognitiveMetricsCommand extends Command
         if ($context->hasConfigFile()) {
             $configFile = $context->getConfigFile();
             if ($configFile !== null && !$this->loadConfiguration($configFile, $output)) {
+                return Command::FAILURE;
+            }
+        }
+
+        // Validate custom exporters after config is loaded
+        if ($context->hasReportOptions()) {
+            $customExporterValidation = new CustomExporterValidationSpecification(
+                $this->reportHandler->getReportFactory(),
+                $this->reportHandler->getConfigService()
+            );
+
+            if (!$customExporterValidation->isSatisfiedBy($context)) {
+                $errorMessage = $customExporterValidation->getErrorMessageWithContext($context);
+                $output->writeln('<error>' . $errorMessage . '</error>');
                 return Command::FAILURE;
             }
         }

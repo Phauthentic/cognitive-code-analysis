@@ -46,8 +46,3 @@ cognitive:
   #     pdf:
   #       class: 'My\Custom\PdfExporter'
   #       file: '/path/to/PdfExporter.php'
-  customExporters:
-    cognitive:
-      test:
-        class: '\CustomCognitiveExporter'
-        file: 'Test.php'

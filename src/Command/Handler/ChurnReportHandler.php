@@ -8,6 +8,7 @@ use Exception;
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChurnMetricsCollection;
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report\ChurnReportFactoryInterface;
 use Phauthentic\CognitiveCodeAnalysis\Business\MetricsFacade;
+use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -86,5 +87,15 @@ class ChurnReportHandler
         ));
 
         return Command::FAILURE;
+    }
+
+    public function getReportFactory(): ChurnReportFactoryInterface
+    {
+        return $this->exporterFactory;
+    }
+
+    public function getConfigService(): ConfigService
+    {
+        return $this->metricsFacade->getConfigService();
     }
 }

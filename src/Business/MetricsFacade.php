@@ -34,7 +34,7 @@ class MetricsFacade
         private readonly ChurnReportFactoryInterface $churnReportFactory,
         private readonly CognitiveReportFactoryInterface $cognitiveReportFactory
     ) {
-        $this->loadConfig(__DIR__ . '/../../config.yml');
+        // Configuration will be loaded when needed
     }
 
     /**
@@ -114,6 +114,11 @@ class MetricsFacade
     public function getConfig(): CognitiveConfig
     {
         return $this->configService->getConfig();
+    }
+
+    public function getConfigService(): ConfigService
+    {
+        return $this->configService;
     }
 
     public function exportChurnReport(
