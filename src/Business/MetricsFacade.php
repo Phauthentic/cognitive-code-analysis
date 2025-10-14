@@ -184,4 +184,9 @@ class MetricsFacade
         // Fall back to class-level coverage if method not found
         $metric->setCoverage($coverageDetails->getLineRate());
     }
+
+    public function clearCache(): void
+    {
+        $this->cognitiveMetricsCollector->clearCache();
+    }
 }

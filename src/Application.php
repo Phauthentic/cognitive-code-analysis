@@ -21,6 +21,7 @@ use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report\CognitiveReportF
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\ScoreCalculator;
 use Phauthentic\CognitiveCodeAnalysis\Business\MetricsFacade;
 use Phauthentic\CognitiveCodeAnalysis\Business\Utility\DirectoryScanner;
+use Phauthentic\CognitiveCodeAnalysis\Cache\FileCache;
 use Phauthentic\CognitiveCodeAnalysis\Command\ChurnCommand;
 use Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications\ChurnValidationSpecificationFactory;
 use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsCommand;
@@ -42,6 +43,7 @@ use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
 use PhpParser\NodeTraverser;
 use PhpParser\NodeTraverserInterface;
 use PhpParser\ParserFactory;
+use Psr\Cache\CacheItemPoolInterface;
 use Symfony\Component\Config\Definition\Processor;
 use Symfony\Component\Console\Application as SymfonyApplication;
 use Symfony\Component\Console\Input\ArgvInput;
@@ -97,6 +99,12 @@ class Application
             ->setPublic(true);
 
         $this->containerBuilder->register(ConfigService::class, ConfigService::class)
+            ->setPublic(true);
+
+        $this->containerBuilder->register(CacheItemPoolInterface::class, FileCache::class)
+            ->setArguments([
+                './.phpcca.cache' // Default cache directory, can be overridden by config
+            ])
             ->setPublic(true);
 
         $this->containerBuilder->register(Baseline::class, Baseline::class)
@@ -242,7 +250,8 @@ class Application
                 new Reference(Parser::class),
                 new Reference(DirectoryScanner::class),
                 new Reference(ConfigService::class),
-                new Reference(MessageBusInterface::class)
+                new Reference(MessageBusInterface::class),
+                new Reference(CacheItemPoolInterface::class)
             ])
             ->setPublic(true);
     }

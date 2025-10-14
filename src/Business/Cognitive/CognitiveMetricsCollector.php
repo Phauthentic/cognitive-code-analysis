@@ -8,9 +8,12 @@ use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Events\FileProcessed;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Events\ParserFailed;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Events\SourceFilesFound;
 use Phauthentic\CognitiveCodeAnalysis\Business\Utility\DirectoryScanner;
+use Phauthentic\CognitiveCodeAnalysis\Business\Utility\FilenameNormalizer;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
 use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
+use Psr\Cache\CacheItemInterface;
+use Psr\Cache\CacheItemPoolInterface;
 use SplFileInfo;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Throwable;
@@ -20,11 +23,17 @@ use Throwable;
  */
 class CognitiveMetricsCollector
 {
+    /**
+     * @var array<string, mixed>
+     */
+    private array $ignoredItems = [];
+
     public function __construct(
         protected readonly Parser $parser,
         protected readonly DirectoryScanner $directoryScanner,
         protected readonly ConfigService $configService,
         protected readonly MessageBusInterface $messageBus,
+        protected readonly CacheItemPoolInterface $cachePool,
     ) {
     }
 
@@ -34,7 +43,7 @@ class CognitiveMetricsCollector
      * @param string $path
      * @param CognitiveConfig $config
      * @return CognitiveMetricsCollection
-     * @throws CognitiveAnalysisException
+     * @throws \Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException|\InvalidArgumentException
      */
     public function collect(string $path, CognitiveConfig $config): CognitiveMetricsCollection
     {
@@ -47,7 +56,7 @@ class CognitiveMetricsCollector
      * @param array<string> $paths Array of paths to process
      * @param CognitiveConfig $config
      * @return CognitiveMetricsCollection Merged collection of metrics from all paths
-     * @throws CognitiveAnalysisException
+     * @throws \Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException|\InvalidArgumentException
      */
     public function collectFromPaths(array $paths, CognitiveConfig $config): CognitiveMetricsCollection
     {
@@ -82,51 +91,36 @@ class CognitiveMetricsCollector
      *
      * @param iterable<SplFileInfo> $files
      * @return CognitiveMetricsCollection
+     * @throws \InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     private function findMetrics(iterable $files): CognitiveMetricsCollection
     {
         $metricsCollection = new CognitiveMetricsCollection();
         $fileCount = 0;
+        $config = $this->configService->getConfig();
+        $configHash = $this->generateConfigHash($config);
+        $useCache = $config->cache?->enabled === true;
 
         foreach ($files as $file) {
-            try {
-                $metrics = $this->parser->parse(
-                    $this->getCodeFromFile($file)
-                );
+            // Try to get cached metrics
+            $cached = $this->getCachedMetrics($file, $configHash, $useCache);
+            $metrics = $cached['metrics'];
 
-                $fileCount++;
+            // If not cached, process the file
+            if ($metrics === null) {
+                $metrics = $this->processFile($file, $fileCount, $cached['cacheItem'], $useCache, $configHash);
 
-                // Clear memory periodically to prevent memory leaks
-                if ($fileCount % 50 === 0) {
-                    $this->parser->clearStaticCaches();
-                    gc_collect_cycles();
-                }
-            } catch (Throwable $exception) {
-                $this->messageBus->dispatch(new ParserFailed(
-                    $file,
-                    $exception
-                ));
-                continue;
-            }
-
-            $filename = $file->getRealPath();
-
-            if (getenv('APP_ENV') === 'test') {
-                $projectRoot = $this->getProjectRoot();
-                if ($projectRoot && str_starts_with($filename, $projectRoot)) {
-                    $filename = substr($filename, strlen($projectRoot) + 1);
+                if ($metrics === null) {
+                    continue;
                 }
             }
 
             $metricsCollection = $this->processMethodMetrics(
                 $metrics,
                 $metricsCollection,
-                $filename
+                FilenameNormalizer::normalize($file)
             );
-
-            $this->messageBus->dispatch(new FileProcessed(
-                $file,
-            ));
         }
 
         return $metricsCollection;
@@ -148,9 +142,7 @@ class CognitiveMetricsCollector
                 continue;
             }
 
-
             [$class, $method] = explode('::', $classAndMethod);
-
 
             $metricsArray = array_merge($metrics, [
                 'class' => $class,
@@ -199,23 +191,121 @@ class CognitiveMetricsCollector
         );
     }
 
-    /**
-     * Get the project root directory path.
-     *
-     * @return string|null The project root path or null if not found
-     */
-    private function getProjectRoot(): ?string
-    {
-        // Start from the current file's directory and traverse up to find composer.json
-        $currentDir = __DIR__;
 
-        while ($currentDir !== dirname($currentDir)) {
-            if (file_exists($currentDir . DIRECTORY_SEPARATOR . 'composer.json')) {
-                return $currentDir;
-            }
-            $currentDir = dirname($currentDir);
+    /**
+     * Generate a cache key for a file based on path, modification time, and config hash
+     */
+    private function generateCacheKey(SplFileInfo $file, string $configHash): string
+    {
+        $filePath = $file->getRealPath();
+        $fileMtime = $file->getMTime();
+
+        return 'phpcca_' . md5($filePath . '|' . $fileMtime . '|' . $configHash);
+    }
+
+    /**
+     * Generate configuration hash for cache invalidation
+     */
+    private function generateConfigHash(CognitiveConfig $config): string
+    {
+        return md5(serialize($config->toArray()));
+    }
+
+    /**
+     * Cache the analysis result for a file
+     */
+    /** @param array<string, mixed> $metrics */
+    private function cacheResult(
+        CacheItemInterface $cacheItem,
+        SplFileInfo $file,
+        array $metrics,
+        string $configHash
+    ): void {
+        $cacheItem->set([
+            'version' => '1.0',
+            'file_path' => $file->getRealPath(),
+            'file_mtime' => $file->getMTime(),
+            'config_hash' => $configHash,
+            'analysis_result' => $metrics,
+            'ignored_items' => $this->ignoredItems,
+            'cached_at' => time()
+        ]);
+
+        $this->cachePool->save($cacheItem);
+    }
+
+    public function clearCache(): void
+    {
+        $this->cachePool->clear();
+    }
+
+    /**
+     * Try to get cached metrics for a file
+     *
+     * @return array{metrics: array<string, mixed>|null, cacheItem: CacheItemInterface|null}
+     * @throws \InvalidArgumentException
+     */
+    private function getCachedMetrics(SplFileInfo $file, string $configHash, bool $useCache): array
+    {
+        if (!$useCache) {
+            return ['metrics' => null, 'cacheItem' => null];
         }
 
-        return null;
+        $cacheKey = $this->generateCacheKey($file, $configHash);
+        $cacheItem = $this->cachePool->getItem($cacheKey);
+
+        if (!$cacheItem->isHit()) {
+            return ['metrics' => null, 'cacheItem' => $cacheItem];
+        }
+
+        $cachedData = $cacheItem->get();
+        $this->ignoredItems = $cachedData['ignored_items'] ?? [];
+        $this->messageBus->dispatch(new FileProcessed($file));
+
+        return ['metrics' => $cachedData['analysis_result'], 'cacheItem' => $cacheItem];
+    }
+
+    /**
+     * Process a single file and parse its metrics
+     *
+     * @return array<string, mixed>|null
+     * @throws \InvalidArgumentException
+     */
+    private function processFile(
+        SplFileInfo $file,
+        int &$fileCount,
+        ?CacheItemInterface $cacheItem,
+        bool $useCache,
+        string $configHash
+    ): ?array {
+        try {
+            $metrics = $this->parser->parse(
+                $this->getCodeFromFile($file)
+            );
+
+            $fileCount++;
+
+            // Clear memory periodically to prevent memory leaks
+            if ($fileCount % 50 === 0) {
+                $this->parser->clearStaticCaches();
+                gc_collect_cycles();
+            }
+
+            // Cache the result if caching is enabled
+            if ($useCache && $cacheItem !== null) {
+                $this->cacheResult($cacheItem, $file, $metrics, $configHash);
+            }
+
+            $this->messageBus->dispatch(new FileProcessed($file));
+
+            return $metrics;
+        } catch (Throwable $exception) {
+            $this->messageBus->dispatch(new ParserFailed(
+                $file,
+                $exception
+            ));
+
+            return null;
+        }
     }
 }

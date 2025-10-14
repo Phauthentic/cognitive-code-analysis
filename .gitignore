@@ -4,6 +4,7 @@
 !/bin/phpcca.bat
 /.phive/
 /.phpunit.cache/
+/.phpcca.cache/
 /tmp/
 /tools/
 /benchmarks/storage/
