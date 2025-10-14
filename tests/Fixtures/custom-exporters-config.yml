@@ -1,0 +1,23 @@
+cognitive:
+  excludeFilePatterns: []
+  excludePatterns: []
+  scoreThreshold: 0.5
+  showOnlyMethodsExceedingThreshold: false
+  showHalsteadComplexity: false
+  showCyclomaticComplexity: false
+  showDetailedCognitiveMetrics: true
+  groupByClass: true
+  metrics:
+    lineCount:
+      threshold: 60
+      scale: 25.0
+      enabled: true
+  customReporters:
+    cognitive:
+      test:
+        class: 'Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report\JsonReport'
+        file: null
+    churn:
+      test:
+        class: 'Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report\JsonReport'
+        file: null

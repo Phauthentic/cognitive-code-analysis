@@ -70,6 +70,9 @@ class ConfigLoader implements ConfigurationInterface
         ];
     }
 
+    /**
+     * @SuppressWarnings("ExcessiveMethodLength")
+     */
     public function getConfigTreeBuilder(): TreeBuilder
     {
         $treeBuilder = new TreeBuilder('config');
@@ -136,6 +139,36 @@ class ConfigLoader implements ConfigurationInterface
                                 ->end()
                                 ->scalarNode('directory')
                                     ->defaultValue('./.phpcca.cache')
+                                ->end()
+                            ->end()
+                        ->end()
+                        ->arrayNode('customReporters')
+                            ->children()
+                                ->arrayNode('cognitive')
+                                    ->useAttributeAsKey('name')
+                                    ->arrayPrototype()
+                                        ->children()
+                                            ->scalarNode('class')
+                                                ->isRequired()
+                                            ->end()
+                                            ->scalarNode('file')
+                                                ->defaultValue(null)
+                                            ->end()
+                                        ->end()
+                                    ->end()
+                                ->end()
+                                ->arrayNode('churn')
+                                    ->useAttributeAsKey('name')
+                                    ->arrayPrototype()
+                                        ->children()
+                                            ->scalarNode('class')
+                                                ->isRequired()
+                                            ->end()
+                                            ->scalarNode('file')
+                                                ->defaultValue(null)
+                                            ->end()
+                                        ->end()
+                                    ->end()
                                 ->end()
                             ->end()
                         ->end()

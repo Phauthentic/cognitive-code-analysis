@@ -6,7 +6,7 @@ namespace Phauthentic\CognitiveCodeAnalysis\Command\Presentation;
 
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetrics;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
-use Phauthentic\CognitiveCodeAnalysis\Business\Traits\CoverageDataDetector;
+use Phauthentic\CognitiveCodeAnalysis\Business\Utility\CoverageDataDetector;
 use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
 use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
 use Symfony\Component\Console\Helper\Table;

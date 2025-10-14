@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Churn;
 
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChurnCalculator;
+use Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChurnMetricsCollection;
 use Phauthentic\CognitiveCodeAnalysis\Business\CodeCoverage\CoverageReportReaderInterface;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetrics;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
@@ -18,11 +19,13 @@ class ChurnCalculatorTest extends TestCase
         $metric1->method('getClass')->willReturn('ClassA');
         $metric1->method('getTimesChanged')->willReturn(5);
         $metric1->method('getScore')->willReturn(2.0);
+        $metric1->method('getFileName')->willReturn('ClassA.php');
 
         $metric2 = $this->createMock(CognitiveMetrics::class);
         $metric2->method('getClass')->willReturn('ClassB');
         $metric2->method('getTimesChanged')->willReturn(3);
         $metric2->method('getScore')->willReturn(4.0);
+        $metric2->method('getFileName')->willReturn('ClassB.php');
 
         $metricsCollection = $this->createMock(CognitiveMetricsCollection::class);
         $metricsCollection->method('getIterator')->willReturn(new \ArrayIterator([$metric1, $metric2]));
@@ -30,28 +33,24 @@ class ChurnCalculatorTest extends TestCase
         $churnCalculator = new ChurnCalculator();
         $result = $churnCalculator->calculate($metricsCollection);
 
-        $expected = [
-            'ClassB' => [
-                'timesChanged' => 3,
-                'score' => 4.0,
-                'churn' => 12.0,
-                'file' => '',
-                'coverage' => null,
-                'riskChurn' => null,
-                'riskLevel' => null,
-            ],
-            'ClassA' => [
-                'timesChanged' => 5,
-                'score' => 2.0,
-                'churn' => 10.0,
-                'file' => '',
-                'coverage' => null,
-                'riskChurn' => null,
-                'riskLevel' => null,
-            ],
-        ];
+        $this->assertInstanceOf(ChurnMetricsCollection::class, $result);
+        $this->assertCount(2, $result);
 
-        $this->assertEquals($expected, $result);
+        // Check ClassB (should be first due to higher churn)
+        $classBMetric = $result->getByClassName('ClassB');
+        $this->assertNotNull($classBMetric);
+        $this->assertEquals(3, $classBMetric->getTimesChanged());
+        $this->assertEquals(4.0, $classBMetric->getScore());
+        $this->assertEquals(12.0, $classBMetric->getChurn());
+        $this->assertEquals('ClassB.php', $classBMetric->getFile());
+
+        // Check ClassA (should be second)
+        $classAMetric = $result->getByClassName('ClassA');
+        $this->assertNotNull($classAMetric);
+        $this->assertEquals(5, $classAMetric->getTimesChanged());
+        $this->assertEquals(2.0, $classAMetric->getScore());
+        $this->assertEquals(10.0, $classAMetric->getChurn());
+        $this->assertEquals('ClassA.php', $classAMetric->getFile());
     }
 
     public function testCalculateWithCoverage(): void
@@ -60,13 +59,13 @@ class ChurnCalculatorTest extends TestCase
         $metric1->method('getClass')->willReturn('ClassA');
         $metric1->method('getTimesChanged')->willReturn(10);
         $metric1->method('getScore')->willReturn(3.0);
-        $metric1->method('getFilename')->willReturn('ClassA.php');
+        $metric1->method('getFileName')->willReturn('ClassA.php');
 
         $metric2 = $this->createMock(CognitiveMetrics::class);
         $metric2->method('getClass')->willReturn('ClassB');
         $metric2->method('getTimesChanged')->willReturn(5);
         $metric2->method('getScore')->willReturn(8.0);
-        $metric2->method('getFilename')->willReturn('ClassB.php');
+        $metric2->method('getFileName')->willReturn('ClassB.php');
 
         $metricsCollection = $this->createMock(CognitiveMetricsCollection::class);
         $metricsCollection->method('getIterator')->willReturn(new \ArrayIterator([$metric1, $metric2]));
@@ -84,15 +83,19 @@ class ChurnCalculatorTest extends TestCase
         // ClassA: churn=30, coverage=0.9, riskChurn=30*(1-0.9)=3
         // ClassB: churn=40, coverage=0.2, riskChurn=40*(1-0.2)=32
 
-        $this->assertEquals(40.0, $result['ClassB']['churn']);
-        $this->assertEqualsWithDelta(32.0, $result['ClassB']['riskChurn'], 0.01);
-        $this->assertEquals(0.2, $result['ClassB']['coverage']);
-        $this->assertEquals('CRITICAL', $result['ClassB']['riskLevel']); // churn>30 && coverage<0.5
+        $classBMetric = $result->getByClassName('ClassB');
+        $this->assertNotNull($classBMetric);
+        $this->assertEquals(40.0, $classBMetric->getChurn());
+        $this->assertEqualsWithDelta(32.0, $classBMetric->getRiskChurn(), 0.01);
+        $this->assertEquals(0.2, $classBMetric->getCoverage());
+        $this->assertEquals('CRITICAL', $classBMetric->getRiskLevel()); // churn>30 && coverage<0.5
 
-        $this->assertEquals(30.0, $result['ClassA']['churn']);
-        $this->assertEqualsWithDelta(3.0, $result['ClassA']['riskChurn'], 0.01);
-        $this->assertEquals(0.9, $result['ClassA']['coverage']);
-        $this->assertEquals('LOW', $result['ClassA']['riskLevel']);
+        $classAMetric = $result->getByClassName('ClassA');
+        $this->assertNotNull($classAMetric);
+        $this->assertEquals(30.0, $classAMetric->getChurn());
+        $this->assertEqualsWithDelta(3.0, $classAMetric->getRiskChurn(), 0.01);
+        $this->assertEquals(0.9, $classAMetric->getCoverage());
+        $this->assertEquals('LOW', $classAMetric->getRiskLevel());
     }
 
     public function testCalculateRiskLevels(): void
@@ -102,28 +105,28 @@ class ChurnCalculatorTest extends TestCase
         $metricCritical->method('getClass')->willReturn('CriticalClass');
         $metricCritical->method('getTimesChanged')->willReturn(10);
         $metricCritical->method('getScore')->willReturn(4.0); // churn = 40
-        $metricCritical->method('getFilename')->willReturn('CriticalClass.php');
+        $metricCritical->method('getFileName')->willReturn('CriticalClass.php');
 
         // Test HIGH: churn > 20 AND coverage < 0.7
         $metricHigh = $this->createMock(CognitiveMetrics::class);
         $metricHigh->method('getClass')->willReturn('HighClass');
         $metricHigh->method('getTimesChanged')->willReturn(5);
         $metricHigh->method('getScore')->willReturn(5.0); // churn = 25
-        $metricHigh->method('getFilename')->willReturn('HighClass.php');
+        $metricHigh->method('getFileName')->willReturn('HighClass.php');
 
         // Test MEDIUM: churn > 10 AND coverage < 0.8
         $metricMedium = $this->createMock(CognitiveMetrics::class);
         $metricMedium->method('getClass')->willReturn('MediumClass');
         $metricMedium->method('getTimesChanged')->willReturn(3);
         $metricMedium->method('getScore')->willReturn(4.0); // churn = 12
-        $metricMedium->method('getFilename')->willReturn('MediumClass.php');
+        $metricMedium->method('getFileName')->willReturn('MediumClass.php');
 
         // Test LOW
         $metricLow = $this->createMock(CognitiveMetrics::class);
         $metricLow->method('getClass')->willReturn('LowClass');
         $metricLow->method('getTimesChanged')->willReturn(2);
         $metricLow->method('getScore')->willReturn(3.0); // churn = 6
-        $metricLow->method('getFilename')->willReturn('LowClass.php');
+        $metricLow->method('getFileName')->willReturn('LowClass.php');
 
         $metricsCollection = $this->createMock(CognitiveMetricsCollection::class);
         $metricsCollection->method('getIterator')->willReturn(
@@ -142,10 +145,21 @@ class ChurnCalculatorTest extends TestCase
         $churnCalculator = new ChurnCalculator();
         $result = $churnCalculator->calculate($metricsCollection, $coverageReader);
 
-        $this->assertEquals('CRITICAL', $result['CriticalClass']['riskLevel']);
-        $this->assertEquals('HIGH', $result['HighClass']['riskLevel']);
-        $this->assertEquals('MEDIUM', $result['MediumClass']['riskLevel']);
-        $this->assertEquals('LOW', $result['LowClass']['riskLevel']);
+        $criticalMetric = $result->getByClassName('CriticalClass');
+        $this->assertNotNull($criticalMetric);
+        $this->assertEquals('CRITICAL', $criticalMetric->getRiskLevel());
+
+        $highMetric = $result->getByClassName('HighClass');
+        $this->assertNotNull($highMetric);
+        $this->assertEquals('HIGH', $highMetric->getRiskLevel());
+
+        $mediumMetric = $result->getByClassName('MediumClass');
+        $this->assertNotNull($mediumMetric);
+        $this->assertEquals('MEDIUM', $mediumMetric->getRiskLevel());
+
+        $lowMetric = $result->getByClassName('LowClass');
+        $this->assertNotNull($lowMetric);
+        $this->assertEquals('LOW', $lowMetric->getRiskLevel());
     }
 
     public function testCalculateWithNoCoverageForClass(): void
@@ -154,7 +168,7 @@ class ChurnCalculatorTest extends TestCase
         $metric->method('getClass')->willReturn('ClassA');
         $metric->method('getTimesChanged')->willReturn(5);
         $metric->method('getScore')->willReturn(2.0);
-        $metric->method('getFilename')->willReturn('ClassA.php');
+        $metric->method('getFileName')->willReturn('ClassA.php');
 
         $metricsCollection = $this->createMock(CognitiveMetricsCollection::class);
         $metricsCollection->method('getIterator')->willReturn(new \ArrayIterator([$metric]));
@@ -166,7 +180,9 @@ class ChurnCalculatorTest extends TestCase
         $result = $churnCalculator->calculate($metricsCollection, $coverageReader);
 
         // When coverage is null, assume 0.0 coverage
-        $this->assertEquals(0.0, $result['ClassA']['coverage']);
-        $this->assertEquals(10.0, $result['ClassA']['riskChurn']); // 5 * 2.0 * (1 - 0.0)
+        $classAMetric = $result->getByClassName('ClassA');
+        $this->assertNotNull($classAMetric);
+        $this->assertEquals(0.0, $classAMetric->getCoverage());
+        $this->assertEquals(10.0, $classAMetric->getRiskChurn()); // 5 * 2.0 * (1 - 0.0)
     }
 }

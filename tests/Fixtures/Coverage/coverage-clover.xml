@@ -2043,7 +2043,7 @@
     </package>
     <package name="Phauthentic\CognitiveCodeAnalysis\Business\Traits">
       <file name="/home/florian/projects/cognitive-code-analysis/src/Business/Traits/CoverageDataDetector.php">
-        <class name="Phauthentic\CognitiveCodeAnalysis\Business\Traits\CoverageDataDetector" namespace="Phauthentic\CognitiveCodeAnalysis\Business\Traits">
+        <class name="Phauthentic\CognitiveCodeAnalysis\Business\Utility\CoverageDataDetector" namespace="Phauthentic\CognitiveCodeAnalysis\Business\Traits">
           <metrics complexity="4" methods="1" coveredmethods="1" conditionals="0" coveredconditionals="0" statements="4" coveredstatements="4" elements="5" coveredelements="5"/>
         </class>
         <line num="18" type="method" name="hasCoverageData" visibility="protected" complexity="4" crap="4" count="3"/>

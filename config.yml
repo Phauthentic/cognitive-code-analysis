@@ -43,3 +43,12 @@ cognitive:
   cache:
     enabled: false
     directory: './.phpcca.cache'
+  # Example of custom reporters:
+  # customReporters:
+  #   cognitive:
+  #     pdf:
+  #       class: 'My\Custom\PdfReporter'
+  #       file: '/path/to/PdfReporter.php'
+  #     churn:
+  #       class: 'My\Custom\ChurnReporter'
+  #       file: '/path/to/ChurnReporter.php'
