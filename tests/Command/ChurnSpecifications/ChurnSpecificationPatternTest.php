@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Phauthentic\CognitiveCodeAnalysis\Tests\Command\ChurnSpecifications;
 
 use Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications\ChurnCommandContext;
-use Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications\CoverageFormatExclusivitySpecification;
-use Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications\CoverageFileExistsSpecification;
+use Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications\CoverageFormatExclusivity;
+use Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications\CoverageFileExists;
 use Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications\CompositeChurnSpecification;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -33,7 +33,7 @@ class ChurnSpecificationPatternTest extends TestCase
     }
     public function testCoverageFormatExclusivitySpecification(): void
     {
-        $spec = new CoverageFormatExclusivitySpecification();
+        $spec = new CoverageFormatExclusivity();
 
         // Test valid case - only cobertura
         $input1 = $this->createInput([
@@ -64,7 +64,7 @@ class ChurnSpecificationPatternTest extends TestCase
 
     public function testCoverageFileExistsSpecification(): void
     {
-        $spec = new CoverageFileExistsSpecification();
+        $spec = new CoverageFileExists();
 
         // Test valid case - no coverage file
         $input1 = $this->createInput(['path' => '/test']);
@@ -84,8 +84,8 @@ class ChurnSpecificationPatternTest extends TestCase
     public function testCompositeValidationSpecification(): void
     {
         $spec = new CompositeChurnSpecification([
-            new CoverageFormatExclusivitySpecification(),
-            new CoverageFileExistsSpecification(),
+            new CoverageFormatExclusivity(),
+            new CoverageFileExists(),
         ]);
 
         // Test valid case
@@ -103,7 +103,7 @@ class ChurnSpecificationPatternTest extends TestCase
         $this->assertFalse($spec->isSatisfiedBy($context2));
 
         $failedSpec = $spec->getFirstFailedSpecification($context2);
-        $this->assertInstanceOf(CoverageFormatExclusivitySpecification::class, $failedSpec);
+        $this->assertInstanceOf(CoverageFormatExclusivity::class, $failedSpec);
         $this->assertEquals('Only one coverage format can be specified at a time.', $failedSpec->getErrorMessage());
     }
 }

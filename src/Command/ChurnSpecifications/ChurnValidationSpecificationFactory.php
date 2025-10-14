@@ -12,10 +12,10 @@ class ChurnValidationSpecificationFactory
     public function create(): CompositeChurnSpecification
     {
         return new CompositeChurnSpecification([
-            new CoverageFormatExclusivitySpecification(),
-            new CoverageFileExistsSpecification(),
-            new CoverageFormatSupportedSpecification(),
-            new ReportOptionsCompleteSpecification(),
+            new CoverageFormatExclusivity(),
+            new CoverageFileExists(),
+            new CoverageFormatSupported(),
+            new ReportOptionsComplete(),
         ]);
     }
 }

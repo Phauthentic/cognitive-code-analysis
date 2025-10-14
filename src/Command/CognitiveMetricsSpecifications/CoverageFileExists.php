@@ -4,21 +4,21 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications;
 
-class CoverageFormatSupportedSpecification implements CognitiveMetricsSpecification
+class CoverageFileExists implements CognitiveMetricsSpecification
 {
     public function isSatisfiedBy(CognitiveMetricsCommandContext $context): bool
     {
-        $format = $context->getCoverageFormat();
-        return $format === null || in_array($format, ['cobertura', 'clover'], true);
+        $coverageFile = $context->getCoverageFile();
+        return $coverageFile === null || file_exists($coverageFile);
     }
 
     public function getErrorMessage(): string
     {
-        return 'Unsupported coverage format';
+        return 'Coverage file not found';
     }
 
     public function getErrorMessageWithContext(CognitiveMetricsCommandContext $context): string
     {
-        return sprintf('Unsupported coverage format: %s', $context->getCoverageFormat());
+        return sprintf('Coverage file not found: %s', $context->getCoverageFile());
     }
 }

@@ -14,7 +14,7 @@ use Phauthentic\CognitiveCodeAnalysis\Command\Presentation\CognitiveMetricTextRe
 use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\CognitiveMetricsCommandContext;
 use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\CompositeCognitiveMetricsValidationSpecification;
 use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\CognitiveMetricsValidationSpecificationFactory;
-use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\CustomExporterValidationSpecification;
+use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\CustomExporterValidation;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -150,7 +150,7 @@ class CognitiveMetricsCommand extends Command
 
         // Validate custom exporters after config is loaded
         if ($context->hasReportOptions()) {
-            $customExporterValidation = new CustomExporterValidationSpecification(
+            $customExporterValidation = new CustomExporterValidation(
                 $this->reportHandler->getReportFactory(),
                 $this->reportHandler->getConfigService()
             );
@@ -205,7 +205,7 @@ class CognitiveMetricsCommand extends Command
     private function handleValidationError(
         CognitiveMetricsCommandContext $context,
         OutputInterface $output,
-        ?CustomExporterValidationSpecification $customExporterValidation = null
+        ?CustomExporterValidation $customExporterValidation = null
     ): int {
         $errorMessage = $customExporterValidation !== null
             ? $customExporterValidation->getErrorMessageWithContext($context)

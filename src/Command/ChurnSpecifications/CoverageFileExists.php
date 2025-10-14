@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications;
+namespace Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications;
 
-class CoverageFileExistsSpecification implements CognitiveMetricsSpecification
+class CoverageFileExists implements ChurnCommandSpecification
 {
-    public function isSatisfiedBy(CognitiveMetricsCommandContext $context): bool
+    public function isSatisfiedBy(ChurnCommandContext $context): bool
     {
         $coverageFile = $context->getCoverageFile();
         return $coverageFile === null || file_exists($coverageFile);
@@ -17,7 +17,7 @@ class CoverageFileExistsSpecification implements CognitiveMetricsSpecification
         return 'Coverage file not found';
     }
 
-    public function getErrorMessageWithContext(CognitiveMetricsCommandContext $context): string
+    public function getErrorMessageWithContext(ChurnCommandContext $context): string
     {
         return sprintf('Coverage file not found: %s', $context->getCoverageFile());
     }

@@ -2,24 +2,24 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications;
+namespace Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications;
 
-use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report\ChurnReportFactoryInterface;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report\CognitiveReportFactoryInterface;
 use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
 
 /**
- * Validation specification for custom exporters.
+ * Validation specification for custom exporters in cognitive metrics command.
  * Ensures custom exporters are loadable before starting analysis.
  */
-class CustomExporterSpecification implements ChurnCommandSpecification
+class CustomExporterValidation implements CognitiveMetricsSpecification
 {
     public function __construct(
-        private readonly ChurnReportFactoryInterface $reportFactory,
+        private readonly CognitiveReportFactoryInterface $reportFactory,
         private readonly ConfigService $configService
     ) {
     }
 
-    public function isSatisfiedBy(ChurnCommandContext $context): bool
+    public function isSatisfiedBy(CognitiveMetricsCommandContext $context): bool
     {
         // Only validate if report options are provided
         if (!$context->hasReportOptions()) {
@@ -32,7 +32,7 @@ class CustomExporterSpecification implements ChurnCommandSpecification
         }
 
         // Check if it's a built-in type (always valid)
-        $builtInTypes = ['json', 'csv', 'html', 'markdown', 'svg-treemap', 'svg'];
+        $builtInTypes = ['json', 'csv', 'html', 'markdown'];
         if (in_array($reportType, $builtInTypes, true)) {
             return true;
         }
@@ -46,7 +46,7 @@ class CustomExporterSpecification implements ChurnCommandSpecification
         return 'Custom exporter validation failed';
     }
 
-    public function getErrorMessageWithContext(ChurnCommandContext $context): string
+    public function getErrorMessageWithContext(CognitiveMetricsCommandContext $context): string
     {
         $reportType = $context->getReportType();
         if ($reportType === null) {
@@ -54,7 +54,7 @@ class CustomExporterSpecification implements ChurnCommandSpecification
         }
 
         $config = $this->configService->getConfig();
-        $customReporters = $config->customReporters['churn'] ?? [];
+        $customReporters = $config->customReporters['cognitive'] ?? [];
 
         if (!isset($customReporters[$reportType])) {
             $supportedTypes = implode('`, `', $this->reportFactory->getSupportedTypes());
@@ -80,7 +80,7 @@ class CustomExporterSpecification implements ChurnCommandSpecification
     {
         try {
             $config = $this->configService->getConfig();
-            $customReporters = $config->customReporters['churn'] ?? [];
+            $customReporters = $config->customReporters['cognitive'] ?? [];
 
             if (!isset($customReporters[$reportType])) {
                 return false;

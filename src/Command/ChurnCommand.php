@@ -15,7 +15,7 @@ use Phauthentic\CognitiveCodeAnalysis\Command\Presentation\ChurnTextRenderer;
 use Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications\ChurnCommandContext;
 use Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications\CompositeChurnSpecification;
 use Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications\ChurnValidationSpecificationFactory;
-use Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications\CustomExporterSpecification;
+use Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications\CustomExporter;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -144,7 +144,7 @@ class ChurnCommand extends Command
 
         // Validate custom exporters after config is loaded
         if ($context->hasReportOptions()) {
-            $customExporterValidation = new CustomExporterSpecification(
+            $customExporterValidation = new CustomExporter(
                 $this->report->getReportFactory(),
                 $this->report->getConfigService()
             );

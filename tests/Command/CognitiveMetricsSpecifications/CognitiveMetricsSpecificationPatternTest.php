@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Phauthentic\CognitiveCodeAnalysis\Tests\Command\CognitiveMetricsSpecifications;
 
 use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\CognitiveMetricsCommandContext;
-use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\CoverageFormatExclusivitySpecification;
-use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\CoverageFileExistsSpecification;
+use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\CoverageFormatExclusivity;
+use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\CoverageFileExists;
 use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\CompositeCognitiveMetricsValidationSpecification;
-use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\SortFieldValidSpecification;
-use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\SortOrderValidSpecification;
+use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\SortFieldValid;
+use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\SortOrderValid;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputDefinition;
@@ -37,7 +37,7 @@ class CognitiveMetricsSpecificationPatternTest extends TestCase
     }
     public function testCoverageFormatExclusivitySpecification(): void
     {
-        $spec = new CoverageFormatExclusivitySpecification();
+        $spec = new CoverageFormatExclusivity();
 
         // Test valid case - only cobertura
         $input1 = $this->createInput([
@@ -68,7 +68,7 @@ class CognitiveMetricsSpecificationPatternTest extends TestCase
 
     public function testCoverageFileExistsSpecification(): void
     {
-        $spec = new CoverageFileExistsSpecification();
+        $spec = new CoverageFileExists();
 
         // Test valid case - no coverage file
         $input1 = $this->createInput(['path' => '/test']);
@@ -87,7 +87,7 @@ class CognitiveMetricsSpecificationPatternTest extends TestCase
 
     public function testSortFieldValidSpecification(): void
     {
-        $spec = new SortFieldValidSpecification();
+        $spec = new SortFieldValid();
 
         // Test valid case - no sort field
         $input1 = $this->createInput(['path' => '/test']);
@@ -118,7 +118,7 @@ class CognitiveMetricsSpecificationPatternTest extends TestCase
 
     public function testSortOrderValidSpecification(): void
     {
-        $spec = new SortOrderValidSpecification();
+        $spec = new SortOrderValid();
 
         // Test valid case - asc
         $input1 = $this->createInput([
@@ -152,9 +152,9 @@ class CognitiveMetricsSpecificationPatternTest extends TestCase
     public function testCompositeValidationSpecification(): void
     {
         $spec = new CompositeCognitiveMetricsValidationSpecification([
-            new CoverageFormatExclusivitySpecification(),
-            new CoverageFileExistsSpecification(),
-            new SortFieldValidSpecification(),
+            new CoverageFormatExclusivity(),
+            new CoverageFileExists(),
+            new SortFieldValid(),
         ]);
 
         // Test valid case
@@ -172,7 +172,7 @@ class CognitiveMetricsSpecificationPatternTest extends TestCase
         $this->assertFalse($spec->isSatisfiedBy($context2));
 
         $failedSpec = $spec->getFirstFailedSpecification($context2);
-        $this->assertInstanceOf(CoverageFormatExclusivitySpecification::class, $failedSpec);
+        $this->assertInstanceOf(CoverageFormatExclusivity::class, $failedSpec);
         $this->assertEquals('Only one coverage format can be specified at a time.', $failedSpec->getErrorMessage());
 
         // Test detailed error message

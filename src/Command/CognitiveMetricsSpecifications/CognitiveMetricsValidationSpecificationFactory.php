@@ -12,11 +12,11 @@ class CognitiveMetricsValidationSpecificationFactory
     public function create(): CompositeCognitiveMetricsValidationSpecification
     {
         return new CompositeCognitiveMetricsValidationSpecification([
-            new CoverageFormatExclusivitySpecification(),
-            new CoverageFileExistsSpecification(),
-            new CoverageFormatSupportedSpecification(),
-            new SortFieldValidSpecification(),
-            new SortOrderValidSpecification(),
+            new CoverageFormatExclusivity(),
+            new CoverageFileExists(),
+            new CoverageFormatSupported(),
+            new SortFieldValid(),
+            new SortOrderValid(),
         ]);
     }
 }

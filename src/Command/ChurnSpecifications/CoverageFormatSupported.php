@@ -4,21 +4,21 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications;
 
-class CoverageFileExistsSpecification implements ChurnCommandSpecification
+class CoverageFormatSupported implements ChurnCommandSpecification
 {
     public function isSatisfiedBy(ChurnCommandContext $context): bool
     {
-        $coverageFile = $context->getCoverageFile();
-        return $coverageFile === null || file_exists($coverageFile);
+        $format = $context->getCoverageFormat();
+        return $format === null || in_array($format, ['cobertura', 'clover'], true);
     }
 
     public function getErrorMessage(): string
     {
-        return 'Coverage file not found';
+        return 'Unsupported coverage format';
     }
 
     public function getErrorMessageWithContext(ChurnCommandContext $context): string
     {
-        return sprintf('Coverage file not found: %s', $context->getCoverageFile());
+        return sprintf('Unsupported coverage format: %s', $context->getCoverageFormat());
     }
 }
