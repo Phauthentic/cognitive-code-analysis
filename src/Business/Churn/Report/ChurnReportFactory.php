@@ -31,7 +31,7 @@ class ChurnReportFactory implements ChurnReportFactoryInterface
     public function create(string $type): ReportGeneratorInterface
     {
         $config = $this->configService->getConfig();
-        $customExporters = $config->customExporters['churn'] ?? [];
+        $customReporters = $config->customReporters['churn'] ?? [];
 
         // Check built-in exporters first
         $builtIn = match ($type) {
@@ -48,8 +48,8 @@ class ChurnReportFactory implements ChurnReportFactoryInterface
         }
 
         // Check custom exporters
-        if (isset($customExporters[$type])) {
-            return $this->createCustomExporter($customExporters[$type]);
+        if (isset($customReporters[$type])) {
+            return $this->createCustomExporter($customReporters[$type]);
         }
 
         throw new InvalidArgumentException("Unsupported exporter type: {$type}");
@@ -85,11 +85,11 @@ class ChurnReportFactory implements ChurnReportFactoryInterface
     public function getSupportedTypes(): array
     {
         $config = $this->configService->getConfig();
-        $customExporters = $config->customExporters['churn'] ?? [];
+        $customReporters = $config->customReporters['churn'] ?? [];
 
         return array_merge(
             ['json', 'csv', 'html', 'markdown', 'svg-treemap', 'svg'],
-            array_keys($customExporters)
+            array_keys($customReporters)
         );
     }
 

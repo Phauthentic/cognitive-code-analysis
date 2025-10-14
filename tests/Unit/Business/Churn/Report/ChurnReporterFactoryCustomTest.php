@@ -22,10 +22,10 @@ class ChurnReporterFactoryCustomTest extends TestCase
     /**
      * @throws Exception
      */
-    private function createMockConfigService(array $customExporters = []): ConfigService&MockObject
+    private function createMockConfigService(array $customReporters = []): ConfigService&MockObject
     {
         // Create TestCognitiveConfig with the custom exporters
-        $config = new TestCognitiveConfig(customExporters: ['churn' => $customExporters]);
+        $config = new TestCognitiveConfig(customReporters: ['churn' => $customReporters]);
 
         $configService = $this->createMock(ConfigService::class);
         $configService->method('getConfig')->willReturn($config);
@@ -65,14 +65,14 @@ PHP;
         file_put_contents($tempFile, $classContent);
 
         try {
-            $customExporters = [
+            $customReporters = [
                 'custom' => [
                     'class' => 'TestCustomChurn\CustomChurnExporter',
                     'file' => $tempFile
                 ]
             ];
 
-            $factory = new ChurnReportFactory($this->createMockConfigService($customExporters));
+            $factory = new ChurnReportFactory($this->createMockConfigService($customReporters));
             $exporter = $factory->create('custom');
 
             $this->assertInstanceOf(ReportGeneratorInterface::class, $exporter);
@@ -103,14 +103,14 @@ PHP;
         require_once $tempFile;
 
         try {
-            $customExporters = [
+            $customReporters = [
                 'autoloaded' => [
                     'class' => 'TestAutoloadedChurn\AutoloadedChurnExporter',
                     'file' => null
                 ]
             ];
 
-            $factory = new ChurnReportFactory($this->createMockConfigService($customExporters));
+            $factory = new ChurnReportFactory($this->createMockConfigService($customReporters));
             $exporter = $factory->create('autoloaded');
 
             $this->assertInstanceOf(ReportGeneratorInterface::class, $exporter);
@@ -134,7 +134,7 @@ PHP;
     #[Test]
     public function testGetSupportedTypesIncludesCustomExporters(): void
     {
-        $customExporters = [
+        $customReporters = [
             'custom1' => [
                 'class' => 'TestCustom1\Exporter',
                 'file' => null
@@ -145,7 +145,7 @@ PHP;
             ]
         ];
 
-        $factory = new ChurnReportFactory($this->createMockConfigService($customExporters));
+        $factory = new ChurnReportFactory($this->createMockConfigService($customReporters));
         $supportedTypes = $factory->getSupportedTypes();
 
         $expectedBuiltInTypes = ['json', 'csv', 'html', 'markdown', 'svg-treemap', 'svg'];
@@ -163,14 +163,14 @@ PHP;
     #[Test]
     public function testIsSupportedWithCustomExporters(): void
     {
-        $customExporters = [
+        $customReporters = [
             'custom' => [
                 'class' => 'TestCustom\Exporter',
                 'file' => null
             ]
         ];
 
-        $factory = new ChurnReportFactory($this->createMockConfigService($customExporters));
+        $factory = new ChurnReportFactory($this->createMockConfigService($customReporters));
 
         $this->assertTrue($factory->isSupported('json'));
         $this->assertTrue($factory->isSupported('custom'));
@@ -195,14 +195,14 @@ PHP;
         file_put_contents($tempFile, $classContent);
 
         try {
-            $customExporters = [
+            $customReporters = [
                 'invalid' => [
                     'class' => 'TestInvalidChurn\InvalidChurnExporter',
                     'file' => $tempFile
                 ]
             ];
 
-            $factory = new ChurnReportFactory($this->createMockConfigService($customExporters));
+            $factory = new ChurnReportFactory($this->createMockConfigService($customReporters));
 
             $this->expectException(CognitiveAnalysisException::class);
             $this->expectExceptionMessage('Exporter must implement Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report\ReportGeneratorInterface');
@@ -216,14 +216,14 @@ PHP;
     #[Test]
     public function testCustomExporterWithNonExistentFile(): void
     {
-        $customExporters = [
+        $customReporters = [
             'missing' => [
                 'class' => 'TestMissing\Exporter',
                 'file' => '/non/existent/file.php'
             ]
         ];
 
-        $factory = new ChurnReportFactory($this->createMockConfigService($customExporters));
+        $factory = new ChurnReportFactory($this->createMockConfigService($customReporters));
 
         $this->expectException(CognitiveAnalysisException::class);
         $this->expectExceptionMessage('Exporter file not found: /non/existent/file.php');

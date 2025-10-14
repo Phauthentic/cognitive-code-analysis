@@ -132,7 +132,7 @@ class ConfigLoader implements ConfigurationInterface
                                 })
                             ->end()
                         ->end()
-                        ->arrayNode('customExporters')
+                        ->arrayNode('customReporters')
                             ->children()
                                 ->arrayNode('cognitive')
                                     ->useAttributeAsKey('name')

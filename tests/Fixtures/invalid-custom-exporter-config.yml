@@ -12,7 +12,7 @@ cognitive:
       threshold: 60
       scale: 25.0
       enabled: true
-  customExporters:
+  customReporters:
     cognitive:
       invalid:
         class: 'NonExistent\Exporter'

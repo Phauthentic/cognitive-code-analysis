@@ -31,7 +31,7 @@ class CognitiveReportFactory implements CognitiveReportFactoryInterface
     public function create(string $type): ReportGeneratorInterface
     {
         $config = $this->configService->getConfig();
-        $customExporters = $config->customExporters['cognitive'] ?? [];
+        $customReporters = $config->customReporters['cognitive'] ?? [];
 
         // Check built-in exporters first
         $builtIn = match ($type) {
@@ -46,8 +46,8 @@ class CognitiveReportFactory implements CognitiveReportFactoryInterface
             return $builtIn;
         }
 
-        if (isset($customExporters[$type])) {
-            return $this->createCustomExporter($customExporters[$type]);
+        if (isset($customReporters[$type])) {
+            return $this->createCustomExporter($customReporters[$type]);
         }
 
         throw new InvalidArgumentException("Unsupported exporter type: {$type}");
@@ -83,11 +83,11 @@ class CognitiveReportFactory implements CognitiveReportFactoryInterface
     public function getSupportedTypes(): array
     {
         $config = $this->configService->getConfig();
-        $customExporters = $config->customExporters['cognitive'] ?? [];
+        $customReporters = $config->customReporters['cognitive'] ?? [];
 
         return array_merge(
             ['json', 'csv', 'html', 'markdown'],
-            array_keys($customExporters)
+            array_keys($customReporters)
         );
     }
 

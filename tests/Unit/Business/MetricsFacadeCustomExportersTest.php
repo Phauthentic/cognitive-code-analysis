@@ -33,10 +33,10 @@ class MetricsFacadeCustomExportersTest extends TestCase
         $config = $this->metricsFacade->getConfig();
 
         $this->assertInstanceOf(CognitiveConfig::class, $config);
-        $this->assertArrayHasKey('cognitive', $config->customExporters);
-        $this->assertArrayHasKey('churn', $config->customExporters);
-        $this->assertArrayHasKey('test', $config->customExporters['cognitive']);
-        $this->assertArrayHasKey('test', $config->customExporters['churn']);
+        $this->assertArrayHasKey('cognitive', $config->customReporters);
+        $this->assertArrayHasKey('churn', $config->customReporters);
+        $this->assertArrayHasKey('test', $config->customReporters['cognitive']);
+        $this->assertArrayHasKey('test', $config->customReporters['churn']);
     }
 
     #[Test]

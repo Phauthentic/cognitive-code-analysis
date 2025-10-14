@@ -54,14 +54,14 @@ class CustomExporterSpecification implements ChurnCommandSpecification
         }
 
         $config = $this->configService->getConfig();
-        $customExporters = $config->customExporters['churn'] ?? [];
+        $customReporters = $config->customReporters['churn'] ?? [];
 
-        if (!isset($customExporters[$reportType])) {
+        if (!isset($customReporters[$reportType])) {
             $supportedTypes = implode('`, `', $this->reportFactory->getSupportedTypes());
             return "Custom exporter `{$reportType}` not found in configuration. Supported types: `{$supportedTypes}`";
         }
 
-        $exporterConfig = $customExporters[$reportType];
+        $exporterConfig = $customReporters[$reportType];
         $class = $exporterConfig['class'] ?? '';
         $file = $exporterConfig['file'] ?? null;
 
@@ -80,13 +80,13 @@ class CustomExporterSpecification implements ChurnCommandSpecification
     {
         try {
             $config = $this->configService->getConfig();
-            $customExporters = $config->customExporters['churn'] ?? [];
+            $customReporters = $config->customReporters['churn'] ?? [];
 
-            if (!isset($customExporters[$reportType])) {
+            if (!isset($customReporters[$reportType])) {
                 return false;
             }
 
-            $exporterConfig = $customExporters[$reportType];
+            $exporterConfig = $customReporters[$reportType];
             $class = $exporterConfig['class'] ?? '';
             $file = $exporterConfig['file'] ?? null;
 

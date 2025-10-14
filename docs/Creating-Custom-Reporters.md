@@ -4,18 +4,18 @@ This guide explains how to create custom reporters for the Cognitive Code Checke
 
 ## Overview
 
-The Cognitive Code Checker supports two types of reporters:
+The Cognitive Code Checker supports two types of reports:
 
-- **Cognitive Reporters**: Export cognitive complexity metrics
-- **Churn Reporters**: Export code churn metrics
+- **Cognitive reporter**: Export cognitive complexity metrics
+- **Churn reporter**: Export code churn metrics
 
 Both types follow similar patterns but have different interfaces and data structures.
 
 ## Reporter Types
 
-### Cognitive Reporters
+### Cognitive reporter
 
-Cognitive reporters handle cognitive complexity metrics data and implement the `ReportGeneratorInterface` from the `Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report` namespace.
+Cognitive reporter handle cognitive complexity metrics data and implement the `ReportGeneratorInterface` from the `Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report` namespace.
 
 **Interface:**
 
@@ -35,9 +35,9 @@ interface ReportGeneratorInterface
 - `getLineCountWeight()`, `getArgCountWeight()`, etc. - Individual metric weights
 - `getLineCountWeightDelta()`, etc. - Delta values for comparison
 
-### Churn Reporters
+### Churn reporter
 
-Churn reporters handle code churn metrics data and implement the `ReportGeneratorInterface` from the `Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report` namespace.
+Churn reporter handle code churn metrics data and implement the `ReportGeneratorInterface` from the `Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report` namespace.
 
 **Interface:**
 
@@ -61,20 +61,20 @@ interface ReportGeneratorInterface
 
 ## Configuration
 
-Add your custom reporters to the `config.yml` file under the `customExporters` section:
+Add your custom reporter to the `config.yml` file under the `customReporters` section:
 
 ```yaml
 cognitive:
   # ... other cognitive settings ...
-  customExporters:
+  customReporters:
     cognitive:
       pdf:  # Custom reporter name
         class: 'My\Custom\PdfReporter'
         file: '/path/to/PdfReporter.php'
     churn:
-      xml:  # Custom reporter name
-        class: 'My\Custom\XmlChurnReporter'
-        file: null  # null if class is autoloaded
+      churn:  # Custom reporter name
+        class: 'My\Custom\ChurnReporter'
+        file: '/path/to/ChurnReporter.php'
 ```
 
 ### Configuration Parameters
@@ -180,7 +180,7 @@ class PdfReporter implements ReportGeneratorInterface
 
 ## Creating a Custom Churn Reporter
 
-Here's an example of a custom XML reporter for churn metrics:
+Here's an example of a custom churn reporter for churn metrics:
 
 ```php
 <?php
@@ -192,7 +192,7 @@ namespace My\Custom;
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report\ReportGeneratorInterface;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 
-class XmlChurnReporter implements ReportGeneratorInterface
+class ChurnReporter implements ReportGeneratorInterface
 {
     public function export(array $classes, string $filename): void
     {
@@ -202,32 +202,30 @@ class XmlChurnReporter implements ReportGeneratorInterface
             throw new CognitiveAnalysisException("Directory {$directory} does not exist");
         }
 
-        // Generate XML content
-        $xmlContent = $this->generateXmlContent($classes);
+        // Generate churn content
+        $churnContent = $this->generateChurnContent($classes);
 
         // Write to file
-        if (file_put_contents($filename, $xmlContent) === false) {
+        if (file_put_contents($filename, $churnContent) === false) {
             throw new CognitiveAnalysisException("Could not write to file: {$filename}");
         }
     }
 
-    private function generateXmlContent(array $classes): string
+    private function generateChurnContent(array $classes): string
     {
-        $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
-        $xml .= '<churn-report>' . "\n";
+        $content = "Churn Report\n";
+        $content .= "============\n\n";
         
         foreach ($classes as $className => $data) {
-            $xml .= "  <class name=\"{$className}\">\n";
-            $xml .= "    <file>{$data['file']}</file>\n";
-            $xml .= "    <score>{$data['score']}</score>\n";
-            $xml .= "    <churn>{$data['churn']}</churn>\n";
-            $xml .= "    <times-changed>{$data['timesChanged']}</times-changed>\n";
-            $xml .= "  </class>\n";
+            $content .= "Class: {$className}\n";
+            $content .= "File: {$data['file']}\n";
+            $content .= "Score: {$data['score']}\n";
+            $content .= "Churn: {$data['churn']}\n";
+            $content .= "Times Changed: {$data['timesChanged']}\n";
+            $content .= "---\n";
         }
         
-        $xml .= '</churn-report>';
-        
-        return $xml;
+        return $content;
     }
 }
 ```
@@ -241,7 +239,7 @@ Once configured, you can use your custom reporter by specifying its name when ge
 php bin/cognitive-report --format=pdf --output=report.pdf
 
 # For churn metrics  
-php bin/churn-report --format=xml --output=churn.xml
+php bin/churn-report --format=churn --output=churn.txt
 ```
 
 ## Best Practices
@@ -252,18 +250,18 @@ php bin/churn-report --format=xml --output=churn.xml
 4. **Configuration**: Use `CognitiveConfig` if you need access to settings
 5. **Testing**: Test your reporter with real data to ensure proper formatting
 
-## Built-in Reporters Reference
+## Built-in reporter Reference
 
-For inspiration, examine the built-in reporters:
+For inspiration, examine the built-in reporter:
 
-**Cognitive Reporters:**
+**Cognitive reporter:**
 - 
 - `JsonReport` - JSON format
 - `CsvReport` - CSV format  
 - `HtmlReport` - HTML with Bootstrap styling
 - `MarkdownReport` - Markdown tables
 
-**Churn Reporters:**
+**Churn reporter:**
 
 - `JsonReport` - JSON format
 - `CsvReport` - CSV format
@@ -284,5 +282,5 @@ For inspiration, examine the built-in reporters:
 
 - Check the configuration syntax in `config.yml`
 - Verify file paths are absolute or relative to the project root
-- Test with simple reporters first before complex implementations
-- Use the built-in reporters as templates for your custom ones
+- Test with simple reporter first before complex implementations
+- Use the built-in reporter as templates for your custom ones

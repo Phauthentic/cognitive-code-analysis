@@ -21,7 +21,7 @@ class TestCognitiveConfig extends CognitiveConfig
         bool $showCyclomaticComplexity = false,
         bool $groupByClass = false,
         bool $showDetailedCognitiveMetrics = true,
-        array $customExporters = []
+        array $customReporters = []
     ) {
         parent::__construct(
             excludeFilePatterns: $excludeFilePatterns,
@@ -33,7 +33,7 @@ class TestCognitiveConfig extends CognitiveConfig
             showCyclomaticComplexity: $showCyclomaticComplexity,
             groupByClass: $groupByClass,
             showDetailedCognitiveMetrics: $showDetailedCognitiveMetrics,
-            customExporters: $customExporters
+            customReporters: $customReporters
         );
     }
 }

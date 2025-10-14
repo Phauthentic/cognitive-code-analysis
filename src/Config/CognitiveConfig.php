@@ -13,7 +13,7 @@ class CognitiveConfig
      * @param array<string> $excludeFilePatterns
      * @param array<string> $excludePatterns
      * @param array<int|string, MetricsConfig> $metrics
-     * @param array<string, array<string, mixed>> $customExporters
+     * @param array<string, array<string, mixed>> $customReporters
      * @SuppressWarnings("PHPMD.ExcessiveParameterList")
      */
     public function __construct(
@@ -26,7 +26,7 @@ class CognitiveConfig
         public readonly bool $showCyclomaticComplexity = false,
         public readonly bool $groupByClass = false,
         public readonly bool $showDetailedCognitiveMetrics = true,
-        public readonly array $customExporters = [],
+        public readonly array $customReporters = [],
     ) {
     }
 }

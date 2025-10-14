@@ -30,7 +30,7 @@ class ConfigFactory
             showCyclomaticComplexity: $config['cognitive']['showCyclomaticComplexity'] ?? false,
             groupByClass: $config['cognitive']['groupByClass'] ?? true,
             showDetailedCognitiveMetrics: $config['cognitive']['showDetailedCognitiveMetrics'] ?? true,
-            customExporters: $config['cognitive']['customExporters'] ?? []
+            customReporters: $config['cognitive']['customReporters'] ?? []
         );
     }
 }

@@ -41,7 +41,7 @@ class CustomExportersConfigTest extends TestCase
                         'enabled' => true
                     ]
                 ],
-                'customExporters' => [
+                'customReporters' => [
                     'cognitive' => [
                         'pdf' => [
                             'class' => 'My\Custom\PdfExporter',
@@ -65,12 +65,12 @@ class CustomExportersConfigTest extends TestCase
         $processedConfig = $processor->process($configTree, [$config]);
 
         $this->assertArrayHasKey('cognitive', $processedConfig);
-        $this->assertArrayHasKey('customExporters', $processedConfig['cognitive']);
-        $this->assertArrayHasKey('cognitive', $processedConfig['cognitive']['customExporters']);
-        $this->assertArrayHasKey('churn', $processedConfig['cognitive']['customExporters']);
+        $this->assertArrayHasKey('customReporters', $processedConfig['cognitive']);
+        $this->assertArrayHasKey('cognitive', $processedConfig['cognitive']['customReporters']);
+        $this->assertArrayHasKey('churn', $processedConfig['cognitive']['customReporters']);
 
         // Test cognitive exporters
-        $cognitiveExporters = $processedConfig['cognitive']['customExporters']['cognitive'];
+        $cognitiveExporters = $processedConfig['cognitive']['customReporters']['cognitive'];
         $this->assertArrayHasKey('pdf', $cognitiveExporters);
         $this->assertArrayHasKey('xml', $cognitiveExporters);
 
@@ -81,7 +81,7 @@ class CustomExportersConfigTest extends TestCase
         $this->assertNull($cognitiveExporters['xml']['file']);
 
         // Test churn exporters
-        $churnExporters = $processedConfig['cognitive']['customExporters']['churn'];
+        $churnExporters = $processedConfig['cognitive']['customReporters']['churn'];
         $this->assertArrayHasKey('custom', $churnExporters);
         $this->assertEquals('My\Custom\ChurnExporter', $churnExporters['custom']['class']);
         $this->assertEquals('/path/to/ChurnExporter.php', $churnExporters['custom']['file']);
@@ -112,7 +112,7 @@ class CustomExportersConfigTest extends TestCase
                         'enabled' => true
                     ]
                 ],
-                'customExporters' => [
+                'customReporters' => [
                     'cognitive' => [
                         'minimal' => [
                             'class' => 'My\Custom\MinimalExporter'
@@ -125,7 +125,7 @@ class CustomExportersConfigTest extends TestCase
 
         $processedConfig = $processor->process($configTree, [$config]);
 
-        $cognitiveExporters = $processedConfig['cognitive']['customExporters']['cognitive'];
+        $cognitiveExporters = $processedConfig['cognitive']['customReporters']['cognitive'];
         $this->assertArrayHasKey('minimal', $cognitiveExporters);
         $this->assertEquals('My\Custom\MinimalExporter', $cognitiveExporters['minimal']['class']);
         $this->assertNull($cognitiveExporters['minimal']['file']);
@@ -156,7 +156,7 @@ class CustomExportersConfigTest extends TestCase
                         'enabled' => true
                     ]
                 ]
-                // No customExporters section
+                // No customReporters section
             ]
         ];
 
@@ -164,15 +164,15 @@ class CustomExportersConfigTest extends TestCase
 
         $this->assertArrayHasKey('cognitive', $processedConfig);
 
-        // customExporters might not be present if not provided
-        if (!isset($processedConfig['cognitive']['customExporters'])) {
+        // customReporters might not be present if not provided
+        if (!isset($processedConfig['cognitive']['customReporters'])) {
             return;
         }
 
-        $this->assertArrayHasKey('cognitive', $processedConfig['cognitive']['customExporters']);
-        $this->assertArrayHasKey('churn', $processedConfig['cognitive']['customExporters']);
-        $this->assertEmpty($processedConfig['cognitive']['customExporters']['cognitive']);
-        $this->assertEmpty($processedConfig['cognitive']['customExporters']['churn']);
+        $this->assertArrayHasKey('cognitive', $processedConfig['cognitive']['customReporters']);
+        $this->assertArrayHasKey('churn', $processedConfig['cognitive']['customReporters']);
+        $this->assertEmpty($processedConfig['cognitive']['customReporters']['cognitive']);
+        $this->assertEmpty($processedConfig['cognitive']['customReporters']['churn']);
     }
 
     #[Test]
@@ -195,7 +195,7 @@ class CustomExportersConfigTest extends TestCase
                         'enabled' => true
                     ]
                 ],
-                'customExporters' => [
+                'customReporters' => [
                     'cognitive' => [
                         'test' => [
                             'class' => 'Test\Exporter',
@@ -216,15 +216,15 @@ class CustomExportersConfigTest extends TestCase
         $cognitiveConfig = $configFactory->fromArray($config);
 
         $this->assertInstanceOf(CognitiveConfig::class, $cognitiveConfig);
-        $this->assertArrayHasKey('cognitive', $cognitiveConfig->customExporters);
-        $this->assertArrayHasKey('churn', $cognitiveConfig->customExporters);
+        $this->assertArrayHasKey('cognitive', $cognitiveConfig->customReporters);
+        $this->assertArrayHasKey('churn', $cognitiveConfig->customReporters);
 
-        $cognitiveExporters = $cognitiveConfig->customExporters['cognitive'];
+        $cognitiveExporters = $cognitiveConfig->customReporters['cognitive'];
         $this->assertArrayHasKey('test', $cognitiveExporters);
         $this->assertEquals('Test\Exporter', $cognitiveExporters['test']['class']);
         $this->assertEquals('/test/file.php', $cognitiveExporters['test']['file']);
 
-        $churnExporters = $cognitiveConfig->customExporters['churn'];
+        $churnExporters = $cognitiveConfig->customReporters['churn'];
         $this->assertArrayHasKey('test', $churnExporters);
         $this->assertEquals('Test\ChurnExporter', $churnExporters['test']['class']);
         $this->assertNull($churnExporters['test']['file']);
@@ -250,7 +250,7 @@ class CustomExportersConfigTest extends TestCase
                         'enabled' => true
                     ]
                 ]
-                // No customExporters section
+                // No customReporters section
             ]
         ];
 
@@ -258,7 +258,7 @@ class CustomExportersConfigTest extends TestCase
         $cognitiveConfig = $configFactory->fromArray($config);
 
         $this->assertInstanceOf(CognitiveConfig::class, $cognitiveConfig);
-        $this->assertEmpty($cognitiveConfig->customExporters);
+        $this->assertEmpty($cognitiveConfig->customReporters);
     }
 
     #[Test]
@@ -286,7 +286,7 @@ class CustomExportersConfigTest extends TestCase
                         'enabled' => true
                     ]
                 ],
-                'customExporters' => [
+                'customReporters' => [
                     'cognitive' => [
                         'invalid' => [
                             // Missing required 'class' field
