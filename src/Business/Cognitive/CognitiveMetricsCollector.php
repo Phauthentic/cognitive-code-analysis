@@ -8,6 +8,7 @@ use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Events\FileProcessed;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Events\ParserFailed;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Events\SourceFilesFound;
 use Phauthentic\CognitiveCodeAnalysis\Business\Utility\DirectoryScanner;
+use Phauthentic\CognitiveCodeAnalysis\Business\Utility\FilenameNormalizer;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
 use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
@@ -118,7 +119,7 @@ class CognitiveMetricsCollector
             $metricsCollection = $this->processMethodMetrics(
                 $metrics,
                 $metricsCollection,
-                $this->normalizeFilename($file)
+                FilenameNormalizer::normalize($file)
             );
         }
 
@@ -141,9 +142,7 @@ class CognitiveMetricsCollector
                 continue;
             }
 
-
             [$class, $method] = explode('::', $classAndMethod);
-
 
             $metricsArray = array_merge($metrics, [
                 'class' => $class,
@@ -192,26 +191,6 @@ class CognitiveMetricsCollector
         );
     }
 
-    /**
-     * Get the project root directory path.
-     *
-     * Start from the current file's directory and traverse up to find composer.json
-     *
-     * @return string|null The project root path or null if not found
-     */
-    private function getProjectRoot(): ?string
-    {
-        $currentDir = __DIR__;
-
-        while ($currentDir !== dirname($currentDir)) {
-            if (file_exists($currentDir . DIRECTORY_SEPARATOR . 'composer.json')) {
-                return $currentDir;
-            }
-            $currentDir = dirname($currentDir);
-        }
-
-        return null;
-    }
 
     /**
      * Generate a cache key for a file based on path, modification time, and config hash
@@ -258,27 +237,6 @@ class CognitiveMetricsCollector
     public function clearCache(): void
     {
         $this->cachePool->clear();
-    }
-
-    /**
-     * Normalize filename for the test environment
-     *
-     * This is to ensure consistent file paths in test outputs
-     */
-    private function normalizeFilename(SplFileInfo $file): string
-    {
-        $filename = $file->getRealPath();
-
-        if (getenv('APP_ENV') !== 'test') {
-            return $filename;
-        }
-
-        $projectRoot = $this->getProjectRoot();
-        if ($projectRoot && str_starts_with($filename, $projectRoot)) {
-            $filename = substr($filename, strlen($projectRoot) + 1);
-        }
-
-        return $filename;
     }
 
     /**
