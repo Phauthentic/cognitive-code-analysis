@@ -11,7 +11,9 @@
     </description>
 
     <!-- Import the entire unused code rule set -->
-    <rule ref="rulesets/cleancode.xml" />
+    <rule ref="rulesets/cleancode.xml">
+        <exclude name="StaticAccess" />
+    </rule>
     <rule ref="rulesets/unusedcode.xml" />
     <rule ref="rulesets/naming.xml">
         <exclude name="LongVariable" />

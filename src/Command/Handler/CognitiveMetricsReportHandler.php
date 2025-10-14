@@ -6,7 +6,9 @@ namespace Phauthentic\CognitiveCodeAnalysis\Command\Handler;
 
 use Exception;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report\CognitiveReportFactoryInterface;
 use Phauthentic\CognitiveCodeAnalysis\Business\MetricsFacade;
+use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -14,7 +16,8 @@ class CognitiveMetricsReportHandler
 {
     public function __construct(
         private MetricsFacade $metricsFacade,
-        private OutputInterface $output
+        private OutputInterface $output,
+        private CognitiveReportFactoryInterface $reportFactory
     ) {
     }
 
@@ -56,7 +59,10 @@ class CognitiveMetricsReportHandler
 
     private function isValidReportType(?string $reportType): bool
     {
-        return in_array($reportType, ['json', 'csv', 'html', 'markdown']);
+        if ($reportType === null) {
+            return false;
+        }
+        return $this->reportFactory->isSupported($reportType);
     }
 
     private function handleExceptions(Exception $exception): int
@@ -71,11 +77,24 @@ class CognitiveMetricsReportHandler
 
     public function handleInvalidReporType(?string $reportType): int
     {
+        $supportedTypes = $this->reportFactory->getSupportedTypes();
+
         $this->output->writeln(sprintf(
-            '<error>Invalid report type `%s` provided. Only `json`, `csv`, `html`, and `markdown` are accepted.</error>',
-            $reportType
+            '<error>Invalid report type `%s` provided. Supported types: %s</error>',
+            $reportType,
+            implode(', ', $supportedTypes)
         ));
 
         return Command::FAILURE;
+    }
+
+    public function getReportFactory(): CognitiveReportFactoryInterface
+    {
+        return $this->reportFactory;
+    }
+
+    public function getConfigService(): ConfigService
+    {
+        return $this->metricsFacade->getConfigService();
     }
 }

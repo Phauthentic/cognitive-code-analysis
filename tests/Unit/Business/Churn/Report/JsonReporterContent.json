@@ -1,0 +1,32 @@
+{
+    "createdAt": "2023-10-01 12:00:00",
+    "classes": {
+        "Phauthentic\\CognitiveCodeAnalysis\\Business\\Cognitive\\CognitiveMetrics": {
+            "file": "\/home\/florian\/projects\/cognitive-code-checker\/src\/Business\/Cognitive\/CognitiveMetrics.php",
+            "score": 2.042,
+            "timesChanged": 6,
+            "churn": 12.252,
+            "coverage": null,
+            "riskChurn": null,
+            "riskLevel": null
+        },
+        "Phauthentic\\CognitiveCodeAnalysis\\Command\\Presentation\\CognitiveMetricTextRenderer": {
+            "file": "\/home\/florian\/projects\/cognitive-code-checker\/src\/Command\/Presentation\/CognitiveMetricTextRenderer.php",
+            "score": 0.806,
+            "timesChanged": 10,
+            "churn": 8.06,
+            "coverage": null,
+            "riskChurn": null,
+            "riskLevel": null
+        },
+        "Phauthentic\\CognitiveCodeAnalysis\\Business\\MetricsFacade": {
+            "file": "\/home\/florian\/projects\/cognitive-code-checker\/src\/Business\/MetricsFacade.php",
+            "score": 0.693,
+            "timesChanged": 8,
+            "churn": 5.544,
+            "coverage": null,
+            "riskChurn": null,
+            "riskLevel": null
+        }
+    }
+}

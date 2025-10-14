@@ -14,42 +14,33 @@ class ChurnCalculator
      *
      * @param CognitiveMetricsCollection $metricsCollection
      * @param CoverageReportReaderInterface|null $coverageReader
-     * @return array<string, array<string, mixed>>
+     * @return ChurnMetricsCollection
      */
     public function calculate(
         CognitiveMetricsCollection $metricsCollection,
         ?CoverageReportReaderInterface $coverageReader = null
-    ): array {
-        $classes = [];
-        $classes = $this->groupByClasses($metricsCollection, $classes);
-        $classes = $this->calculateChurn($classes, $coverageReader);
+    ): ChurnMetricsCollection {
+        $collection = $this->groupByClasses($metricsCollection);
+        $collection = $this->calculateChurn($collection, $coverageReader);
 
-        return $this->sortClassesByChurnDescending($classes);
+        return $collection->sortByChurnDescending();
     }
 
-    /**
-     * @param array<string, array<string, mixed>> $classes
-     * @return array<string, array<string, mixed>>
-     */
-    public function sortClassesByChurnDescending(array $classes): array
+    public function sortClassesByChurnDescending(ChurnMetricsCollection $collection): ChurnMetricsCollection
     {
-        uasort($classes, function ($classA, $classB) {
-            return $classB['churn'] <=> $classA['churn'];
-        });
-
-        return $classes;
+        return $collection->sortByChurnDescending();
     }
 
-    /**
-     * @param array<string, array<string, mixed>> $classes
-     * @param CoverageReportReaderInterface|null $coverageReader
-     * @return array<string, array<string, mixed>>
-     */
-    public function calculateChurn(array $classes, ?CoverageReportReaderInterface $coverageReader = null): array
-    {
-        foreach ($classes as $className => $data) {
+    public function calculateChurn(
+        ChurnMetricsCollection $collection,
+        ?CoverageReportReaderInterface $coverageReader = null
+    ): ChurnMetricsCollection {
+        $newCollection = new ChurnMetricsCollection();
+
+        foreach ($collection as $metric) {
             // Calculate standard churn
-            $classes[$className]['churn'] = $data['timesChanged'] * $data['score'];
+            $churn = $metric->getTimesChanged() * $metric->getScore();
+            $metric->setChurn($churn);
 
             // Add coverage information if available
             $coverage = null;
@@ -57,43 +48,56 @@ class ChurnCalculator
             $riskLevel = null;
 
             if ($coverageReader !== null) {
-                $coverage = $this->getCoverageForClass($className, $coverageReader);
-                $riskChurn = $data['timesChanged'] * $data['score'] * (1 - $coverage);
-                $riskLevel = $this->calculateRiskLevel($classes[$className]['churn'], $coverage);
+                $coverage = $this->getCoverageForClass($metric->getClassName(), $coverageReader);
+                $riskChurn = $metric->getTimesChanged() * $metric->getScore() * (1 - $coverage);
+                $riskLevel = $this->calculateRiskLevel($metric->getChurn(), $coverage);
             }
 
-            $classes[$className]['coverage'] = $coverage;
-            $classes[$className]['riskChurn'] = $riskChurn;
-            $classes[$className]['riskLevel'] = $riskLevel;
+            $metric->setCoverage($coverage);
+            $metric->setRiskChurn($riskChurn);
+            $metric->setRiskLevel($riskLevel);
+
+            $newCollection->add($metric);
         }
 
-        return $classes;
+        return $newCollection;
     }
 
-    /**
-     * @param CognitiveMetricsCollection $metricsCollection
-     * @param array<string, array<string, mixed>> $classes
-     * @return array<string, array<string, mixed>>
-     */
-    public function groupByClasses(CognitiveMetricsCollection $metricsCollection, array $classes): array
+    public function groupByClasses(CognitiveMetricsCollection $metricsCollection): ChurnMetricsCollection
     {
+        $collection = new ChurnMetricsCollection();
+        $classData = [];
+
         foreach ($metricsCollection as $metric) {
             if (empty($metric->getClass())) {
                 continue;
             }
 
-            if (!isset($classes[$metric->getClass()])) {
-                $classes[$metric->getClass()] = [
+            $className = $metric->getClass();
+            if (!isset($classData[$className])) {
+                $classData[$className] = [
                     'timesChanged' => 0,
                     'score' => 0,
-                    'file' => $metric->getFilename(),
+                    'file' => $metric->getFileName(),
                 ];
             }
 
-            $classes[$metric->getClass()]['timesChanged'] = $metric->getTimesChanged();
-            $classes[$metric->getClass()]['score'] += $metric->getScore();
+            $classData[$className]['timesChanged'] = $metric->getTimesChanged();
+            $classData[$className]['score'] += $metric->getScore();
         }
-        return $classes;
+
+        foreach ($classData as $className => $data) {
+            $churnMetric = new ChurnMetrics(
+                className: $className,
+                file: $data['file'],
+                score: $data['score'],
+                timesChanged: $data['timesChanged'],
+                churn: 0.0 // Will be calculated later
+            );
+            $collection->add($churnMetric);
+        }
+
+        return $collection;
     }
 
     /**

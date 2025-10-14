@@ -1886,7 +1886,7 @@
     </package>
     <package name="Phauthentic\CognitiveCodeAnalysis\Business">
       <file name="/home/florian/projects/cognitive-code-analysis/src/Business/DirectoryScanner.php">
-        <class name="Phauthentic\CognitiveCodeAnalysis\Business\DirectoryScanner" namespace="Phauthentic\CognitiveCodeAnalysis\Business">
+        <class name="Phauthentic\CognitiveCodeAnalysis\Business\Utility\DirectoryScanner" namespace="Phauthentic\CognitiveCodeAnalysis\Business">
           <metrics complexity="18" methods="7" coveredmethods="7" conditionals="0" coveredconditionals="0" statements="32" coveredstatements="32" elements="39" coveredelements="39"/>
         </class>
         <line num="29" type="method" name="scan" visibility="public" complexity="4" crap="4" count="42"/>
@@ -2043,7 +2043,7 @@
     </package>
     <package name="Phauthentic\CognitiveCodeAnalysis\Business\Traits">
       <file name="/home/florian/projects/cognitive-code-analysis/src/Business/Traits/CoverageDataDetector.php">
-        <class name="Phauthentic\CognitiveCodeAnalysis\Business\Traits\CoverageDataDetector" namespace="Phauthentic\CognitiveCodeAnalysis\Business\Traits">
+        <class name="Phauthentic\CognitiveCodeAnalysis\Business\Utility\CoverageDataDetector" namespace="Phauthentic\CognitiveCodeAnalysis\Business\Traits">
           <metrics complexity="4" methods="1" coveredmethods="1" conditionals="0" coveredconditionals="0" statements="4" coveredstatements="4" elements="5" coveredelements="5"/>
         </class>
         <line num="18" type="method" name="hasCoverageData" visibility="protected" complexity="4" crap="4" count="3"/>

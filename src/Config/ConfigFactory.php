@@ -29,7 +29,8 @@ class ConfigFactory
             showHalsteadComplexity: $config['cognitive']['showHalsteadComplexity'] ?? false,
             showCyclomaticComplexity: $config['cognitive']['showCyclomaticComplexity'] ?? false,
             groupByClass: $config['cognitive']['groupByClass'] ?? true,
-            showDetailedCognitiveMetrics: $config['cognitive']['showDetailedCognitiveMetrics'] ?? true
+            showDetailedCognitiveMetrics: $config['cognitive']['showDetailedCognitiveMetrics'] ?? true,
+            customReporters: $config['cognitive']['customReporters'] ?? []
         );
     }
 }

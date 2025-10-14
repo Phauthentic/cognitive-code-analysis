@@ -38,9 +38,12 @@ class ConfigService
      */
     public function loadConfig(string $configFilePath): void
     {
+        $defaultConfig = Yaml::parseFile(__DIR__ . '/../../config.yml');
+        $providedConfig = Yaml::parseFile($configFilePath);
+
         $config = $this->processor->processConfiguration($this->configuration, [
-            Yaml::parseFile(__DIR__ . '/../../config.yml'),
-            Yaml::parseFile($configFilePath),
+            $defaultConfig,
+            $providedConfig,
         ]);
 
         $this->config = (new ConfigFactory())->fromArray($config);

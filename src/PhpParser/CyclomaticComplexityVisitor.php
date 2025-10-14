@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\PhpParser;
 
-use Phauthentic\CognitiveCodeAnalysis\Business\CyclomaticComplexity\CyclomaticComplexityCalculatorInterface;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cyclomatic\CyclomaticComplexityCalculatorInterface;
 use PhpParser\Node;
 use PhpParser\NodeVisitorAbstract;
 

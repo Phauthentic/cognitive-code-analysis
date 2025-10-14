@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Command;
 
+use Exception;
 use Phauthentic\CognitiveCodeAnalysis\Business\CodeCoverage\CloverReader;
 use Phauthentic\CognitiveCodeAnalysis\Business\CodeCoverage\CoberturaReader;
 use Phauthentic\CognitiveCodeAnalysis\Business\CodeCoverage\CoverageReportReaderInterface;
@@ -11,6 +12,10 @@ use Phauthentic\CognitiveCodeAnalysis\Business\MetricsFacade;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 use Phauthentic\CognitiveCodeAnalysis\Command\Handler\ChurnReportHandler;
 use Phauthentic\CognitiveCodeAnalysis\Command\Presentation\ChurnTextRenderer;
+use Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications\ChurnCommandContext;
+use Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications\CompositeChurnSpecification;
+use Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications\ChurnValidationSpecificationFactory;
+use Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications\CustomExporter;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -33,16 +38,21 @@ class ChurnCommand extends Command
     public const OPTION_COVERAGE_COBERTURA = 'coverage-cobertura';
     public const OPTION_COVERAGE_CLOVER = 'coverage-clover';
 
+    private CompositeChurnSpecification $validationSpecification;
+
     /**
      * Constructor to initialize dependencies.
      */
     public function __construct(
         readonly private MetricsFacade $metricsFacade,
         readonly private ChurnTextRenderer $renderer,
-        readonly private ChurnReportHandler $report
+        readonly private ChurnReportHandler $report,
+        readonly private ChurnValidationSpecificationFactory $validationSpecificationFactory
     ) {
         parent::__construct();
+        $this->validationSpecification = $this->validationSpecificationFactory->create();
     }
+
 
     /**
      * Configures the command options and arguments.
@@ -115,61 +125,77 @@ class ChurnCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $coberturaFile = $input->getOption(self::OPTION_COVERAGE_COBERTURA);
-        $cloverFile = $input->getOption(self::OPTION_COVERAGE_CLOVER);
+        $context = new ChurnCommandContext($input);
 
-        // Validate that only one coverage option is specified
-        if ($coberturaFile !== null && $cloverFile !== null) {
-            $output->writeln('<error>Only one coverage format can be specified at a time.</error>');
+        // Validate all specifications (except custom exporters which need config)
+        if (!$this->validationSpecification->isSatisfiedBy($context)) {
+            $errorMessage = $this->validationSpecification->getDetailedErrorMessage($context);
+            $output->writeln('<error>' . $errorMessage . '</error>');
             return self::FAILURE;
         }
 
-        $coverageFile = $coberturaFile ?? $cloverFile;
-        $coverageFormat = $coberturaFile !== null ? 'cobertura' : ($cloverFile !== null ? 'clover' : null);
-
-        if (!$this->coverageFileExists($coverageFile, $output)) {
-            return self::FAILURE;
+        // Load configuration if provided
+        if ($context->hasConfigFile()) {
+            $configFile = $context->getConfigFile();
+            if ($configFile !== null && !$this->loadConfiguration($configFile, $output)) {
+                return self::FAILURE;
+            }
         }
 
-        $coverageReader = $this->loadCoverageReader($coverageFile, $coverageFormat, $output);
+        // Validate custom exporters after config is loaded
+        if ($context->hasReportOptions()) {
+            $customExporterValidation = new CustomExporter(
+                $this->report->getReportFactory(),
+                $this->report->getConfigService()
+            );
+            if (!$customExporterValidation->isSatisfiedBy($context)) {
+                $errorMessage = $customExporterValidation->getErrorMessageWithContext($context);
+                $output->writeln('<error>' . $errorMessage . '</error>');
+                return self::FAILURE;
+            }
+        }
+
+        // Load coverage reader
+        $coverageReader = $this->loadCoverageReader($context, $output);
         if ($coverageReader === false) {
             return self::FAILURE;
         }
 
-        $classes = $this->metricsFacade->calculateChurn(
-            path: $input->getArgument(self::ARGUMENT_PATH),
-            vcsType: $input->getOption(self::OPTION_VCS),
-            since: $input->getOption(self::OPTION_SINCE),
+        // Calculate churn metrics
+        $metrics = $this->metricsFacade->calculateChurn(
+            path: $context->getPath(),
+            vcsType: $context->getVcsType(),
+            since: $context->getSince(),
             coverageReader: $coverageReader
         );
 
-        $reportType = $input->getOption(self::OPTION_REPORT_TYPE);
-        $reportFile = $input->getOption(self::OPTION_REPORT_FILE);
-
-        if ($reportType !== null || $reportFile !== null) {
-            return $this->report->exportToFile($classes, $reportType, $reportFile);
+        // Handle report generation or display
+        if ($context->hasReportOptions()) {
+            return $this->report->exportToFile(
+                $metrics,
+                $context->getReportType(),
+                $context->getReportFile()
+            );
         }
 
-        $this->renderer->renderChurnTable(
-            classes: $classes
-        );
-
+        $this->renderer->renderChurnTable(metrics: $metrics);
         return self::SUCCESS;
     }
 
     /**
      * Load coverage reader from file
      *
-     * @param string|null $coverageFile Path to coverage file or null
-     * @param string|null $format Coverage format ('cobertura', 'clover') or null for auto-detect
+     * @param ChurnCommandContext $context Command context containing coverage file information
      * @param OutputInterface $output Output interface for error messages
      * @return CoverageReportReaderInterface|null|false Returns reader instance, null if no file provided, or false on error
      */
     private function loadCoverageReader(
-        ?string $coverageFile,
-        ?string $format,
+        ChurnCommandContext $context,
         OutputInterface $output
     ): CoverageReportReaderInterface|null|false {
+        $coverageFile = $context->getCoverageFile();
+        $format = $context->getCoverageFormat();
+
         if ($coverageFile === null) {
             return null;
         }
@@ -221,24 +247,22 @@ class ChurnCommand extends Command
         return null;
     }
 
-    private function coverageFileExists(?string $coverageFile, OutputInterface $output): bool
+
+    /**
+     * Loads configuration and handles errors.
+     *
+     * @param string $configFile
+     * @param OutputInterface $output
+     * @return bool Success or failure.
+     */
+    private function loadConfiguration(string $configFile, OutputInterface $output): bool
     {
-        // If no coverage file is provided, validation passes (backward compatibility)
-        if ($coverageFile === null) {
+        try {
+            $this->metricsFacade->loadConfig($configFile);
             return true;
+        } catch (Exception $e) {
+            $output->writeln('<error>Failed to load configuration: ' . $e->getMessage() . '</error>');
+            return false;
         }
-
-        // If coverage file is provided, check if it exists
-        if (file_exists($coverageFile)) {
-            return true;
-        }
-
-        // Coverage file was provided but doesn't exist - show error
-        $output->writeln(sprintf(
-            '<error>Coverage file not found: %s</error>',
-            $coverageFile
-        ));
-
-        return false;
     }
 }

@@ -7,7 +7,7 @@ namespace Phauthentic\CognitiveCodeAnalysis\Business\Cognitive;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Events\FileProcessed;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Events\ParserFailed;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Events\SourceFilesFound;
-use Phauthentic\CognitiveCodeAnalysis\Business\DirectoryScanner;
+use Phauthentic\CognitiveCodeAnalysis\Business\Utility\DirectoryScanner;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
 use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;

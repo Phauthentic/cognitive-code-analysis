@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Business\Cognitive;
 
+use Phauthentic\CognitiveCodeAnalysis\Business\Cyclomatic\CyclomaticComplexityCalculator;
 use Phauthentic\CognitiveCodeAnalysis\Business\Halstead\HalsteadMetricsCalculator;
-use Phauthentic\CognitiveCodeAnalysis\Business\CyclomaticComplexity\CyclomaticComplexityCalculator;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 use Phauthentic\CognitiveCodeAnalysis\PhpParser\AnnotationVisitor;
 use Phauthentic\CognitiveCodeAnalysis\PhpParser\CognitiveMetricsVisitor;
+use Phauthentic\CognitiveCodeAnalysis\PhpParser\CombinedMetricsVisitor;
 use Phauthentic\CognitiveCodeAnalysis\PhpParser\CyclomaticComplexityVisitor;
 use Phauthentic\CognitiveCodeAnalysis\PhpParser\HalsteadMetricsVisitor;
-use Phauthentic\CognitiveCodeAnalysis\PhpParser\CombinedMetricsVisitor;
+use PhpParser\Error;
+use PhpParser\NodeTraverser;
 use PhpParser\NodeTraverserInterface;
 use PhpParser\Parser as PhpParser;
-use PhpParser\NodeTraverser;
-use PhpParser\Error;
 use PhpParser\ParserFactory;
 use ReflectionClass;
 
@@ -194,7 +194,7 @@ class Parser
         $this->clearStaticProperty('Phauthentic\CognitiveCodeAnalysis\PhpParser\AnnotationVisitor', 'fqcnCache');
 
         // Clear regex pattern caches
-        $this->clearStaticProperty('Phauthentic\CognitiveCodeAnalysis\Business\DirectoryScanner', 'compiledPatterns');
+        $this->clearStaticProperty('Phauthentic\CognitiveCodeAnalysis\Business\Utility\DirectoryScanner', 'compiledPatterns');
         $this->clearStaticProperty('Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollector', 'compiledPatterns');
 
         // Clear accumulated data in visitors

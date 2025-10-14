@@ -5,29 +5,29 @@ declare(strict_types=1);
 namespace Phauthentic\CognitiveCodeAnalysis\Command\Handler;
 
 use Exception;
-use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Exporter\ChurnExporterFactory;
+use Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChurnMetricsCollection;
+use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report\ChurnReportFactoryInterface;
 use Phauthentic\CognitiveCodeAnalysis\Business\MetricsFacade;
+use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class ChurnReportHandler
 {
-    private ChurnExporterFactory $exporterFactory;
-
     public function __construct(
         private MetricsFacade $metricsFacade,
-        private OutputInterface $output
+        private OutputInterface $output,
+        private ChurnReportFactoryInterface $exporterFactory
     ) {
-        $this->exporterFactory = new ChurnExporterFactory();
     }
 
     /**
      * Handles report option validation and report generation.
      *
-     * @param array<string, array<string, mixed>> $classes
+     * @param ChurnMetricsCollection $metrics
      */
     public function exportToFile(
-        array $classes,
+        ChurnMetricsCollection $metrics,
         ?string $reportType,
         ?string $reportFile,
     ): int {
@@ -43,7 +43,7 @@ class ChurnReportHandler
 
         try {
             $this->metricsFacade->exportChurnReport(
-                classes: $classes,
+                metrics: $metrics,
                 reportType: (string)$reportType,
                 filename: (string)$reportFile
             );
@@ -87,5 +87,15 @@ class ChurnReportHandler
         ));
 
         return Command::FAILURE;
+    }
+
+    public function getReportFactory(): ChurnReportFactoryInterface
+    {
+        return $this->exporterFactory;
+    }
+
+    public function getConfigService(): ConfigService
+    {
+        return $this->metricsFacade->getConfigService();
     }
 }

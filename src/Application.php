@@ -6,6 +6,8 @@ namespace Phauthentic\CognitiveCodeAnalysis;
 
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChangeCounter\ChangeCounterFactory;
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChurnCalculator;
+use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report\ChurnReportFactory;
+use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report\ChurnReportFactoryInterface;
 use Phauthentic\CognitiveCodeAnalysis\Business\CodeCoverage\CodeCoverageFactory;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Baseline;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollector;
@@ -14,15 +16,23 @@ use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Events\FileProcessed;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Events\ParserFailed;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Events\SourceFilesFound;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Parser;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report\CognitiveReportFactory;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report\CognitiveReportFactoryInterface;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\ScoreCalculator;
-use Phauthentic\CognitiveCodeAnalysis\Business\DirectoryScanner;
 use Phauthentic\CognitiveCodeAnalysis\Business\MetricsFacade;
+use Phauthentic\CognitiveCodeAnalysis\Business\Utility\DirectoryScanner;
 use Phauthentic\CognitiveCodeAnalysis\Command\ChurnCommand;
+use Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications\ChurnValidationSpecificationFactory;
 use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsCommand;
+use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\CognitiveMetricsValidationSpecificationFactory;
 use Phauthentic\CognitiveCodeAnalysis\Command\EventHandler\ParserErrorHandler;
 use Phauthentic\CognitiveCodeAnalysis\Command\EventHandler\ProgressBarHandler;
 use Phauthentic\CognitiveCodeAnalysis\Command\EventHandler\VerboseHandler;
 use Phauthentic\CognitiveCodeAnalysis\Command\Handler\ChurnReportHandler;
+use Phauthentic\CognitiveCodeAnalysis\Command\Handler\CognitiveAnalysis\BaselineHandler;
+use Phauthentic\CognitiveCodeAnalysis\Command\Handler\CognitiveAnalysis\ConfigurationLoadHandler;
+use Phauthentic\CognitiveCodeAnalysis\Command\Handler\CognitiveAnalysis\CoverageLoadHandler;
+use Phauthentic\CognitiveCodeAnalysis\Command\Handler\CognitiveAnalysis\SortingHandler;
 use Phauthentic\CognitiveCodeAnalysis\Command\Handler\CognitiveMetricsReportHandler;
 use Phauthentic\CognitiveCodeAnalysis\Command\Presentation\ChurnTextRenderer;
 use Phauthentic\CognitiveCodeAnalysis\Command\Presentation\CognitiveMetricTextRenderer;
@@ -60,6 +70,15 @@ class Application
 
     private function registerServices(): void
     {
+        $this->registerCoreServices();
+        $this->registerReportFactories();
+        $this->registerPresentationServices();
+        $this->registerUtilityServices();
+        $this->registerCommandHandlers();
+    }
+
+    private function registerCoreServices(): void
+    {
         $outputClass = getenv('APP_ENV') === 'test' ? NullOutput::class : ConsoleOutput::class;
 
         $this->containerBuilder->register(OutputInterface::class, $outputClass)
@@ -80,6 +99,39 @@ class Application
         $this->containerBuilder->register(ConfigService::class, ConfigService::class)
             ->setPublic(true);
 
+        $this->containerBuilder->register(Baseline::class, Baseline::class)
+            ->setPublic(true);
+
+        $this->containerBuilder->register(CognitiveMetricsSorter::class, CognitiveMetricsSorter::class)
+            ->setPublic(true);
+
+        $this->containerBuilder->register(CodeCoverageFactory::class, CodeCoverageFactory::class)
+            ->setPublic(true);
+
+        $this->containerBuilder->register(CognitiveMetricsValidationSpecificationFactory::class, CognitiveMetricsValidationSpecificationFactory::class)
+            ->setPublic(true);
+
+        $this->containerBuilder->register(ChurnValidationSpecificationFactory::class, ChurnValidationSpecificationFactory::class)
+            ->setPublic(true);
+    }
+
+    private function registerReportFactories(): void
+    {
+        $this->containerBuilder->register(ChurnReportFactoryInterface::class, ChurnReportFactory::class)
+            ->setArguments([
+                new Reference(ConfigService::class),
+            ])
+            ->setPublic(true);
+
+        $this->containerBuilder->register(CognitiveReportFactoryInterface::class, CognitiveReportFactory::class)
+            ->setArguments([
+                new Reference(ConfigService::class),
+            ])
+            ->setPublic(true);
+    }
+
+    private function registerPresentationServices(): void
+    {
         $this->containerBuilder->register(ChurnTextRenderer::class, ChurnTextRenderer::class)
             ->setArguments([
                 new Reference(OutputInterface::class)
@@ -91,16 +143,10 @@ class Application
                 new Reference(ConfigService::class)
             ])
             ->setPublic(true);
+    }
 
-        $this->containerBuilder->register(Baseline::class, Baseline::class)
-            ->setPublic(true);
-
-        $this->containerBuilder->register(CognitiveMetricsSorter::class, CognitiveMetricsSorter::class)
-            ->setPublic(true);
-
-        $this->containerBuilder->register(CodeCoverageFactory::class, CodeCoverageFactory::class)
-            ->setPublic(true);
-
+    private function registerUtilityServices(): void
+    {
         $this->containerBuilder->register(Processor::class, Processor::class)
             ->setPublic(true);
 
@@ -132,11 +178,15 @@ class Application
                 new Reference(NodeTraverserInterface::class),
             ])
             ->setPublic(true);
+    }
 
+    private function registerCommandHandlers(): void
+    {
         $this->containerBuilder->register(ChurnReportHandler::class, ChurnReportHandler::class)
             ->setArguments([
                 new Reference(MetricsFacade::class),
                 new Reference(OutputInterface::class),
+                new Reference(ChurnReportFactoryInterface::class),
             ])
             ->setPublic(true);
 
@@ -144,6 +194,32 @@ class Application
             ->setArguments([
                 new Reference(MetricsFacade::class),
                 new Reference(OutputInterface::class),
+                new Reference(CognitiveReportFactoryInterface::class),
+            ])
+            ->setPublic(true);
+
+        // Register cognitive analysis handlers
+        $this->containerBuilder->register(ConfigurationLoadHandler::class, ConfigurationLoadHandler::class)
+            ->setArguments([
+                new Reference(MetricsFacade::class),
+            ])
+            ->setPublic(true);
+
+        $this->containerBuilder->register(CoverageLoadHandler::class, CoverageLoadHandler::class)
+            ->setArguments([
+                new Reference(CodeCoverageFactory::class),
+            ])
+            ->setPublic(true);
+
+        $this->containerBuilder->register(BaselineHandler::class, BaselineHandler::class)
+            ->setArguments([
+                new Reference(Baseline::class),
+            ])
+            ->setPublic(true);
+
+        $this->containerBuilder->register(SortingHandler::class, SortingHandler::class)
+            ->setArguments([
+                new Reference(CognitiveMetricsSorter::class),
             ])
             ->setPublic(true);
     }
@@ -210,6 +286,8 @@ class Application
                 new Reference(ConfigService::class),
                 new Reference(ChurnCalculator::class),
                 new Reference(ChangeCounterFactory::class),
+                new Reference(ChurnReportFactoryInterface::class),
+                new Reference(CognitiveReportFactoryInterface::class),
             ])
             ->setPublic(true);
     }
@@ -220,10 +298,12 @@ class Application
             ->setArguments([
                 new Reference(MetricsFacade::class),
                 new Reference(CognitiveMetricTextRendererInterface::class),
-                new Reference(Baseline::class),
                 new Reference(CognitiveMetricsReportHandler::class),
-                new Reference(CognitiveMetricsSorter::class),
-                new Reference(CodeCoverageFactory::class),
+                new Reference(ConfigurationLoadHandler::class),
+                new Reference(CoverageLoadHandler::class),
+                new Reference(BaselineHandler::class),
+                new Reference(SortingHandler::class),
+                new Reference(CognitiveMetricsValidationSpecificationFactory::class),
             ])
             ->setPublic(true);
 
@@ -232,6 +312,7 @@ class Application
                 new Reference(MetricsFacade::class),
                 new Reference(ChurnTextRenderer::class),
                 new Reference(ChurnReportHandler::class),
+                new Reference(ChurnValidationSpecificationFactory::class),
             ])
             ->setPublic(true);
     }

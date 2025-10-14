@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\PhpParser;
 
-use Phauthentic\CognitiveCodeAnalysis\Business\CyclomaticComplexity\CyclomaticComplexityCalculator;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cyclomatic\CyclomaticComplexityCalculator;
 use Phauthentic\CognitiveCodeAnalysis\PhpParser\CyclomaticComplexityVisitor;
-use PhpParser\ParserFactory;
 use PhpParser\NodeTraverser;
+use PhpParser\ParserFactory;
 use PHPUnit\Framework\TestCase;
 
 class CyclomaticComplexityVisitorTest extends TestCase
