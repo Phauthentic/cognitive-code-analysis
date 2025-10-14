@@ -33,7 +33,9 @@ use Phauthentic\CognitiveCodeAnalysis\Command\Handler\ChurnReportHandler;
 use Phauthentic\CognitiveCodeAnalysis\Command\Handler\CognitiveAnalysis\BaselineHandler;
 use Phauthentic\CognitiveCodeAnalysis\Command\Handler\CognitiveAnalysis\ConfigurationLoadHandler;
 use Phauthentic\CognitiveCodeAnalysis\Command\Handler\CognitiveAnalysis\CoverageLoadHandler;
+use Phauthentic\CognitiveCodeAnalysis\Command\Handler\CognitiveAnalysis\OutputHandler;
 use Phauthentic\CognitiveCodeAnalysis\Command\Handler\CognitiveAnalysis\SortingHandler;
+use Phauthentic\CognitiveCodeAnalysis\Command\Handler\CognitiveAnalysis\ValidationHandler;
 use Phauthentic\CognitiveCodeAnalysis\Command\Handler\CognitiveMetricsReportHandler;
 use Phauthentic\CognitiveCodeAnalysis\Command\Presentation\ChurnTextRenderer;
 use Phauthentic\CognitiveCodeAnalysis\Command\Presentation\CognitiveMetricTextRenderer;
@@ -230,6 +232,20 @@ class Application
                 new Reference(CognitiveMetricsSorter::class),
             ])
             ->setPublic(true);
+
+        $this->containerBuilder->register(ValidationHandler::class, ValidationHandler::class)
+            ->setArguments([
+                new Reference(CognitiveMetricsValidationSpecificationFactory::class),
+                new Reference(CognitiveMetricsReportHandler::class),
+            ])
+            ->setPublic(true);
+
+        $this->containerBuilder->register(OutputHandler::class, OutputHandler::class)
+            ->setArguments([
+                new Reference(CognitiveMetricsReportHandler::class),
+                new Reference(CognitiveMetricTextRendererInterface::class),
+            ])
+            ->setPublic(true);
     }
 
     private function bootstrap(): void
@@ -306,13 +322,12 @@ class Application
         $this->containerBuilder->register(CognitiveMetricsCommand::class, CognitiveMetricsCommand::class)
             ->setArguments([
                 new Reference(MetricsFacade::class),
-                new Reference(CognitiveMetricTextRendererInterface::class),
-                new Reference(CognitiveMetricsReportHandler::class),
                 new Reference(ConfigurationLoadHandler::class),
                 new Reference(CoverageLoadHandler::class),
                 new Reference(BaselineHandler::class),
                 new Reference(SortingHandler::class),
-                new Reference(CognitiveMetricsValidationSpecificationFactory::class),
+                new Reference(ValidationHandler::class),
+                new Reference(OutputHandler::class),
             ])
             ->setPublic(true);
 

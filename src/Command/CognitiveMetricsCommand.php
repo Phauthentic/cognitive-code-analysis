@@ -8,13 +8,10 @@ use Phauthentic\CognitiveCodeAnalysis\Business\MetricsFacade;
 use Phauthentic\CognitiveCodeAnalysis\Command\Handler\CognitiveAnalysis\BaselineHandler;
 use Phauthentic\CognitiveCodeAnalysis\Command\Handler\CognitiveAnalysis\ConfigurationLoadHandler;
 use Phauthentic\CognitiveCodeAnalysis\Command\Handler\CognitiveAnalysis\CoverageLoadHandler;
+use Phauthentic\CognitiveCodeAnalysis\Command\Handler\CognitiveAnalysis\OutputHandler;
 use Phauthentic\CognitiveCodeAnalysis\Command\Handler\CognitiveAnalysis\SortingHandler;
-use Phauthentic\CognitiveCodeAnalysis\Command\Handler\CognitiveMetricsReportHandler;
-use Phauthentic\CognitiveCodeAnalysis\Command\Presentation\CognitiveMetricTextRendererInterface;
+use Phauthentic\CognitiveCodeAnalysis\Command\Handler\CognitiveAnalysis\ValidationHandler;
 use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\CognitiveMetricsCommandContext;
-use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\CompositeCognitiveMetricsValidationSpecification;
-use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\CognitiveMetricsValidationSpecificationFactory;
-use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\CustomExporterValidation;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -23,8 +20,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 /**
  * Command to parse PHP files or directories and output method metrics.
- *
- * @SuppressWarnings("CyclomaticComplexity")
  */
 #[AsCommand(
     name: 'analyse',
@@ -43,20 +38,16 @@ class CognitiveMetricsCommand extends Command
     public const OPTION_COVERAGE_CLOVER = 'coverage-clover';
     private const ARGUMENT_PATH = 'path';
 
-    private CompositeCognitiveMetricsValidationSpecification $specification;
-
     public function __construct(
         readonly private MetricsFacade $metricsFacade,
-        readonly private CognitiveMetricTextRendererInterface $renderer,
-        readonly private CognitiveMetricsReportHandler $reportHandler,
         readonly private ConfigurationLoadHandler $configHandler,
         readonly private CoverageLoadHandler $coverageHandler,
         readonly private BaselineHandler $baselineHandler,
         readonly private SortingHandler $sortingHandler,
-        readonly private CognitiveMetricsValidationSpecificationFactory $specificationFactory
+        readonly private ValidationHandler $validationHandler,
+        readonly private OutputHandler $outputHandler
     ) {
         parent::__construct();
-        $this->specification = $this->specificationFactory->create();
     }
 
 
@@ -137,9 +128,10 @@ class CognitiveMetricsCommand extends Command
     {
         $context = new CognitiveMetricsCommandContext($input);
 
-        // Validate all specifications
-        if (!$this->specification->isSatisfiedBy($context)) {
-            return $this->handleValidationError($context, $output);
+        // Run initial validation
+        $validationResult = $this->validationHandler->validate($context);
+        if ($validationResult->isFailure()) {
+            return $validationResult->toCommandStatus($output);
         }
 
         // Load configuration
@@ -148,16 +140,10 @@ class CognitiveMetricsCommand extends Command
             return $configResult->toCommandStatus($output);
         }
 
-        // Validate custom exporters after config is loaded
-        if ($context->hasReportOptions()) {
-            $customExporterValidation = new CustomExporterValidation(
-                $this->reportHandler->getReportFactory(),
-                $this->reportHandler->getConfigService()
-            );
-
-            if (!$customExporterValidation->isSatisfiedBy($context)) {
-                return $this->handleValidationError($context, $output, $customExporterValidation);
-            }
+        // Run custom exporter validation after config is loaded
+        $customExporterResult = $this->validationHandler->validateCustomExporter($context);
+        if ($customExporterResult->isFailure()) {
+            return $customExporterResult->toCommandStatus($output);
         }
 
         // Load coverage reader
@@ -184,35 +170,7 @@ class CognitiveMetricsCommand extends Command
             return $sortResult->toCommandStatus($output);
         }
 
-        // Generate report or display results
-        if ($context->hasReportOptions()) {
-            return $this->reportHandler->handle(
-                $sortResult->getData(),
-                $context->getReportType(),
-                $context->getReportFile()
-            );
-        }
-
-        $this->renderer->render($sortResult->getData(), $output);
-
-        return Command::SUCCESS;
-    }
-
-
-    /**
-     * Handle validation errors with consistent error output.
-     */
-    private function handleValidationError(
-        CognitiveMetricsCommandContext $context,
-        OutputInterface $output,
-        ?CustomExporterValidation $customExporterValidation = null
-    ): int {
-        $errorMessage = $customExporterValidation !== null
-            ? $customExporterValidation->getErrorMessageWithContext($context)
-            : $this->specification->getDetailedErrorMessage($context);
-
-        $output->writeln('<error>' . $errorMessage . '</error>');
-
-        return Command::FAILURE;
+        // Handle output (report or console rendering)
+        return $this->outputHandler->handle($sortResult->getData(), $context, $output);
     }
 }
