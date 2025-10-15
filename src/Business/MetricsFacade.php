@@ -14,6 +14,11 @@ use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollect
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollector;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report\CognitiveReportFactoryInterface;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\ScoreCalculator;
+use Phauthentic\CognitiveCodeAnalysis\Business\SemanticCoupling\SemanticCouplingCollection;
+use Phauthentic\CognitiveCodeAnalysis\Business\SemanticCoupling\SemanticCouplingCalculator;
+use Phauthentic\CognitiveCodeAnalysis\Business\SemanticCoupling\TermExtractor;
+use Phauthentic\CognitiveCodeAnalysis\Business\SemanticCoupling\TfIdfCalculator;
+use Phauthentic\CognitiveCodeAnalysis\Business\SemanticCoupling\Report\SemanticCouplingReportFactoryInterface;
 use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
 use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
 
@@ -32,7 +37,8 @@ class MetricsFacade
         private readonly ChurnCalculator $churnCalculator,
         private readonly ChangeCounterFactory $changeCounterFactory,
         private readonly ChurnReportFactoryInterface $churnReportFactory,
-        private readonly CognitiveReportFactoryInterface $cognitiveReportFactory
+        private readonly CognitiveReportFactoryInterface $cognitiveReportFactory,
+        private readonly SemanticCouplingReportFactoryInterface $semanticCouplingReportFactory
     ) {
         // Configuration will be loaded when needed
     }
@@ -188,5 +194,160 @@ class MetricsFacade
     public function clearCache(): void
     {
         $this->cognitiveMetricsCollector->clearCache();
+    }
+
+    /**
+     * Calculate semantic coupling between entities.
+     *
+     * @param array<string> $paths Array of file or directory paths to analyze
+     * @param array<string, mixed> $options Analysis options (granularity, threshold, etc.)
+     * @return SemanticCouplingCollection The semantic coupling metrics
+     */
+    public function calculateSemanticCoupling(array $paths, array $options = []): SemanticCouplingCollection
+    {
+        $granularity = $options['granularity'] ?? 'file';
+        $threshold = $options['threshold'] ?? null;
+        
+        // Find PHP files in all paths
+        $phpFiles = [];
+        foreach ($paths as $path) {
+            $phpFiles = array_merge($phpFiles, $this->findPhpFiles($path));
+        }
+        
+        if (empty($phpFiles)) {
+            return new SemanticCouplingCollection();
+        }
+
+        // Extract identifiers from files
+        $entityIdentifiers = $this->extractIdentifiersFromFiles($phpFiles, $granularity);
+
+        if (empty($entityIdentifiers)) {
+            return new SemanticCouplingCollection();
+        }
+
+        // Calculate semantic coupling
+        $termExtractor = new TermExtractor();
+        $tfIdfCalculator = new TfIdfCalculator();
+        $calculator = new SemanticCouplingCalculator($termExtractor, $tfIdfCalculator);
+
+        $couplings = $calculator->calculate($entityIdentifiers, $granularity);
+
+        // Apply threshold filter if specified
+        if ($threshold !== null) {
+            $couplings = $couplings->filterByThreshold($threshold);
+        }
+
+        return $couplings;
+    }
+
+    /**
+     * Export semantic coupling report.
+     *
+     * @param SemanticCouplingCollection $couplings The coupling metrics to export
+     * @param string $reportType Type of report to generate
+     * @param string $filename Output filename
+     */
+    public function exportSemanticCouplingReport(
+        SemanticCouplingCollection $couplings,
+        string $reportType,
+        string $filename
+    ): void {
+        $exporter = $this->semanticCouplingReportFactory->create($reportType);
+        $exporter->export($couplings, $filename);
+    }
+
+    /**
+     * Find PHP files in the given path.
+     *
+     * @param string $path
+     * @return array<string>
+     */
+    private function findPhpFiles(string $path): array
+    {
+        $files = [];
+
+        if (is_file($path) && pathinfo($path, PATHINFO_EXTENSION) === 'php') {
+            return [$path];
+        }
+
+        if (is_dir($path)) {
+            $iterator = new \RecursiveIteratorIterator(
+                new \RecursiveDirectoryIterator($path, \RecursiveDirectoryIterator::SKIP_DOTS)
+            );
+
+            foreach ($iterator as $file) {
+                if ($file->isFile() && $file->getExtension() === 'php') {
+                    $files[] = $file->getPathname();
+                }
+            }
+        }
+
+        return $files;
+    }
+
+    /**
+     * Extract identifiers from PHP files based on granularity.
+     *
+     * @param array<string> $phpFiles
+     * @param string $granularity
+     * @return array<string, array<string>>
+     */
+    private function extractIdentifiersFromFiles(array $phpFiles, string $granularity): array
+    {
+        $entityIdentifiers = [];
+        $parser = (new \PhpParser\ParserFactory())->createForNewestSupportedVersion();
+        $traverser = new \PhpParser\NodeTraverser();
+
+        foreach ($phpFiles as $file) {
+            try {
+                $ast = $parser->parse(file_get_contents($file));
+                if ($ast === null) {
+                    continue;
+                }
+
+                $visitor = new \Phauthentic\CognitiveCodeAnalysis\PhpParser\TermExtractionVisitor();
+                $visitor->setCurrentFile($file);
+                $traverser->addVisitor($visitor);
+                $traverser->traverse($ast);
+
+                switch ($granularity) {
+                    case 'file':
+                        $entityIdentifiers[$file] = $visitor->getIdentifiers();
+                        break;
+                    case 'class':
+                        $classIdentifiers = $visitor->getClassIdentifiers();
+                        foreach ($classIdentifiers as $class => $identifiers) {
+                            $entityIdentifiers[$class] = $identifiers;
+                        }
+                        break;
+                    case 'module':
+                        $module = $this->extractModuleFromPath($file);
+                        if (!isset($entityIdentifiers[$module])) {
+                            $entityIdentifiers[$module] = [];
+                        }
+                        $entityIdentifiers[$module] = array_merge(
+                            $entityIdentifiers[$module],
+                            $visitor->getIdentifiers()
+                        );
+                        break;
+                }
+
+                $traverser->removeVisitor($visitor);
+            } catch (\Exception $e) {
+                // Skip files that can't be parsed
+                continue;
+            }
+        }
+
+        return $entityIdentifiers;
+    }
+
+    /**
+     * Extract module name from file path.
+     */
+    private function extractModuleFromPath(string $filePath): string
+    {
+        $pathParts = explode(DIRECTORY_SEPARATOR, dirname($filePath));
+        return end($pathParts) ?: 'root';
     }
 }

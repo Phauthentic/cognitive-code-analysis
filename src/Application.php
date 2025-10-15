@@ -20,12 +20,16 @@ use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report\CognitiveReportF
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report\CognitiveReportFactoryInterface;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\ScoreCalculator;
 use Phauthentic\CognitiveCodeAnalysis\Business\MetricsFacade;
+use Phauthentic\CognitiveCodeAnalysis\Business\SemanticCoupling\Report\SemanticCouplingReportFactory;
+use Phauthentic\CognitiveCodeAnalysis\Business\SemanticCoupling\Report\SemanticCouplingReportFactoryInterface;
 use Phauthentic\CognitiveCodeAnalysis\Business\Utility\DirectoryScanner;
 use Phauthentic\CognitiveCodeAnalysis\Cache\FileCache;
 use Phauthentic\CognitiveCodeAnalysis\Command\ChurnCommand;
 use Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications\ChurnValidationSpecificationFactory;
 use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsCommand;
 use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\CognitiveMetricsValidationSpecificationFactory;
+use Phauthentic\CognitiveCodeAnalysis\Command\SemanticAnalysisCommand;
+use Phauthentic\CognitiveCodeAnalysis\Command\SemanticAnalysisSpecifications\SemanticAnalysisValidationSpecificationFactory;
 use Phauthentic\CognitiveCodeAnalysis\Command\EventHandler\ParserErrorHandler;
 use Phauthentic\CognitiveCodeAnalysis\Command\EventHandler\ProgressBarHandler;
 use Phauthentic\CognitiveCodeAnalysis\Command\EventHandler\VerboseHandler;
@@ -35,9 +39,11 @@ use Phauthentic\CognitiveCodeAnalysis\Command\Handler\CognitiveAnalysis\Configur
 use Phauthentic\CognitiveCodeAnalysis\Command\Handler\CognitiveAnalysis\CoverageLoadHandler;
 use Phauthentic\CognitiveCodeAnalysis\Command\Handler\CognitiveAnalysis\SortingHandler;
 use Phauthentic\CognitiveCodeAnalysis\Command\Handler\CognitiveMetricsReportHandler;
+use Phauthentic\CognitiveCodeAnalysis\Command\Handler\SemanticCouplingReportHandler;
 use Phauthentic\CognitiveCodeAnalysis\Command\Presentation\ChurnTextRenderer;
 use Phauthentic\CognitiveCodeAnalysis\Command\Presentation\CognitiveMetricTextRenderer;
 use Phauthentic\CognitiveCodeAnalysis\Command\Presentation\CognitiveMetricTextRendererInterface;
+use Phauthentic\CognitiveCodeAnalysis\Command\Presentation\SemanticCouplingTextRenderer;
 use Phauthentic\CognitiveCodeAnalysis\Config\ConfigLoader;
 use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
 use PhpParser\NodeTraverser;
@@ -121,6 +127,9 @@ class Application
 
         $this->containerBuilder->register(ChurnValidationSpecificationFactory::class, ChurnValidationSpecificationFactory::class)
             ->setPublic(true);
+
+        $this->containerBuilder->register(SemanticAnalysisValidationSpecificationFactory::class, SemanticAnalysisValidationSpecificationFactory::class)
+            ->setPublic(true);
     }
 
     private function registerReportFactories(): void
@@ -132,6 +141,12 @@ class Application
             ->setPublic(true);
 
         $this->containerBuilder->register(CognitiveReportFactoryInterface::class, CognitiveReportFactory::class)
+            ->setArguments([
+                new Reference(ConfigService::class),
+            ])
+            ->setPublic(true);
+
+        $this->containerBuilder->register(SemanticCouplingReportFactoryInterface::class, SemanticCouplingReportFactory::class)
             ->setArguments([
                 new Reference(ConfigService::class),
             ])
@@ -149,6 +164,12 @@ class Application
         $this->containerBuilder->register(CognitiveMetricTextRendererInterface::class, CognitiveMetricTextRenderer::class)
             ->setArguments([
                 new Reference(ConfigService::class)
+            ])
+            ->setPublic(true);
+
+        $this->containerBuilder->register(SemanticCouplingTextRenderer::class, SemanticCouplingTextRenderer::class)
+            ->setArguments([
+                new Reference(OutputInterface::class)
             ])
             ->setPublic(true);
     }
@@ -203,6 +224,13 @@ class Application
                 new Reference(MetricsFacade::class),
                 new Reference(OutputInterface::class),
                 new Reference(CognitiveReportFactoryInterface::class),
+            ])
+            ->setPublic(true);
+
+        $this->containerBuilder->register(SemanticCouplingReportHandler::class, SemanticCouplingReportHandler::class)
+            ->setArguments([
+                new Reference(OutputInterface::class),
+                new Reference(SemanticCouplingReportFactoryInterface::class),
             ])
             ->setPublic(true);
 
@@ -297,6 +325,7 @@ class Application
                 new Reference(ChangeCounterFactory::class),
                 new Reference(ChurnReportFactoryInterface::class),
                 new Reference(CognitiveReportFactoryInterface::class),
+                new Reference(SemanticCouplingReportFactoryInterface::class),
             ])
             ->setPublic(true);
     }
@@ -324,6 +353,14 @@ class Application
                 new Reference(ChurnValidationSpecificationFactory::class),
             ])
             ->setPublic(true);
+
+        $this->containerBuilder->register(SemanticAnalysisCommand::class, SemanticAnalysisCommand::class)
+            ->setArguments([
+                new Reference(SemanticCouplingTextRenderer::class),
+                new Reference(SemanticCouplingReportHandler::class),
+                new Reference(SemanticAnalysisValidationSpecificationFactory::class),
+            ])
+            ->setPublic(true);
     }
 
     private function configureApplication(): void
@@ -335,7 +372,8 @@ class Application
             ])
             ->setPublic(true)
             ->addMethodCall('add', [new Reference(CognitiveMetricsCommand::class)])
-            ->addMethodCall('add', [new Reference(ChurnCommand::class)]);
+            ->addMethodCall('add', [new Reference(ChurnCommand::class)])
+            ->addMethodCall('add', [new Reference(SemanticAnalysisCommand::class)]);
     }
 
     public function run(): void
