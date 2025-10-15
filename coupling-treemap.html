@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semantic Coupling Interactive Treemap</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0; 
+            padding: 20px; 
+            background-color: #f5f5f5;
+        }
+        .header { 
+            background: white; 
+            padding: 20px; 
+            border-radius: 8px; 
+            margin-bottom: 20px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .controls { 
+            background: white; 
+            padding: 20px; 
+            border-radius: 8px; 
+            margin-bottom: 20px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+        .breadcrumb-item {
+            color: #007bff;
+            cursor: pointer;
+            text-decoration: none;
+            padding: 4px 8px;
+            border-radius: 3px;
+        }
+        .breadcrumb-item:hover {
+            background: #e9ecef;
+        }
+        .breadcrumb-separator {
+            color: #6c757d;
+        }
+        .term-selector { 
+            display: flex; 
+            flex-wrap: wrap; 
+            gap: 10px; 
+            margin-bottom: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .term-checkbox { 
+            display: flex; 
+            align-items: center; 
+            background: #f0f0f0; 
+            padding: 6px 12px; 
+            border-radius: 20px; 
+            cursor: pointer; 
+            transition: all 0.2s;
+            font-size: 13px;
+        }
+        .term-checkbox:hover { 
+            background: #e0e0e0; 
+        }
+        .term-checkbox.selected { 
+            background: #007bff; 
+            color: white; 
+        }
+        .term-checkbox input { 
+            margin-right: 6px; 
+        }
+        .legend { 
+            display: flex; 
+            align-items: center; 
+            gap: 20px; 
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        .legend-item { 
+            display: flex; 
+            align-items: center; 
+            gap: 8px;
+            font-size: 13px;
+        }
+        .legend-color { 
+            width: 20px; 
+            height: 20px; 
+            border-radius: 3px;
+        }
+        .treemap-container { 
+            background: white; 
+            padding: 20px; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .treemap-rect {
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .treemap-rect:hover {
+            opacity: 0.8;
+        }
+        .treemap-rect.directory {
+            stroke: #333;
+            stroke-width: 2;
+        }
+        .treemap-rect.file {
+            stroke: #666;
+            stroke-width: 1;
+        }
+        .treemap-text {
+            pointer-events: none;
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            font-weight: normal;
+            fill: #333;
+        }
+        .stats { 
+            margin-top: 15px; 
+            font-size: 14px; 
+            color: #666;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+        .clear-selection { 
+            background: #dc3545; 
+            color: white; 
+            border: none; 
+            padding: 8px 16px; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            margin-left: 10px;
+            font-size: 14px;
+        }
+        .clear-selection:hover { 
+            background: #c82333; 
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Semantic Coupling Interactive Treemap</h1>
+        <p><strong>Granularity:</strong> file | <strong>Total Terms:</strong> 481</p>
+        <div id="levelInfo" style="margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 4px; font-size: 14px;">
+            <strong>Current Level:</strong> <span id="currentPath">Root</span> | 
+            <strong>Items:</strong> <span id="itemCount">0</span> | 
+            <strong>Terms in this level:</strong> <span id="termCount">0</span>
+        </div>
+        <p style="color: #666; font-size: 14px; margin-top: 10px;">
+            📁 <strong>Folders</strong> have thick borders (click to zoom in) | 
+            📄 <strong>Files</strong> have thin borders | 
+            Use breadcrumb navigation to go back
+        </p>
+    </div>
+
+    <div class="controls">
+        <h3>Select Terms to Highlight</h3>
+        <div class="term-selector" id="termSelector">
+            <!-- Terms will be populated by JavaScript -->
+        </div>
+        <button class="clear-selection" onclick="clearSelection()">Clear Selection</button>
+        
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color" style="background: #ff4444;"></div>
+                <span>High term sharing (red)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #ffaa44;"></div>
+                <span>Medium term sharing (orange)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #4444ff;"></div>
+                <span>Low/No term sharing (blue)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #e0e0e0;"></div>
+                <span>No selection (gray)</span>
+            </div>
+        </div>
+        
+        <div class="stats" id="stats">
+            No terms selected
+        </div>
+    </div>
+
+    <div class="breadcrumb" id="breadcrumb">
+        <span class="breadcrumb-item" onclick="navigateToRoot()">🏠 Root</span>
+    </div>
+
+    <div class="treemap-container">
+        <svg width="1400" height="900" xmlns="http://www.w3.org/2000/svg" id="treemap">
+        </svg>
+    </div>
+
+    <script>
+        const allTerms = ["abstract","accessed","accum","add","after","aggregate","all","alpha","already","analysis","and","annotation","annotations","application","apply","arguments","as","assert","ast","at","available","average","averages","avg","badge","bar","base","baseline","basename","before","beta","between","bootstrap","branch","breakdown","breakdowns","builder","built","bus","by","bytes","cache","cached","caches","calculate","calculator","call","calls","camel","case","catch","cell","cells","change","changed","changes","check","child","churn","classes","clear","clover","cobertura","code","cognitive","collect","collection","collector","collectors","color","colored","column","combined","command","commands","comment","comments","commit","common","compare","comparison","complete","complexities","complexity","composite","conditionals","configs","configuration","configure","construct","container","containing","contains","context","core","cosine","counter","counters","counts","coupled","coupling","couplings","coverage","covered","create","csv","cument","current","custom","cyclomatic","date","datetime","debug","decimals","decision","default","defaults","deferred","delete","delta","deltas","descending","detailed","details","detect","difference","difficulty","dir","directory","distinct","do","document","effort","else","elseif","empty","enabled","end","ensure","enter","entities","entity","equals","errors","escape","escaped","exceeding","exceeds","exceptions","exclude","excluded","exclusivity","execute","exists","exit","expected","expiration","expires","export","exporter","extension","extensions","extract","extracted","extraction","extractor","facade","factories","factory","failed","failure","fetch","field","fields","filename","files","filter","filtered","find","first","fixed","for","foreach","format","formatter","found","fq","fqcn","fqcns","freq","frequencies","frequency","from","full","gather","generate","get","getter","git","granularities","granularity","greater","group","grouped","halstead","handle","handlers","has","hash","headers","heatmap","height","hierarchical","high","highlighted","hit","html","identifier","identifiers","idf","idx","if","ignore","ignored","in","incomplete","increased","increment","info","initialize","input","insert","instantiate","interactive","interface","into","invalid","invoke","is","items","iteration","iterator","json","keys","label","last","layout","leave","level","limit","line","lines","list","load","loaded","loader","locator","log","logical","lookup","magnitude","mapping","markdown","math","matrix","max","median","medium","methods","metric","metrics","min","missing","module","mtime","multiple","names","namespace","nesting","new","next","node","nodes","normalize","normalized","normalizer","not","num","number","of","on","only","operand","operands","operation","operator","operators","optional","options","or","order","other","output","padding","pair","pairs","parameter","params","parent","parse","parser","part","parts","pathname","paths","pattern","patterns","per","percentage","php","point","points","pool","prefix","prefixes","prepare","present","presentation","previous","process","processed","processor","product","program","progress","progressbar","project","prop","properties","property","props","provided","query","range","rate","reader","rect","rects","reflection","regex","regexes","register","registry","remove","render","renderer","repor","report","reporter","reporters","required","reset","rewind","risk","root","row","rows","run","runtime","same","sanitize","sanitized","satisfied","save","scale","scan","scanner","score","scores","second","semantic","separator","serialize","service","services","set","shared","show","similarity","since","single","sizes","snake","sort","sortable","sorted","sorter","sorting","source","space","specification","specifications","split","start","statement","statements","static","stats","stop","store","str","sub","success","suffix","sum","summary","supported","svg","switch","symbol","syntax","table","target","technical","ter","term","terms","ternary","tf","than","threshold","throwable","time","times","timestamp","to","top","total","track","tracked","trait","traverse","traverser","tree","treemap","truncate","types","unique","units","up","use","utility","valid","validate","validation","values","variable","variables","vcs","vector","verbose","vertical","view","visitor","vocabulary","volume","weight","weighted","weights","while","width","with","words","wrap","writable","write","written","xml","xor","xpath","yield"];
+        const rootTree = {"name":"root","path":"","type":"directory","children":[{"name":"src","path":"src","type":"directory","children":[{"name":"Cache","path":"src\/Cache","type":"directory","children":[{"name":"CacheItem.php","path":"src\/Cache\/CacheItem.php","type":"file","children":[],"terms":["cache","hit","construct","get","set","expiration","expires","at","after","time"],"score":0.07699612310411605,"size":1},{"name":"FileCache.php","path":"src\/Cache\/FileCache.php","type":"file","children":[],"terms":["cache","directory","deferred","construct","items","keys","clear","delete","success","save","commit","ensure","sub","dir","load","json","sanitize","sanitized","remove","scan","files"],"score":0.3752771604397565,"size":1},{"name":"Exception","path":"src\/Cache\/Exception","type":"directory","children":[{"name":"CacheException.php","path":"src\/Cache\/Exception\/CacheException.php","type":"file","children":[],"terms":["cache"],"score":0.6088401360663479,"size":1}],"terms":["cache"],"score":0.6088401360663479,"size":1}],"terms":["cache","hit","construct","get","set","expiration","expires","at","after","time","directory","deferred","items","keys","clear","delete","success","save","commit","ensure","sub","dir","load","json","sanitize","sanitized","remove","scan","files"],"score":0.6088401360663479,"size":3},{"name":"Command","path":"src\/Command","type":"directory","children":[{"name":"SemanticAnalysisSpecifications","path":"src\/Command\/SemanticAnalysisSpecifications","type":"directory","children":[{"name":"CompositeSemanticAnalysisValidationSpecification.php","path":"src\/Command\/SemanticAnalysisSpecifications\/CompositeSemanticAnalysisValidationSpecification.php","type":"file","children":[],"terms":["composite","semantic","analysis","validation","specification","specifications","add","satisfied","by","context","detailed","errors"],"score":0.8914888091751473,"size":1},{"name":"SemanticAnalysisValidationSpecificationInterface.php","path":"src\/Command\/SemanticAnalysisSpecifications\/SemanticAnalysisValidationSpecificationInterface.php","type":"file","children":[],"terms":["satisfied","by","context"],"score":0.9566959228828583,"size":1},{"name":"SemanticAnalysisCommandContext.php","path":"src\/Command\/SemanticAnalysisSpecifications\/SemanticAnalysisCommandContext.php","type":"file","children":[],"terms":["semantic","analysis","command","context","construct","input","granularity","threshold","limit","view","report","options","debug"],"score":0.9027819437983418,"size":1},{"name":"GranularityValidationSpecification.php","path":"src\/Command\/SemanticAnalysisSpecifications\/GranularityValidationSpecification.php","type":"file","children":[],"terms":["granularity","validation","specification","satisfied","by","context","valid","granularities"],"score":0.5187897934312443,"size":1},{"name":"ThresholdValidationSpecification.php","path":"src\/Command\/SemanticAnalysisSpecifications\/ThresholdValidationSpecification.php","type":"file","children":[],"terms":["threshold","validation","specification","satisfied","by","context"],"score":0.47802111184524726,"size":1},{"name":"ViewTypeValidationSpecification.php","path":"src\/Command\/SemanticAnalysisSpecifications\/ViewTypeValidationSpecification.php","type":"file","children":[],"terms":["view","validation","specification","satisfied","by","context","valid","types"],"score":0.3407119966146456,"size":1},{"name":"PathValidationSpecification.php","path":"src\/Command\/SemanticAnalysisSpecifications\/PathValidationSpecification.php","type":"file","children":[],"terms":["validation","specification","satisfied","by","context"],"score":0.9286434451132857,"size":1},{"name":"SemanticAnalysisValidationSpecificationFactory.php","path":"src\/Command\/SemanticAnalysisSpecifications\/SemanticAnalysisValidationSpecificationFactory.php","type":"file","children":[],"terms":["semantic","analysis","validation","specification","factory","create","composite"],"score":0.20085918830576568,"size":1}],"terms":["composite","semantic","analysis","validation","specification","specifications","add","satisfied","by","context","detailed","errors","command","construct","input","granularity","threshold","limit","view","report","options","debug","valid","granularities","types","factory","create"],"score":0.9566959228828583,"size":8},{"name":"ChurnCommand.php","path":"src\/Command\/ChurnCommand.php","type":"file","children":[],"terms":["churn","command","validation","specification","construct","metrics","facade","renderer","report","factory","configure","execute","input","output","context","custom","exporter","coverage","reader","load","format","detect","configuration"],"score":0.7971199196750463,"size":1},{"name":"EventHandler","path":"src\/Command\/EventHandler","type":"directory","children":[{"name":"VerboseHandler.php","path":"src\/Command\/EventHandler\/VerboseHandler.php","type":"file","children":[],"terms":["verbose","start","time","construct","input","output","invoke","runtime","format","bytes","units","debug","enabled"],"score":0.40192664072041273,"size":1},{"name":"ProgressBarHandler.php","path":"src\/Command\/EventHandler\/ProgressBarHandler.php","type":"file","children":[],"terms":["progress","bar","total","files","processed","construct","output","invoke","handle","source","found","all"],"score":0.5474951371598636,"size":1},{"name":"ParserErrorHandler.php","path":"src\/Command\/EventHandler\/ParserErrorHandler.php","type":"file","children":[],"terms":["parser","construct","output","invoke","throwable"],"score":0.6759332727178118,"size":1}],"terms":["verbose","start","time","construct","input","output","invoke","runtime","format","bytes","units","debug","enabled","progress","bar","total","files","processed","handle","source","found","all","parser","throwable"],"score":0.6759332727178118,"size":3},{"name":"CognitiveMetricsCommand.php","path":"src\/Command\/CognitiveMetricsCommand.php","type":"file","children":[],"terms":["cognitive","metrics","command","specification","construct","facade","renderer","report","coverage","baseline","sorting","factory","configure","execute","input","output","context","custom","exporter","validation","collection","sort","handle"],"score":0.7971199196750463,"size":1},{"name":"ChurnSpecifications","path":"src\/Command\/ChurnSpecifications","type":"directory","children":[{"name":"ChurnCommandContext.php","path":"src\/Command\/ChurnSpecifications\/ChurnCommandContext.php","type":"file","children":[],"terms":["churn","command","context","construct","input","cobertura","clover","coverage","format","report","options","vcs","since"],"score":0.9456489196973993,"size":1},{"name":"ChurnCommandSpecification.php","path":"src\/Command\/ChurnSpecifications\/ChurnCommandSpecification.php","type":"file","children":[],"terms":["satisfied","by","context"],"score":1,"size":1},{"name":"CompositeChurnSpecification.php","path":"src\/Command\/ChurnSpecifications\/CompositeChurnSpecification.php","type":"file","children":[],"terms":["composite","churn","specification","construct","specifications","satisfied","by","context","detailed","first","failed"],"score":0.9944094804083744,"size":1},{"name":"CustomExporter.php","path":"src\/Command\/ChurnSpecifications\/CustomExporter.php","type":"file","children":[],"terms":["custom","exporter","construct","report","factory","service","satisfied","by","context","built","in","types","with","reporters","supported","validate"],"score":0.9989641641249906,"size":1},{"name":"ChurnValidationSpecificationFactory.php","path":"src\/Command\/ChurnSpecifications\/ChurnValidationSpecificationFactory.php","type":"file","children":[],"terms":["churn","validation","specification","factory","create"],"score":0.819259349602524,"size":1},{"name":"CoverageFormatSupported.php","path":"src\/Command\/ChurnSpecifications\/CoverageFormatSupported.php","type":"file","children":[],"terms":["coverage","format","supported","satisfied","by","context","with"],"score":0.9999999999999999,"size":1},{"name":"ReportOptionsComplete.php","path":"src\/Command\/ChurnSpecifications\/ReportOptionsComplete.php","type":"file","children":[],"terms":["report","options","complete","satisfied","by","context"],"score":0.6873282539479882,"size":1},{"name":"CoverageFormatExclusivity.php","path":"src\/Command\/ChurnSpecifications\/CoverageFormatExclusivity.php","type":"file","children":[],"terms":["coverage","format","exclusivity","satisfied","by","context"],"score":1,"size":1},{"name":"CoverageFileExists.php","path":"src\/Command\/ChurnSpecifications\/CoverageFileExists.php","type":"file","children":[],"terms":["coverage","exists","satisfied","by","context","with"],"score":0.9999999999999999,"size":1}],"terms":["churn","command","context","construct","input","cobertura","clover","coverage","format","report","options","vcs","since","satisfied","by","composite","specification","specifications","detailed","first","failed","custom","exporter","factory","service","built","in","types","with","reporters","supported","validate","validation","create","complete","exclusivity","exists"],"score":1,"size":9},{"name":"Presentation","path":"src\/Command\/Presentation","type":"directory","children":[{"name":"TableRowBuilder.php","path":"src\/Command\/Presentation\/TableRowBuilder.php","type":"file","children":[],"terms":["table","row","builder","construct","formatter","coverage","metrics","keys","with","info","to","fields","add","halstead","show","complexity","cyclomatic","weighted","weight","delta","detailed","cognitive","assert","exists","extracted"],"score":0.6019215905209125,"size":1},{"name":"CognitiveMetricTextRendererInterface.php","path":"src\/Command\/Presentation\/CognitiveMetricTextRendererInterface.php","type":"file","children":[],"terms":["render","metrics","collection","output"],"score":0.4563253106113449,"size":1},{"name":"CognitiveMetricSummaryTextRenderer.php","path":"src\/Command\/Presentation\/CognitiveMetricSummaryTextRenderer.php","type":"file","children":[],"terms":["cognitive","metric","summary","renderer","construct","service","render","metrics","collection","output","highlighted","score","threshold","alpha","beta","table"],"score":0.5549483033330965,"size":1},{"name":"CognitiveMetricTextRenderer.php","path":"src\/Command\/Presentation\/CognitiveMetricTextRenderer.php","type":"file","children":[],"terms":["cognitive","metric","renderer","formatter","row","builder","coverage","construct","service","exceeds","threshold","show","only","methods","exceeding","score","in","collection","metrics","render","output","group","by","grouped","rows","filename","for","from","all","single","table","total","common","headers","info","lines","line"],"score":0.4563253106113449,"size":1},{"name":"ChurnTextRenderer.php","path":"src\/Command\/Presentation\/ChurnTextRenderer.php","type":"file","children":[],"terms":["churn","renderer","table","with","coverage","construct","output","report","written","render","metrics","metric","row"],"score":0.5549483033330965,"size":1},{"name":"TableHeaderBuilder.php","path":"src\/Command\/Presentation\/TableHeaderBuilder.php","type":"file","children":[],"terms":["table","builder","construct","coverage","grouped","headers","fields","add","single","halstead","show","complexity","cyclomatic","cognitive","metric","details","detailed","metrics"],"score":0.6019215905209125,"size":1},{"name":"MetricFormatter.php","path":"src\/Command\/Presentation\/MetricFormatter.php","type":"file","children":[],"terms":["metric","formatter","construct","format","score","threshold","halstead","volume","difficulty","effort","cyclomatic","complexity","risk","level","colored","color"],"score":0.3946962801996743,"size":1},{"name":"SemanticCouplingTextRenderer.php","path":"src\/Command\/Presentation\/SemanticCouplingTextRenderer.php","type":"file","children":[],"terms":["semantic","coupling","renderer","construct","output","render","couplings","view","limit","top","pairs","granularity","shared","terms","matrix","entities","entity","row","score","str","per","averages","list","total","avg","other","summary","high","medium","stats","truncate"],"score":0.5294183857695881,"size":1}],"terms":["table","row","builder","construct","formatter","coverage","metrics","keys","with","info","to","fields","add","halstead","show","complexity","cyclomatic","weighted","weight","delta","detailed","cognitive","assert","exists","extracted","render","collection","output","metric","summary","renderer","service","highlighted","score","threshold","alpha","beta","exceeds","only","methods","exceeding","in","group","by","grouped","rows","filename","for","from","all","single","total","common","headers","lines","line","churn","report","written","details","format","volume","difficulty","effort","risk","level","colored","color","semantic","coupling","couplings","view","limit","top","pairs","granularity","shared","terms","matrix","entities","entity","str","per","averages","list","avg","other","high","medium","stats","truncate"],"score":0.6019215905209125,"size":8},{"name":"SemanticAnalysisCommand.php","path":"src\/Command\/SemanticAnalysisCommand.php","type":"file","children":[],"terms":["semantic","analysis","command","specification","construct","renderer","report","factory","configure","execute","input","output","context","couplings","calculate","coupling","granularity","php","files","entity","identifiers","term","extractor","tf","idf","calculator","find","iterator","extract","from","parser","traverser","ast","visitor","module","parts","generate","default","filename","timestamp","extensions","extension"],"score":0.6465950082477321,"size":1},{"name":"Handler","path":"src\/Command\/Handler","type":"directory","children":[{"name":"SemanticCouplingReportHandler.php","path":"src\/Command\/Handler\/SemanticCouplingReportHandler.php","type":"file","children":[],"terms":["semantic","coupling","report","construct","output","factory","export","to","couplings","filename","exporter","available","types","supported"],"score":0.8406720011533652,"size":1},{"name":"ChurnReportHandler.php","path":"src\/Command\/Handler\/ChurnReportHandler.php","type":"file","children":[],"terms":["churn","report","construct","metrics","facade","output","exporter","factory","export","to","incomplete","options","valid","handle","exceptions","invalid","supported","types","service"],"score":0.9504395190347451,"size":1},{"name":"CognitiveMetricsReportHandler.php","path":"src\/Command\/Handler\/CognitiveMetricsReportHandler.php","type":"file","children":[],"terms":["cognitive","metrics","report","construct","facade","output","factory","handle","collection","incomplete","options","valid","exceptions","invalid","repor","supported","types","service"],"score":0.9504395190347451,"size":1},{"name":"CognitiveAnalysis","path":"src\/Command\/Handler\/CognitiveAnalysis","type":"directory","children":[{"name":"CoverageLoadHandler.php","path":"src\/Command\/Handler\/CognitiveAnalysis\/CoverageLoadHandler.php","type":"file","children":[],"terms":["coverage","load","construct","factory","context","format","reader","detect"],"score":0.5686661910301043,"size":1},{"name":"SortingHandler.php","path":"src\/Command\/Handler\/CognitiveAnalysis\/SortingHandler.php","type":"file","children":[],"terms":["sorting","construct","sorter","sort","context","metrics","collection","by","order","sorted","available","fields"],"score":0.52825122246482,"size":1},{"name":"BaselineHandler.php","path":"src\/Command\/Handler\/CognitiveAnalysis\/BaselineHandler.php","type":"file","children":[],"terms":["baseline","construct","service","apply","context","metrics","collection"],"score":0.9165358580235426,"size":1},{"name":"ConfigurationLoadHandler.php","path":"src\/Command\/Handler\/CognitiveAnalysis\/ConfigurationLoadHandler.php","type":"file","children":[],"terms":["configuration","load","construct","metrics","facade","context"],"score":0.4200915142556489,"size":1}],"terms":["coverage","load","construct","factory","context","format","reader","detect","sorting","sorter","sort","metrics","collection","by","order","sorted","available","fields","baseline","service","apply","configuration","facade"],"score":0.9165358580235426,"size":4}],"terms":["semantic","coupling","report","construct","output","factory","export","to","couplings","filename","exporter","available","types","supported","churn","metrics","facade","incomplete","options","valid","handle","exceptions","invalid","service","cognitive","collection","repor","coverage","load","context","format","reader","detect","sorting","sorter","sort","by","order","sorted","fields","baseline","apply","configuration"],"score":0.9504395190347451,"size":7},{"name":"CognitiveMetricsSpecifications","path":"src\/Command\/CognitiveMetricsSpecifications","type":"directory","children":[{"name":"CognitiveMetricsCommandContext.php","path":"src\/Command\/CognitiveMetricsSpecifications\/CognitiveMetricsCommandContext.php","type":"file","children":[],"terms":["cognitive","metrics","command","context","construct","input","cobertura","clover","coverage","format","report","options","sort","by","order","sorting","baseline","paths","debug"],"score":0.9456489196973993,"size":1},{"name":"SortFieldValid.php","path":"src\/Command\/CognitiveMetricsSpecifications\/SortFieldValid.php","type":"file","children":[],"terms":["sort","field","valid","satisfied","by","context","with"],"score":0.743796885190874,"size":1},{"name":"CoverageFormatSupported.php","path":"src\/Command\/CognitiveMetricsSpecifications\/CoverageFormatSupported.php","type":"file","children":[],"terms":["coverage","format","supported","satisfied","by","context","with"],"score":0.9999999999999999,"size":1},{"name":"CustomExporterValidation.php","path":"src\/Command\/CognitiveMetricsSpecifications\/CustomExporterValidation.php","type":"file","children":[],"terms":["custom","exporter","validation","construct","report","factory","service","satisfied","by","context","built","in","types","with","reporters","supported","validate"],"score":0.9989641641249906,"size":1},{"name":"CompositeCognitiveMetricsValidationSpecification.php","path":"src\/Command\/CognitiveMetricsSpecifications\/CompositeCognitiveMetricsValidationSpecification.php","type":"file","children":[],"terms":["composite","cognitive","metrics","validation","specification","construct","specifications","satisfied","by","context","first","failed","detailed"],"score":0.9944094804083744,"size":1},{"name":"CoverageFormatExclusivity.php","path":"src\/Command\/CognitiveMetricsSpecifications\/CoverageFormatExclusivity.php","type":"file","children":[],"terms":["coverage","format","exclusivity","satisfied","by","context"],"score":1,"size":1},{"name":"CognitiveMetricsValidationSpecificationFactory.php","path":"src\/Command\/CognitiveMetricsSpecifications\/CognitiveMetricsValidationSpecificationFactory.php","type":"file","children":[],"terms":["cognitive","metrics","validation","specification","factory","create"],"score":0.819259349602524,"size":1},{"name":"SortOrderValid.php","path":"src\/Command\/CognitiveMetricsSpecifications\/SortOrderValid.php","type":"file","children":[],"terms":["sort","order","valid","satisfied","by","context","with"],"score":0.743796885190874,"size":1},{"name":"CoverageFileExists.php","path":"src\/Command\/CognitiveMetricsSpecifications\/CoverageFileExists.php","type":"file","children":[],"terms":["coverage","exists","satisfied","by","context","with"],"score":0.9999999999999999,"size":1},{"name":"CognitiveMetricsSpecification.php","path":"src\/Command\/CognitiveMetricsSpecifications\/CognitiveMetricsSpecification.php","type":"file","children":[],"terms":["satisfied","by","context"],"score":1,"size":1}],"terms":["cognitive","metrics","command","context","construct","input","cobertura","clover","coverage","format","report","options","sort","by","order","sorting","baseline","paths","debug","field","valid","satisfied","with","supported","custom","exporter","validation","factory","service","built","in","types","reporters","validate","composite","specification","specifications","first","failed","detailed","exclusivity","create","exists"],"score":1,"size":10},{"name":"Result","path":"src\/Command\/Result","type":"directory","children":[{"name":"OperationResult.php","path":"src\/Command\/Result\/OperationResult.php","type":"file","children":[],"terms":["operation","construct","success","failure","to","command","output"],"score":0.2168326219169768,"size":1}],"terms":["operation","construct","success","failure","to","command","output"],"score":0.2168326219169768,"size":1}],"terms":["composite","semantic","analysis","validation","specification","specifications","add","satisfied","by","context","detailed","errors","command","construct","input","granularity","threshold","limit","view","report","options","debug","valid","granularities","types","factory","create","churn","metrics","facade","renderer","configure","execute","output","custom","exporter","coverage","reader","load","format","detect","configuration","verbose","start","time","invoke","runtime","bytes","units","enabled","progress","bar","total","files","processed","handle","source","found","all","parser","throwable","cognitive","baseline","sorting","collection","sort","cobertura","clover","vcs","since","first","failed","service","built","in","with","reporters","supported","validate","complete","exclusivity","exists","table","row","builder","formatter","keys","info","to","fields","halstead","show","complexity","cyclomatic","weighted","weight","delta","assert","extracted","render","metric","summary","highlighted","score","alpha","beta","exceeds","only","methods","exceeding","group","grouped","rows","filename","for","from","single","common","headers","lines","line","written","details","volume","difficulty","effort","risk","level","colored","color","coupling","couplings","top","pairs","shared","terms","matrix","entities","entity","str","per","averages","list","avg","other","high","medium","stats","truncate","calculate","php","identifiers","term","extractor","tf","idf","calculator","find","iterator","extract","traverser","ast","visitor","module","parts","generate","default","timestamp","extensions","extension","export","available","incomplete","exceptions","invalid","repor","sorter","order","sorted","apply","paths","field","operation","success","failure"],"score":1,"size":49},{"name":"CognitiveAnalysisException.php","path":"src\/CognitiveAnalysisException.php","type":"file","children":[],"terms":["cognitive","analysis"],"score":0.17147391400621287,"size":1},{"name":"Config","path":"src\/Config","type":"directory","children":[{"name":"ConfigFactory.php","path":"src\/Config\/ConfigFactory.php","type":"file","children":[],"terms":["factory","from","metrics","metric","cache"],"score":0.6120501604069172,"size":1},{"name":"CognitiveConfig.php","path":"src\/Config\/CognitiveConfig.php","type":"file","children":[],"terms":["cognitive","construct","exclude","patterns","metrics","show","only","methods","exceeding","threshold","score","halstead","complexity","cyclomatic","group","by","detailed","cache","custom","reporters","to","metric"],"score":0.3010132306170363,"size":1},{"name":"CacheConfig.php","path":"src\/Config\/CacheConfig.php","type":"file","children":[],"terms":["cache","construct","enabled","directory","to"],"score":0.4723173714104405,"size":1},{"name":"MetricsConfig.php","path":"src\/Config\/MetricsConfig.php","type":"file","children":[],"terms":["metrics","construct","threshold","scale","enabled","to"],"score":0.4723173714104405,"size":1},{"name":"ConfigLoader.php","path":"src\/Config\/ConfigLoader.php","type":"file","children":[],"terms":["loader","cognitive","metric","defaults","tree","builder","root","node","mapping"],"score":0.28453191775526676,"size":1},{"name":"ConfigService.php","path":"src\/Config\/ConfigService.php","type":"file","children":[],"terms":["service","construct","processor","configuration","load","default","provided"],"score":0.24086295519415904,"size":1}],"terms":["factory","from","metrics","metric","cache","cognitive","construct","exclude","patterns","show","only","methods","exceeding","threshold","score","halstead","complexity","cyclomatic","group","by","detailed","custom","reporters","to","enabled","directory","scale","loader","defaults","tree","builder","root","node","mapping","service","processor","configuration","load","default","provided"],"score":0.6120501604069172,"size":6},{"name":"PhpParser","path":"src\/PhpParser","type":"directory","children":[{"name":"CyclomaticComplexityVisitor.php","path":"src\/PhpParser\/CyclomaticComplexityVisitor.php","type":"file","children":[],"terms":["cyclomatic","complexity","visitor","breakdown","current","namespace","fqcn","cache","annotation","calculator","if","else","switch","case","default","while","for","foreach","catch","logical","and","or","xor","ternary","construct","reset","counters","all","enter","node","leave","on","normalize","handle","decision","points","statement","do","point","counts","check","summary"],"score":0.758994742699263,"size":1},{"name":"TermExtractionVisitor.php","path":"src\/PhpParser\/TermExtractionVisitor.php","type":"file","children":[],"terms":["term","extraction","visitor","identifiers","current","enter","node","extract","from","handle","variable","property","props","prop","parameter","fetch","static","add","identifier","technical","terms","for","clear","reset","new"],"score":0.7897479729150216,"size":1},{"name":"CognitiveMetricsVisitor.php","path":"src\/PhpParser\/CognitiveMetricsVisitor.php","type":"file","children":[],"terms":["cognitive","metrics","visitor","current","namespace","fqcn","cache","annotation","arguments","variables","accessed","properties","property","calls","if","nesting","level","max","else","reset","values","all","node","valid","context","on","enter","initialize","track","params","variable","calculate","line","or","trait","normalize","gather","increment","not","already","tracked","as","fetch","statement","check","leave","write","space","complete"],"score":0.8772078352307412,"size":1},{"name":"CombinedMetricsVisitor.php","path":"src\/PhpParser\/CombinedMetricsVisitor.php","type":"file","children":[],"terms":["combined","metrics","visitor","annotation","cognitive","cyclomatic","halstead","calculator","construct","before","traverse","nodes","enter","node","leave","after","reset","all","between","files","complexity","summary","ignored"],"score":0.6953476012708244,"size":1},{"name":"HalsteadMetricsVisitor.php","path":"src\/PhpParser\/HalsteadMetricsVisitor.php","type":"file","children":[],"terms":["halstead","metrics","visitor","operators","operands","current","namespace","fqcn","cache","annotation","calculator","construct","enter","node","normalize","add","operator","operand","leave","store","reset","all"],"score":0.8772078352307412,"size":1},{"name":"AnnotationVisitor.php","path":"src\/PhpParser\/AnnotationVisitor.php","type":"file","children":[],"terms":["annotation","visitor","ignored","classes","methods","current","namespace","ignore","node","comment","comments","fqcn","normalize","process","enter","leave","reset","context"],"score":0.794847705097531,"size":1}],"terms":["cyclomatic","complexity","visitor","breakdown","current","namespace","fqcn","cache","annotation","calculator","if","else","switch","case","default","while","for","foreach","catch","logical","and","or","xor","ternary","construct","reset","counters","all","enter","node","leave","on","normalize","handle","decision","points","statement","do","point","counts","check","summary","term","extraction","identifiers","extract","from","variable","property","props","prop","parameter","fetch","static","add","identifier","technical","terms","clear","new","cognitive","metrics","arguments","variables","accessed","properties","calls","nesting","level","max","values","valid","context","initialize","track","params","calculate","line","trait","gather","increment","not","already","tracked","as","write","space","complete","combined","halstead","before","traverse","nodes","after","between","files","ignored","operators","operands","operator","operand","store","classes","methods","ignore","comment","comments","process"],"score":0.8772078352307412,"size":6},{"name":"Application.php","path":"src\/Application.php","type":"file","children":[],"terms":["application","container","builder","construct","register","services","core","output","report","factories","presentation","utility","command","handlers","bootstrap","metrics","collectors","configure","bus","progressbar","verbose","locator","service","facade","commands","run","get","identifier","up"],"score":0.28453191775526676,"size":1},{"name":"Business","path":"src\/Business","type":"directory","children":[{"name":"Cognitive","path":"src\/Business\/Cognitive","type":"directory","children":[{"name":"CognitiveMetricsCollector.php","path":"src\/Business\/Cognitive\/CognitiveMetricsCollector.php","type":"file","children":[],"terms":["cognitive","metrics","collector","ignored","items","construct","parser","directory","scanner","service","bus","cache","pool","collect","from","paths","all","files","exclude","patterns","code","find","collection","hash","use","cached","process","and","metric","excluded","regexes","regex","source","generate","mtime","clear"],"score":0.5756063566186821,"size":1},{"name":"FindMetricsPluginInterface.php","path":"src\/Business\/Cognitive\/FindMetricsPluginInterface.php","type":"file","children":[],"terms":["before","find","metrics","info","after","iteration","files","collection"],"score":0.3805766542678013,"size":1},{"name":"Delta.php","path":"src\/Business\/Cognitive\/Delta.php","type":"file","children":[],"terms":["delta","increased","difference","construct","before","after","to","not","changed"],"score":0.2727300661080492,"size":1},{"name":"MetricNames.php","path":"src\/Business\/Cognitive\/MetricNames.php","type":"file","children":[],"terms":[],"score":0,"size":1},{"name":"Events","path":"src\/Business\/Cognitive\/Events","type":"directory","children":[{"name":"FileProcessed.php","path":"src\/Business\/Cognitive\/Events\/FileProcessed.php","type":"file","children":[],"terms":["processed","construct"],"score":0.36889787363658283,"size":1},{"name":"ParserFailed.php","path":"src\/Business\/Cognitive\/Events\/ParserFailed.php","type":"file","children":[],"terms":["parser","failed","construct","throwable"],"score":0.6759332727178118,"size":1},{"name":"SourceFilesFound.php","path":"src\/Business\/Cognitive\/Events\/SourceFilesFound.php","type":"file","children":[],"terms":["source","files","found","construct"],"score":0.5474951371598636,"size":1}],"terms":["processed","construct","parser","failed","throwable","source","files","found"],"score":0.6759332727178118,"size":3},{"name":"Report","path":"src\/Business\/Cognitive\/Report","type":"directory","children":[{"name":"CognitiveReportFactory.php","path":"src\/Business\/Cognitive\/Report\/CognitiveReportFactory.php","type":"file","children":[],"terms":["cognitive","report","factory","registry","construct","service","create","custom","reporters","built","in","exporter","supported","types"],"score":0.9976370427806822,"size":1},{"name":"MarkdownReport.php","path":"src\/Business\/Cognitive\/Report\/MarkdownReport.php","type":"file","children":[],"terms":["markdown","report","construct","export","metrics","filename","escape","generate","metric","cell","weight","delta","symbol","filter","methods","show","only","exceeding","threshold","filtered","score","table","headers","detailed","cognitive","halstead","complexity","cyclomatic","with","separator","row","cells","add","volume","difficulty","effort","risk","level","group","by","grouped","datetime","first","single","total"],"score":0.4690184612746207,"size":1},{"name":"CognitiveReportFactoryInterface.php","path":"src\/Business\/Cognitive\/Report\/CognitiveReportFactoryInterface.php","type":"file","children":[],"terms":["create","supported","types"],"score":1,"size":1},{"name":"ReportGeneratorInterface.php","path":"src\/Business\/Cognitive\/Report\/ReportGeneratorInterface.php","type":"file","children":[],"terms":["export","metrics","filename"],"score":1,"size":1},{"name":"CsvReport.php","path":"src\/Business\/Cognitive\/Report\/CsvReport.php","type":"file","children":[],"terms":["csv","report","export","metrics","filename","basename","grouped","by","methods"],"score":0.4597436290407095,"size":1},{"name":"HtmlReport.php","path":"src\/Business\/Cognitive\/Report\/HtmlReport.php","type":"file","children":[],"terms":["html","report","export","metrics","filename","escape","format","number","generate","metric","row","weight","delta","badge","grouped","by","methods","column"],"score":0.568551173580494,"size":1},{"name":"JsonReport.php","path":"src\/Business\/Cognitive\/Report\/JsonReport.php","type":"file","children":[],"terms":["json","report","export","metrics","collection","filename","grouped","by","methods"],"score":0.7240355592865712,"size":1}],"terms":["cognitive","report","factory","registry","construct","service","create","custom","reporters","built","in","exporter","supported","types","markdown","export","metrics","filename","escape","generate","metric","cell","weight","delta","symbol","filter","methods","show","only","exceeding","threshold","filtered","score","table","headers","detailed","halstead","complexity","cyclomatic","with","separator","row","cells","add","volume","difficulty","effort","risk","level","group","by","grouped","datetime","first","single","total","csv","basename","html","format","number","badge","column","json","collection"],"score":1,"size":7},{"name":"CognitiveMetrics.php","path":"src\/Business\/Cognitive\/CognitiveMetrics.php","type":"file","children":[],"terms":["cognitive","metrics","line","times","changed","variable","property","call","if","nesting","level","else","weight","score","delta","halstead","cyclomatic","coverage","construct","required","metric","properties","missing","keys","optional","assert","same","other","calculate","deltas","from","is","present","equals","to","json","serialize"],"score":0.38940210476999687,"size":1},{"name":"Baseline.php","path":"src\/Business\/Cognitive\/Baseline.php","type":"file","children":[],"terms":["baseline","calculate","deltas","metrics","collection","previous","load"],"score":0.9165358580235426,"size":1},{"name":"CognitiveMetricsSorter.php","path":"src\/Business\/Cognitive\/CognitiveMetricsSorter.php","type":"file","children":[],"terms":["cognitive","metrics","sorter","sort","collection","by","order","alpha","beta","comparison","sorted","metric","field","compare","values","sortable","fields"],"score":0.47880888314595615,"size":1},{"name":"CognitiveMetricsCollection.php","path":"src\/Business\/Cognitive\/CognitiveMetricsCollection.php","type":"file","children":[],"terms":["cognitive","metrics","collection","add","metric","filter","filtered","new","iterator","with","score","greater","than","contains","other","full","by","assert","has","getter","ter","property","group","grouped","json","serialize"],"score":0.6402912824568958,"size":1},{"name":"ScoreCalculator.php","path":"src\/Business\/Cognitive\/ScoreCalculator.php","type":"file","children":[],"terms":["score","calculator","combined","metrics","metric","types","calculate","weights","configs","suffix","threshold","scale","log","weight"],"score":0.43961889270769106,"size":1},{"name":"Parser.php","path":"src\/Business\/Cognitive\/Parser.php","type":"file","children":[],"terms":["parser","annotation","visitor","cognitive","metrics","cyclomatic","complexity","halstead","combined","calculator","construct","factory","traverser","parse","code","risk","level","scan","for","annotations","ast","traverse","abstract","syntax","tree","with","ignored","classes","methods","clear","static","caches","property","reflection"],"score":0.6953476012708244,"size":1}],"terms":["cognitive","metrics","collector","ignored","items","construct","parser","directory","scanner","service","bus","cache","pool","collect","from","paths","all","files","exclude","patterns","code","find","collection","hash","use","cached","process","and","metric","excluded","regexes","regex","source","generate","mtime","clear","before","info","after","iteration","delta","increased","difference","to","not","changed","processed","failed","throwable","found","report","factory","registry","create","custom","reporters","built","in","exporter","supported","types","markdown","export","filename","escape","cell","weight","symbol","filter","methods","show","only","exceeding","threshold","filtered","score","table","headers","detailed","halstead","complexity","cyclomatic","with","separator","row","cells","add","volume","difficulty","effort","risk","level","group","by","grouped","datetime","first","single","total","csv","basename","html","format","number","badge","column","json","line","times","variable","property","call","if","nesting","else","coverage","required","properties","missing","keys","optional","assert","same","other","calculate","deltas","is","present","equals","serialize","baseline","previous","load","sorter","sort","order","alpha","beta","comparison","sorted","field","compare","values","sortable","fields","new","iterator","greater","than","contains","full","has","getter","ter","calculator","combined","weights","configs","suffix","scale","log","annotation","visitor","traverser","parse","scan","for","annotations","ast","traverse","abstract","syntax","tree","classes","static","caches","reflection"],"score":1,"size":20},{"name":"Reporter","path":"src\/Business\/Reporter","type":"directory","children":[{"name":"ReporterRegistry.php","path":"src\/Business\/Reporter\/ReporterRegistry.php","type":"file","children":[],"terms":["reporter","registry","loaded","files","load","exporter","instantiate","validate","interface","expected"],"score":0.19096285660176693,"size":1},{"name":"AbstractMarkdownReporter.php","path":"src\/Business\/Reporter\/AbstractMarkdownReporter.php","type":"file","children":[],"terms":["abstract","markdown","reporter","escape","format","number","decimals","table","headers","separator","column","row","cells","percentage"],"score":0.9545526602532759,"size":1},{"name":"MarkdownFormatterTrait.php","path":"src\/Business\/Reporter\/MarkdownFormatterTrait.php","type":"file","children":[],"terms":["escape","markdown","format","number","decimals","table","headers","separator","column","row","cells","percentage"],"score":0.9545526602532759,"size":1}],"terms":["reporter","registry","loaded","files","load","exporter","instantiate","validate","interface","expected","abstract","markdown","escape","format","number","decimals","table","headers","separator","column","row","cells","percentage"],"score":0.9545526602532759,"size":3},{"name":"CodeCoverage","path":"src\/Business\/CodeCoverage","type":"directory","children":[{"name":"CloverReader.php","path":"src\/Business\/CodeCoverage\/CloverReader.php","type":"file","children":[],"terms":["clover","reader","line","coverage","fqcn","node","metrics","statements","covered","branch","conditionals","complexity","details","rate","nodes","xpath","filename","for","parent","extract","methods","lines","calculate","num","all","from","in","start","target","end","statement"],"score":0.7234735846357617,"size":1},{"name":"AbstractXmlCoverageReader.php","path":"src\/Business\/CodeCoverage\/AbstractXmlCoverageReader.php","type":"file","children":[],"terms":["abstract","xml","coverage","reader","cument","xpath","cache","construct","loaded","all","classes","fqcns","with","node","fqcn","find","escaped","query","nodes","escape","parts","part"],"score":0.6072192630511228,"size":1},{"name":"CoverageReportReaderInterface.php","path":"src\/Business\/CodeCoverage\/CoverageReportReaderInterface.php","type":"file","children":[],"terms":["line","coverage","fqcn","branch","complexity","details","all","classes"],"score":0.6072192630511228,"size":1},{"name":"CodeCoverageFactory.php","path":"src\/Business\/CodeCoverage\/CodeCoverageFactory.php","type":"file","children":[],"terms":["code","coverage","factory","from"],"score":0.4842819413925994,"size":1},{"name":"CoverageDetails.php","path":"src\/Business\/CodeCoverage\/CoverageDetails.php","type":"file","children":[],"terms":["coverage","details","filename","line","rate","branch","complexity","methods","construct"],"score":0.9429674356703212,"size":1},{"name":"MethodCoverage.php","path":"src\/Business\/CodeCoverage\/MethodCoverage.php","type":"file","children":[],"terms":["coverage","line","rate","branch","complexity","construct"],"score":0.9429674356703212,"size":1},{"name":"CoberturaReader.php","path":"src\/Business\/CodeCoverage\/CoberturaReader.php","type":"file","children":[],"terms":["cobertura","reader","line","coverage","fqcn","node","rate","branch","complexity","details","extract","methods","nodes","xpath"],"score":0.7382146004237734,"size":1}],"terms":["clover","reader","line","coverage","fqcn","node","metrics","statements","covered","branch","conditionals","complexity","details","rate","nodes","xpath","filename","for","parent","extract","methods","lines","calculate","num","all","from","in","start","target","end","statement","abstract","xml","cument","cache","construct","loaded","classes","fqcns","with","find","escaped","query","escape","parts","part","code","factory","cobertura"],"score":0.9429674356703212,"size":7},{"name":"SemanticCoupling","path":"src\/Business\/SemanticCoupling","type":"directory","children":[{"name":"CouplingMatrix.php","path":"src\/Business\/SemanticCoupling\/CouplingMatrix.php","type":"file","children":[],"terms":["coupling","matrix","shared","terms","entity","add","score","top","coupled","limit","pairs","row","for","couplings","other","all","entities","to","semantic","collection","granularity","metric","empty"],"score":0.5638171731208523,"size":1},{"name":"TfIdfCalculator.php","path":"src\/Business\/SemanticCoupling\/TfIdfCalculator.php","type":"file","children":[],"terms":["tf","idf","calculator","term","frequencies","cument","total","entities","add","entity","calculate","terms","freq","weighted","vector","all","containing","document","frequency","clear"],"score":0.4656005927497816,"size":1},{"name":"SemanticCouplingCollection.php","path":"src\/Business\/SemanticCoupling\/SemanticCouplingCollection.php","type":"file","children":[],"terms":["semantic","coupling","collection","metrics","add","metric","multiple","filter","by","threshold","filtered","granularity","sort","score","descending","sorted","comparison","top","limit","average","total","max","min","median","scores","to","current","next","valid","rewind"],"score":0.5560277919634012,"size":1},{"name":"Report","path":"src\/Business\/SemanticCoupling\/Report","type":"directory","children":[{"name":"HtmlHeatmapReport.php","path":"src\/Business\/SemanticCoupling\/Report\/HtmlHeatmapReport.php","type":"file","children":[],"terms":["html","heatmap","report","export","couplings","filename","generate","granularity","matrix","entities","coupling","svg","cell","padding","width","height","entity","score","color"],"score":0.3772742666370872,"size":1},{"name":"InteractiveTreemapReport.php","path":"src\/Business\/SemanticCoupling\/Report\/InteractiveTreemapReport.php","type":"file","children":[],"terms":["interactive","treemap","report","export","couplings","filename","html","generate","granularity","all","terms","tree","extract","coupling","unique","hierarchical","entity","insert","into","node","score","parts","current","part","last","found","child","new","calculate","directory","sizes","total","aggregate","to","root","wrap","in","json","svg","width","height"],"score":0.44400254073233353,"size":1},{"name":"ReportGeneratorInterface.php","path":"src\/Business\/SemanticCoupling\/Report\/ReportGeneratorInterface.php","type":"file","children":[],"terms":["export","couplings","filename"],"score":0.8753769316013696,"size":1},{"name":"SemanticCouplingReportFactoryInterface.php","path":"src\/Business\/SemanticCoupling\/Report\/SemanticCouplingReportFactoryInterface.php","type":"file","children":[],"terms":["create","report","available","types","supported"],"score":0.7797040001204367,"size":1},{"name":"AbstractReport.php","path":"src\/Business\/SemanticCoupling\/Report\/AbstractReport.php","type":"file","children":[],"terms":["abstract","report","assert","is","writable","filename","directory","write","current","timestamp"],"score":0.5100088193065487,"size":1},{"name":"SemanticCouplingReportFactory.php","path":"src\/Business\/SemanticCoupling\/Report\/SemanticCouplingReportFactory.php","type":"file","children":[],"terms":["semantic","coupling","report","factory","types","construct","service","create","available","supported","load","custom","add"],"score":0.7797040001204367,"size":1},{"name":"CsvReport.php","path":"src\/Business\/SemanticCoupling\/Report\/CsvReport.php","type":"file","children":[],"terms":["csv","report","export","couplings","filename","coupling","row","to","field","escaped"],"score":0.2927609753750299,"size":1},{"name":"HtmlReport.php","path":"src\/Business\/SemanticCoupling\/Report\/HtmlReport.php","type":"file","children":[],"terms":["html","report","export","couplings","filename","generate","granularity","coupling","score","shared","terms"],"score":0.5987425957321032,"size":1},{"name":"JsonReport.php","path":"src\/Business\/SemanticCoupling\/Report\/JsonReport.php","type":"file","children":[],"terms":["json","report","export","couplings","filename"],"score":0.8753769316013696,"size":1}],"terms":["html","heatmap","report","export","couplings","filename","generate","granularity","matrix","entities","coupling","svg","cell","padding","width","height","entity","score","color","interactive","treemap","all","terms","tree","extract","unique","hierarchical","insert","into","node","parts","current","part","last","found","child","new","calculate","directory","sizes","total","aggregate","to","root","wrap","in","json","create","available","types","supported","abstract","assert","is","writable","write","timestamp","semantic","factory","construct","service","load","custom","add","csv","row","field","escaped","shared"],"score":0.8753769316013696,"size":9},{"name":"SemanticCouplingMetrics.php","path":"src\/Business\/SemanticCoupling\/SemanticCouplingMetrics.php","type":"file","children":[],"terms":["semantic","coupling","metrics","construct","score","granularity","shared","terms","to"],"score":0.5638171731208523,"size":1},{"name":"SemanticCouplingCalculator.php","path":"src\/Business\/SemanticCoupling\/SemanticCouplingCalculator.php","type":"file","children":[],"terms":["semantic","coupling","calculator","construct","term","extractor","tf","idf","calculate","entity","identifiers","granularity","terms","matrix","entities","similarity","shared","names","cosine","all","product","magnitude","vector","sum","weight","aggregate","by","module","couplings","to","pairs","pair","avg","score","unique","metric"],"score":0.5501848661352617,"size":1},{"name":"TermExtractor.php","path":"src\/Business\/SemanticCoupling\/TermExtractor.php","type":"file","children":[],"terms":["term","extractor","stop","words","construct","custom","extract","terms","from","identifiers","identifier","normalized","normalize","all","valid","remove","common","prefixes","prefix","split","camel","case","snake","add"],"score":0.2504607764659869,"size":1}],"terms":["coupling","matrix","shared","terms","entity","add","score","top","coupled","limit","pairs","row","for","couplings","other","all","entities","to","semantic","collection","granularity","metric","empty","tf","idf","calculator","term","frequencies","cument","total","calculate","freq","weighted","vector","containing","document","frequency","clear","metrics","multiple","filter","by","threshold","filtered","sort","descending","sorted","comparison","average","max","min","median","scores","current","next","valid","rewind","html","heatmap","report","export","filename","generate","svg","cell","padding","width","height","color","interactive","treemap","tree","extract","unique","hierarchical","insert","into","node","parts","part","last","found","child","new","directory","sizes","aggregate","root","wrap","in","json","create","available","types","supported","abstract","assert","is","writable","write","timestamp","factory","construct","service","load","custom","csv","field","escaped","extractor","identifiers","similarity","names","cosine","product","magnitude","sum","weight","module","pair","avg","stop","words","from","identifier","normalized","normalize","remove","common","prefixes","prefix","split","camel","case","snake"],"score":0.8753769316013696,"size":15},{"name":"MetricsFacade.php","path":"src\/Business\/MetricsFacade.php","type":"file","children":[],"terms":["metrics","facade","construct","cognitive","collector","score","calculator","service","churn","change","counter","factory","report","semantic","coupling","collection","metric","from","paths","coverage","reader","calculate","vcs","since","load","export","filename","exporter","add","to","details","level","methods","clear","cache","options","granularity","threshold","php","files","entity","identifiers","term","extractor","tf","idf","couplings","find","iterator","extract","parser","traverser","ast","visitor","module","parts"],"score":0.6465950082477321,"size":1},{"name":"Cyclomatic","path":"src\/Business\/Cyclomatic","type":"directory","children":[{"name":"CyclomaticComplexityCalculator.php","path":"src\/Business\/Cyclomatic\/CyclomaticComplexityCalculator.php","type":"file","children":[],"terms":["cyclomatic","complexity","calculator","calculate","decision","point","counts","base","total","breakdown","risk","level","summary","complexities","breakdowns"],"score":0.7898885669218383,"size":1},{"name":"CyclomaticComplexityCalculatorInterface.php","path":"src\/Business\/Cyclomatic\/CyclomaticComplexityCalculatorInterface.php","type":"file","children":[],"terms":["calculate","complexity","decision","point","counts","breakdown","total","risk","level","summary","complexities","breakdowns"],"score":0.7898885669218383,"size":1},{"name":"CyclomaticMetrics.php","path":"src\/Business\/Cyclomatic\/CyclomaticMetrics.php","type":"file","children":[],"terms":["cyclomatic","metrics","complexity","risk","level","total","base","if","elseif","else","switch","case","default","while","for","foreach","catch","logical","and","or","xor","ternary","construct"],"score":0.40802764778950346,"size":1}],"terms":["cyclomatic","complexity","calculator","calculate","decision","point","counts","base","total","breakdown","risk","level","summary","complexities","breakdowns","metrics","if","elseif","else","switch","case","default","while","for","foreach","catch","logical","and","or","xor","ternary","construct"],"score":0.7898885669218383,"size":3},{"name":"Churn","path":"src\/Business\/Churn","type":"directory","children":[{"name":"Report","path":"src\/Business\/Churn\/Report","type":"directory","children":[{"name":"TreemapMath.php","path":"src\/Business\/Churn\/Report\/TreemapMath.php","type":"file","children":[],"terms":["treemap","math","prepare","items","classes","churn","score","find","range","scores","min","max","normalize","to","color","calculate","layout","width","height","vertical","padding","rects","sum","split","idx","first","second","accum"],"score":0.41218877417304056,"size":1},{"name":"MarkdownReport.php","path":"src\/Business\/Churn\/Report\/MarkdownReport.php","type":"file","children":[],"terms":["markdown","report","with","coverage","export","metrics","filename","generate","metric","add","row"],"score":0.530549407575145,"size":1},{"name":"ReportGeneratorInterface.php","path":"src\/Business\/Churn\/Report\/ReportGeneratorInterface.php","type":"file","children":[],"terms":["export","metrics","filename"],"score":1,"size":1},{"name":"AbstractReport.php","path":"src\/Business\/Churn\/Report\/AbstractReport.php","type":"file","children":[],"terms":["abstract","report","write","filename","assert","is","writable","dir"],"score":0.5546583132504436,"size":1},{"name":"ChurnReportFactoryInterface.php","path":"src\/Business\/Churn\/Report\/ChurnReportFactoryInterface.php","type":"file","children":[],"terms":["create","supported","types"],"score":1,"size":1},{"name":"CsvReport.php","path":"src\/Business\/Churn\/Report\/CsvReport.php","type":"file","children":[],"terms":["csv","report","export","metrics","filename","metric"],"score":0.6120501604069172,"size":1},{"name":"SvgTreemapReport.php","path":"src\/Business\/Churn\/Report\/SvgTreemapReport.php","type":"file","children":[],"terms":["svg","treemap","report","math","construct","export","metrics","filename","generate","items","min","score","max","rects","render","rect","normalized","width","height","color","churn","label","wrap"],"score":0.41218877417304056,"size":1},{"name":"HtmlReport.php","path":"src\/Business\/Churn\/Report\/HtmlReport.php","type":"file","children":[],"terms":["html","report","export","metrics","filename","escape","format","number","generate","column","metric"],"score":0.568551173580494,"size":1},{"name":"JsonReport.php","path":"src\/Business\/Churn\/Report\/JsonReport.php","type":"file","children":[],"terms":["json","report","export","metrics","filename"],"score":0.7240355592865712,"size":1},{"name":"ChurnReportFactory.php","path":"src\/Business\/Churn\/Report\/ChurnReportFactory.php","type":"file","children":[],"terms":["churn","report","factory","registry","construct","service","create","custom","reporters","built","in","exporter","cognitive","supported","types"],"score":0.9976370427806822,"size":1}],"terms":["treemap","math","prepare","items","classes","churn","score","find","range","scores","min","max","normalize","to","color","calculate","layout","width","height","vertical","padding","rects","sum","split","idx","first","second","accum","markdown","report","with","coverage","export","metrics","filename","generate","metric","add","row","abstract","write","assert","is","writable","dir","create","supported","types","csv","svg","construct","render","rect","normalized","label","wrap","html","escape","format","number","column","json","factory","registry","service","custom","reporters","built","in","exporter","cognitive"],"score":1,"size":10},{"name":"ChurnMetrics.php","path":"src\/Business\/Churn\/ChurnMetrics.php","type":"file","children":[],"terms":["churn","metrics","score","times","changed","coverage","risk","level","construct","from","to","json","serialize"],"score":0.4352942575361567,"size":1},{"name":"ChangeCounter","path":"src\/Business\/Churn\/ChangeCounter","type":"directory","children":[{"name":"ChangeCounterFactory.php","path":"src\/Business\/Churn\/ChangeCounter\/ChangeCounterFactory.php","type":"file","children":[],"terms":["change","counter","factory","create"],"score":0.3380636889587282,"size":1},{"name":"GitChangeCounter.php","path":"src\/Business\/Churn\/ChangeCounter\/GitChangeCounter.php","type":"file","children":[],"terms":["git","change","counter","number","of","changes","for","filename","since","command","output","code","assert","valid","exit"],"score":0.4842819413925994,"size":1},{"name":"ChangeCounterInterface.php","path":"src\/Business\/Churn\/ChangeCounter\/ChangeCounterInterface.php","type":"file","children":[],"terms":["number","of","changes","for","filename","since"],"score":0.4457836940939045,"size":1}],"terms":["change","counter","factory","create","git","number","of","changes","for","filename","since","command","output","code","assert","valid","exit"],"score":0.4842819413925994,"size":3},{"name":"ChurnMetricsCollection.php","path":"src\/Business\/Churn\/ChurnMetricsCollection.php","type":"file","children":[],"terms":["churn","metrics","collection","add","metric","filter","filtered","new","iterator","contains","by","with","greater","than","score","coverage","risk","sort","descending","sorted","to","from","json","serialize","names","empty","clear"],"score":0.6402912824568958,"size":1},{"name":"ChurnCalculator.php","path":"src\/Business\/Churn\/ChurnCalculator.php","type":"file","children":[],"terms":["churn","calculator","calculate","metrics","collection","coverage","reader","sort","classes","by","descending","new","metric","risk","level","group","for","lookup"],"score":0.6150323052960163,"size":1}],"terms":["treemap","math","prepare","items","classes","churn","score","find","range","scores","min","max","normalize","to","color","calculate","layout","width","height","vertical","padding","rects","sum","split","idx","first","second","accum","markdown","report","with","coverage","export","metrics","filename","generate","metric","add","row","abstract","write","assert","is","writable","dir","create","supported","types","csv","svg","construct","render","rect","normalized","label","wrap","html","escape","format","number","column","json","factory","registry","service","custom","reporters","built","in","exporter","cognitive","times","changed","risk","level","from","serialize","change","counter","git","of","changes","for","since","command","output","code","valid","exit","collection","filter","filtered","new","iterator","contains","by","greater","than","sort","descending","sorted","names","empty","clear","calculator","reader","group","lookup"],"score":1,"size":16},{"name":"Halstead","path":"src\/Business\/Halstead","type":"directory","children":[{"name":"HalsteadMetricsCalculatorInterface.php","path":"src\/Business\/Halstead\/HalsteadMetricsCalculatorInterface.php","type":"file","children":[],"terms":["calculate","metrics","operators","operands","identifier","volume","program","vocabulary","difficulty"],"score":0.8250670672065904,"size":1},{"name":"HalsteadMetrics.php","path":"src\/Business\/Halstead\/HalsteadMetrics.php","type":"file","children":[],"terms":["halstead","metrics","program","vocabulary","volume","difficulty","effort","fq","construct"],"score":0.632035963242845,"size":1},{"name":"HalsteadMetricsCalculator.php","path":"src\/Business\/Halstead\/HalsteadMetricsCalculator.php","type":"file","children":[],"terms":["halstead","metrics","calculator","calculate","operators","operands","identifier","distinct","total","program","vocabulary","volume","difficulty","effort"],"score":0.8250670672065904,"size":1}],"terms":["calculate","metrics","operators","operands","identifier","volume","program","vocabulary","difficulty","halstead","effort","fq","construct","calculator","distinct","total"],"score":0.8250670672065904,"size":3},{"name":"Utility","path":"src\/Business\/Utility","type":"directory","children":[{"name":"Datetime.php","path":"src\/Business\/Utility\/Datetime.php","type":"file","children":[],"terms":["datetime","fixed","date","construct"],"score":0.014002468710710153,"size":1},{"name":"FilenameNormalizer.php","path":"src\/Business\/Utility\/FilenameNormalizer.php","type":"file","children":[],"terms":["filename","normalizer","normalize","project","root","current","dir"],"score":0.5303397574703486,"size":1},{"name":"CoverageDataDetector.php","path":"src\/Business\/Utility\/CoverageDataDetector.php","type":"file","children":[],"terms":["coverage","classes"],"score":0.1845764435648098,"size":1},{"name":"DirectoryScanner.php","path":"src\/Business\/Utility\/DirectoryScanner.php","type":"file","children":[],"terms":["directory","scanner","scan","paths","exclude","assert","valid","yield","if","not","excluded","info","traverse","iterator","files","sort","by","pathname","alpha","beta","from","pattern"],"score":0.3805766542678013,"size":1}],"terms":["datetime","fixed","date","construct","filename","normalizer","normalize","project","root","current","dir","coverage","classes","directory","scanner","scan","paths","exclude","assert","valid","yield","if","not","excluded","info","traverse","iterator","files","sort","by","pathname","alpha","beta","from","pattern"],"score":0.5303397574703486,"size":4}],"terms":["cognitive","metrics","collector","ignored","items","construct","parser","directory","scanner","service","bus","cache","pool","collect","from","paths","all","files","exclude","patterns","code","find","collection","hash","use","cached","process","and","metric","excluded","regexes","regex","source","generate","mtime","clear","before","info","after","iteration","delta","increased","difference","to","not","changed","processed","failed","throwable","found","report","factory","registry","create","custom","reporters","built","in","exporter","supported","types","markdown","export","filename","escape","cell","weight","symbol","filter","methods","show","only","exceeding","threshold","filtered","score","table","headers","detailed","halstead","complexity","cyclomatic","with","separator","row","cells","add","volume","difficulty","effort","risk","level","group","by","grouped","datetime","first","single","total","csv","basename","html","format","number","badge","column","json","line","times","variable","property","call","if","nesting","else","coverage","required","properties","missing","keys","optional","assert","same","other","calculate","deltas","is","present","equals","serialize","baseline","previous","load","sorter","sort","order","alpha","beta","comparison","sorted","field","compare","values","sortable","fields","new","iterator","greater","than","contains","full","has","getter","ter","calculator","combined","weights","configs","suffix","scale","log","annotation","visitor","traverser","parse","scan","for","annotations","ast","traverse","abstract","syntax","tree","classes","static","caches","reflection","reporter","loaded","instantiate","validate","interface","expected","decimals","percentage","clover","reader","fqcn","node","statements","covered","branch","conditionals","details","rate","nodes","xpath","parent","extract","lines","num","start","target","end","statement","xml","cument","fqcns","escaped","query","parts","part","cobertura","coupling","matrix","shared","terms","entity","top","coupled","limit","pairs","couplings","entities","semantic","granularity","empty","tf","idf","term","frequencies","freq","weighted","vector","containing","document","frequency","multiple","descending","average","max","min","median","scores","current","next","valid","rewind","heatmap","svg","padding","width","height","color","interactive","treemap","unique","hierarchical","insert","into","last","child","sizes","aggregate","root","wrap","available","writable","write","timestamp","extractor","identifiers","similarity","names","cosine","product","magnitude","sum","module","pair","avg","stop","words","identifier","normalized","normalize","remove","common","prefixes","prefix","split","camel","case","snake","facade","churn","change","counter","vcs","since","options","php","decision","point","counts","base","breakdown","summary","complexities","breakdowns","elseif","switch","default","while","foreach","catch","logical","or","xor","ternary","math","prepare","range","layout","vertical","rects","idx","second","accum","dir","render","rect","label","git","of","changes","command","output","exit","lookup","operators","operands","program","vocabulary","fq","distinct","fixed","date","normalizer","project","yield","pathname","pattern"],"score":1,"size":72}],"terms":["cache","hit","construct","get","set","expiration","expires","at","after","time","directory","deferred","items","keys","clear","delete","success","save","commit","ensure","sub","dir","load","json","sanitize","sanitized","remove","scan","files","composite","semantic","analysis","validation","specification","specifications","add","satisfied","by","context","detailed","errors","command","input","granularity","threshold","limit","view","report","options","debug","valid","granularities","types","factory","create","churn","metrics","facade","renderer","configure","execute","output","custom","exporter","coverage","reader","format","detect","configuration","verbose","start","invoke","runtime","bytes","units","enabled","progress","bar","total","processed","handle","source","found","all","parser","throwable","cognitive","baseline","sorting","collection","sort","cobertura","clover","vcs","since","first","failed","service","built","in","with","reporters","supported","validate","complete","exclusivity","exists","table","row","builder","formatter","info","to","fields","halstead","show","complexity","cyclomatic","weighted","weight","delta","assert","extracted","render","metric","summary","highlighted","score","alpha","beta","exceeds","only","methods","exceeding","group","grouped","rows","filename","for","from","single","common","headers","lines","line","written","details","volume","difficulty","effort","risk","level","colored","color","coupling","couplings","top","pairs","shared","terms","matrix","entities","entity","str","per","averages","list","avg","other","high","medium","stats","truncate","calculate","php","identifiers","term","extractor","tf","idf","calculator","find","iterator","extract","traverser","ast","visitor","module","parts","generate","default","timestamp","extensions","extension","export","available","incomplete","exceptions","invalid","repor","sorter","order","sorted","apply","paths","field","operation","failure","exclude","patterns","scale","loader","defaults","tree","root","node","mapping","processor","provided","breakdown","current","namespace","fqcn","annotation","if","else","switch","case","while","foreach","catch","logical","and","or","xor","ternary","reset","counters","enter","leave","on","normalize","decision","points","statement","do","point","counts","check","extraction","variable","property","props","prop","parameter","fetch","static","identifier","technical","new","arguments","variables","accessed","properties","calls","nesting","max","values","initialize","track","params","trait","gather","increment","not","already","tracked","as","write","space","combined","before","traverse","nodes","between","ignored","operators","operands","operator","operand","store","classes","ignore","comment","comments","process","application","container","register","services","core","factories","presentation","utility","handlers","bootstrap","collectors","bus","progressbar","locator","commands","run","up","collector","scanner","pool","collect","code","hash","use","cached","excluded","regexes","regex","mtime","iteration","increased","difference","changed","registry","markdown","escape","cell","symbol","filter","filtered","separator","cells","datetime","csv","basename","html","number","badge","column","times","call","required","missing","optional","same","deltas","is","present","equals","serialize","previous","comparison","compare","sortable","greater","than","contains","full","has","getter","ter","weights","configs","suffix","log","parse","annotations","abstract","syntax","caches","reflection","reporter","loaded","instantiate","interface","expected","decimals","percentage","statements","covered","branch","conditionals","rate","xpath","parent","num","target","end","xml","cument","fqcns","escaped","query","part","coupled","empty","frequencies","freq","vector","containing","document","frequency","multiple","descending","average","min","median","scores","next","rewind","heatmap","svg","padding","width","height","interactive","treemap","unique","hierarchical","insert","into","last","child","sizes","aggregate","wrap","writable","similarity","names","cosine","product","magnitude","sum","pair","stop","words","normalized","prefixes","prefix","split","camel","snake","change","counter","base","complexities","breakdowns","elseif","math","prepare","range","layout","vertical","rects","idx","second","accum","rect","label","git","of","changes","exit","lookup","program","vocabulary","fq","distinct","fixed","date","normalizer","project","yield","pathname","pattern"],"score":1,"size":138}],"terms":["cache","hit","construct","get","set","expiration","expires","at","after","time","directory","deferred","items","keys","clear","delete","success","save","commit","ensure","sub","dir","load","json","sanitize","sanitized","remove","scan","files","composite","semantic","analysis","validation","specification","specifications","add","satisfied","by","context","detailed","errors","command","input","granularity","threshold","limit","view","report","options","debug","valid","granularities","types","factory","create","churn","metrics","facade","renderer","configure","execute","output","custom","exporter","coverage","reader","format","detect","configuration","verbose","start","invoke","runtime","bytes","units","enabled","progress","bar","total","processed","handle","source","found","all","parser","throwable","cognitive","baseline","sorting","collection","sort","cobertura","clover","vcs","since","first","failed","service","built","in","with","reporters","supported","validate","complete","exclusivity","exists","table","row","builder","formatter","info","to","fields","halstead","show","complexity","cyclomatic","weighted","weight","delta","assert","extracted","render","metric","summary","highlighted","score","alpha","beta","exceeds","only","methods","exceeding","group","grouped","rows","filename","for","from","single","common","headers","lines","line","written","details","volume","difficulty","effort","risk","level","colored","color","coupling","couplings","top","pairs","shared","terms","matrix","entities","entity","str","per","averages","list","avg","other","high","medium","stats","truncate","calculate","php","identifiers","term","extractor","tf","idf","calculator","find","iterator","extract","traverser","ast","visitor","module","parts","generate","default","timestamp","extensions","extension","export","available","incomplete","exceptions","invalid","repor","sorter","order","sorted","apply","paths","field","operation","failure","exclude","patterns","scale","loader","defaults","tree","root","node","mapping","processor","provided","breakdown","current","namespace","fqcn","annotation","if","else","switch","case","while","foreach","catch","logical","and","or","xor","ternary","reset","counters","enter","leave","on","normalize","decision","points","statement","do","point","counts","check","extraction","variable","property","props","prop","parameter","fetch","static","identifier","technical","new","arguments","variables","accessed","properties","calls","nesting","max","values","initialize","track","params","trait","gather","increment","not","already","tracked","as","write","space","combined","before","traverse","nodes","between","ignored","operators","operands","operator","operand","store","classes","ignore","comment","comments","process","application","container","register","services","core","factories","presentation","utility","handlers","bootstrap","collectors","bus","progressbar","locator","commands","run","up","collector","scanner","pool","collect","code","hash","use","cached","excluded","regexes","regex","mtime","iteration","increased","difference","changed","registry","markdown","escape","cell","symbol","filter","filtered","separator","cells","datetime","csv","basename","html","number","badge","column","times","call","required","missing","optional","same","deltas","is","present","equals","serialize","previous","comparison","compare","sortable","greater","than","contains","full","has","getter","ter","weights","configs","suffix","log","parse","annotations","abstract","syntax","caches","reflection","reporter","loaded","instantiate","interface","expected","decimals","percentage","statements","covered","branch","conditionals","rate","xpath","parent","num","target","end","xml","cument","fqcns","escaped","query","part","coupled","empty","frequencies","freq","vector","containing","document","frequency","multiple","descending","average","min","median","scores","next","rewind","heatmap","svg","padding","width","height","interactive","treemap","unique","hierarchical","insert","into","last","child","sizes","aggregate","wrap","writable","similarity","names","cosine","product","magnitude","sum","pair","stop","words","normalized","prefixes","prefix","split","camel","snake","change","counter","base","complexities","breakdowns","elseif","math","prepare","range","layout","vertical","rects","idx","second","accum","rect","label","git","of","changes","exit","lookup","program","vocabulary","fq","distinct","fixed","date","normalizer","project","yield","pathname","pattern"],"score":0,"size":138};
+        let selectedTerms = new Set();
+        let currentNode = rootTree;
+        let breadcrumbPath = [];
+
+        // Initialize term selector
+        function initializeTermSelector() {
+            const container = document.getElementById('termSelector');
+            allTerms.forEach(term => {
+                const checkbox = document.createElement('div');
+                checkbox.className = 'term-checkbox';
+                checkbox.innerHTML = 
+                    '<input type="checkbox" id="term-' + term + '" value="' + term + '" onchange="toggleTerm(\'' + term + '\')">' +
+                    '<label for="term-' + term + '">' + term + '</label>';
+                container.appendChild(checkbox);
+            });
+        }
+
+        // Toggle term selection
+        function toggleTerm(term) {
+            const checkbox = document.querySelector('#term-' + term);
+            const container = checkbox.closest('.term-checkbox');
+            
+            if (checkbox.checked) {
+                selectedTerms.add(term);
+                container.classList.add('selected');
+            } else {
+                selectedTerms.delete(term);
+                container.classList.remove('selected');
+            }
+            
+            renderTreemap();
+            updateStats();
+        }
+
+        // Clear all selections
+        function clearSelection() {
+            selectedTerms.clear();
+            document.querySelectorAll('.term-checkbox input').forEach(checkbox => {
+                checkbox.checked = false;
+                checkbox.closest('.term-checkbox').classList.remove('selected');
+            });
+            renderTreemap();
+            updateStats();
+        }
+
+        // Calculate color based on term sharing
+        function calculateColor(terms) {
+            if (selectedTerms.size === 0) {
+                return '#f5f5f5'; // Light gray when no selection
+            }
+            
+            const sharedTerms = terms.filter(term => selectedTerms.has(term));
+            const sharingRatio = sharedTerms.length / selectedTerms.size;
+            
+            if (sharingRatio > 0.5) {
+                // High sharing - very light red
+                return '#ffe6e6';
+            } else if (sharingRatio > 0.2) {
+                // Medium sharing - very light orange
+                return '#fff2e6';
+            } else if (sharingRatio > 0) {
+                // Low sharing - very light blue
+                return '#e6f2ff';
+            } else {
+                // No sharing - very light blue
+                return '#f0f8ff';
+            }
+        }
+
+        // Proper squarify treemap algorithm
+        function squarify(children, x, y, width, height) {
+            if (children.length === 0) return [];
+            if (children.length === 1) {
+                return [{
+                    ...children[0],
+                    x: x,
+                    y: y,
+                    width: width,
+                    height: height
+                }];
+            }
+            
+            const totalSize = children.reduce((sum, child) => sum + child.size, 0);
+            if (totalSize === 0) return [];
+            
+            // Sort by size descending for better aspect ratios
+            const sorted = [...children].sort((a, b) => b.size - a.size);
+            
+            return squarifyHelper(sorted, [], x, y, width, height, totalSize);
+        }
+        
+        function squarifyHelper(children, row, x, y, width, height, total) {
+            if (children.length === 0) {
+                return layoutRow(row, x, y, width, height, total);
+            }
+            
+            const child = children[0];
+            const newRow = [...row, child];
+            
+            if (row.length === 0 || improveAspectRatio(row, child, width, height, total)) {
+                // Add to current row
+                return squarifyHelper(children.slice(1), newRow, x, y, width, height, total);
+            } else {
+                // Layout current row and start new one
+                const rowRects = layoutRow(row, x, y, width, height, total);
+                const rowSize = row.reduce((sum, r) => sum + r.size, 0);
+                
+                if (width >= height) {
+                    // Rows are vertical, next row shifts right
+                    const rowWidth = (rowSize / total) * width;
+                    return rowRects.concat(
+                        squarifyHelper(children, [], x + rowWidth, y, width - rowWidth, height, total - rowSize)
+                    );
+                } else {
+                    // Rows are horizontal, next row shifts down
+                    const rowHeight = (rowSize / total) * height;
+                    return rowRects.concat(
+                        squarifyHelper(children, [], x, y + rowHeight, width, height - rowHeight, total - rowSize)
+                    );
+                }
+            }
+        }
+        
+        function improveAspectRatio(row, child, width, height, total) {
+            if (row.length === 0) return true;
+            
+            const rowSize = row.reduce((sum, r) => sum + r.size, 0);
+            const newRowSize = rowSize + child.size;
+            
+            const currentWorst = worstAspectRatio(row, rowSize, width, height, total);
+            const newWorst = worstAspectRatio([...row, child], newRowSize, width, height, total);
+            
+            return newWorst <= currentWorst;
+        }
+        
+        function worstAspectRatio(row, rowSize, width, height, total) {
+            if (rowSize === 0) return Infinity;
+            
+            const isVertical = width >= height;
+            const length = isVertical ? height : width;
+            const thickness = (rowSize / total) * (isVertical ? width : height);
+            
+            if (thickness === 0) return Infinity;
+            
+            let worst = 0;
+            row.forEach(child => {
+                const size = (child.size / rowSize) * length;
+                const ratio = Math.max(thickness / size, size / thickness);
+                worst = Math.max(worst, ratio);
+            });
+            
+            return worst;
+        }
+        
+        function layoutRow(row, x, y, width, height, total) {
+            const rowSize = row.reduce((sum, r) => sum + r.size, 0);
+            if (rowSize === 0) return [];
+            
+            const isVertical = width >= height;
+            const rects = [];
+            
+            if (isVertical) {
+                // Vertical row (stacked vertically, extends horizontally)
+                const rowWidth = (rowSize / total) * width;
+                let currentY = y;
+                
+                row.forEach(child => {
+                    const rectHeight = (child.size / rowSize) * height;
+                    rects.push({
+                        ...child,
+                        x: x,
+                        y: currentY,
+                        width: Math.max(1, rowWidth),
+                        height: Math.max(1, rectHeight)
+                    });
+                    currentY += rectHeight;
+                });
+            } else {
+                // Horizontal row (stacked horizontally, extends vertically)
+                const rowHeight = (rowSize / total) * height;
+                let currentX = x;
+                
+                row.forEach(child => {
+                    const rectWidth = (child.size / rowSize) * width;
+                    rects.push({
+                        ...child,
+                        x: currentX,
+                        y: y,
+                        width: Math.max(1, rectWidth),
+                        height: Math.max(1, rowHeight)
+                    });
+                    currentX += rectWidth;
+                });
+            }
+            
+            return rects;
+        }
+
+        // Update level information
+        function updateLevelInfo() {
+            const pathElement = document.getElementById('currentPath');
+            const itemCountElement = document.getElementById('itemCount');
+            const termCountElement = document.getElementById('termCount');
+            
+            pathElement.textContent = currentNode.path || 'Root';
+            itemCountElement.textContent = currentNode.children.length;
+            termCountElement.textContent = currentNode.terms.length;
+        }
+
+        // Render treemap
+        function renderTreemap() {
+            const svg = document.getElementById('treemap');
+            svg.innerHTML = '';
+            
+            updateLevelInfo();
+            
+            const padding = 2;
+            const rects = squarify(currentNode.children, 0, 0, 1400, 900);
+            
+            rects.forEach(rect => {
+                if (rect.width < 1 || rect.height < 1) return;
+                
+                const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                g.setAttribute('class', 'treemap-rect ' + rect.type);
+                
+                // Apply padding
+                const paddedX = rect.x + padding;
+                const paddedY = rect.y + padding;
+                const paddedWidth = Math.max(1, rect.width - padding * 2);
+                const paddedHeight = Math.max(1, rect.height - padding * 2);
+                
+                const rectEl = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                rectEl.setAttribute('x', paddedX);
+                rectEl.setAttribute('y', paddedY);
+                rectEl.setAttribute('width', paddedWidth);
+                rectEl.setAttribute('height', paddedHeight);
+                rectEl.setAttribute('fill', calculateColor(rect.terms));
+                rectEl.setAttribute('rx', '3');  // Rounded corners
+                
+                // Different styling for directories vs files
+                if (rect.type === 'directory') {
+                    rectEl.setAttribute('stroke', '#333');
+                    rectEl.setAttribute('stroke-width', '3');
+                    rectEl.style.cursor = 'pointer';
+                    g.onclick = () => navigateToNode(rect);
+                } else {
+                    rectEl.setAttribute('stroke', '#666');
+                    rectEl.setAttribute('stroke-width', '1');
+                }
+                
+                g.appendChild(rectEl);
+                
+                // Add title
+                const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+                title.textContent = rect.name + (rect.type === 'directory' ? ' 📁 (click to open)' : ' 📄') + 
+                    '\nTerms: ' + rect.terms.length + 
+                    '\nSize: ' + rect.size +
+                    (rect.type === 'directory' ? '\nChildren: ' + rect.children.length : '');
+                g.appendChild(title);
+                
+                // Add text label if there's enough space
+                if (paddedWidth > 50 && paddedHeight > 25) {
+                    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    text.setAttribute('class', 'treemap-text');
+                    text.setAttribute('x', paddedX + 5);
+                    text.setAttribute('y', paddedY + 18);
+                    text.setAttribute('font-weight', rect.type === 'directory' ? 'normal' : 'normal');
+                    
+                    // Add folder icon for directories
+                    const displayName = (rect.type === 'directory' ? '📁 ' : '') + 
+                        (rect.name.length > 25 ? rect.name.substring(0, 25) + '...' : rect.name);
+                    text.textContent = displayName;
+                    g.appendChild(text);
+                    
+                    // Add size info on second line if there's space
+                    if (paddedHeight > 40) {
+                        const sizeText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                        sizeText.setAttribute('class', 'treemap-text');
+                        sizeText.setAttribute('x', paddedX + 5);
+                        sizeText.setAttribute('y', paddedY + 33);
+                        sizeText.setAttribute('font-size', '10');
+                        sizeText.setAttribute('fill', '#666');
+                        sizeText.textContent = rect.type === 'directory' ? 
+                            rect.children.length + ' items' : 
+                            rect.terms.length + ' terms';
+                        g.appendChild(sizeText);
+                    }
+                }
+                
+                svg.appendChild(g);
+            });
+        }
+
+        // Navigate to a node
+        function navigateToNode(node) {
+            if (node.type !== 'directory') return;
+            
+            currentNode = node;
+            breadcrumbPath.push(node);
+            updateBreadcrumb();
+            renderTreemap();
+        }
+
+        // Navigate to root
+        function navigateToRoot() {
+            currentNode = rootTree;
+            breadcrumbPath = [];
+            updateBreadcrumb();
+            renderTreemap();
+        }
+
+        // Navigate to specific breadcrumb level
+        function navigateToBreadcrumb(index) {
+            if (index === -1) {
+                navigateToRoot();
+                return;
+            }
+            
+            currentNode = breadcrumbPath[index];
+            breadcrumbPath = breadcrumbPath.slice(0, index + 1);
+            updateBreadcrumb();
+            renderTreemap();
+        }
+
+        // Update breadcrumb
+        function updateBreadcrumb() {
+            const breadcrumb = document.getElementById('breadcrumb');
+            breadcrumb.innerHTML = '<span class="breadcrumb-item" onclick="navigateToRoot()">🏠 Root</span>';
+            
+            breadcrumbPath.forEach((node, index) => {
+                breadcrumb.innerHTML += '<span class="breadcrumb-separator">/</span>';
+                breadcrumb.innerHTML += '<span class="breadcrumb-item" onclick="navigateToBreadcrumb(' + index + ')">' + 
+                    node.name + '</span>';
+            });
+        }
+
+        // Update statistics
+        function updateStats() {
+            const statsElement = document.getElementById('stats');
+            
+            if (selectedTerms.size === 0) {
+                statsElement.innerHTML = 'No terms selected. Select terms above to highlight areas with shared terminology.<br>' +
+                    '<strong>Current level has ' + currentNode.children.length + ' items with ' + 
+                    currentNode.terms.length + ' unique terms.</strong>';
+                return;
+            }
+            
+            let highSharing = 0;
+            let mediumSharing = 0;
+            let lowSharing = 0;
+            
+            // Count only items at current level
+            currentNode.children.forEach(child => {
+                const sharedTerms = child.terms.filter(term => selectedTerms.has(term));
+                const sharingRatio = sharedTerms.length / selectedTerms.size;
+                
+                if (sharingRatio > 0.5) {
+                    highSharing++;
+                } else if (sharingRatio > 0.2) {
+                    mediumSharing++;
+                } else if (sharingRatio > 0) {
+                    lowSharing++;
+                }
+            });
+            
+            statsElement.innerHTML = 
+                '<strong>Selected Terms:</strong> ' + Array.from(selectedTerms).join(', ') + '<br>' +
+                '<strong>At current level:</strong> ' +
+                '<strong>High Sharing (red):</strong> ' + highSharing + ' items | ' +
+                '<strong>Medium Sharing (orange):</strong> ' + mediumSharing + ' items | ' +
+                '<strong>Low Sharing (blue):</strong> ' + lowSharing + ' items';
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeTermSelector();
+            renderTreemap();
+            updateStats();
+        });
+    </script>
+</body>
+</html>

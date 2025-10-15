@@ -5,27 +5,17 @@ declare(strict_types=1);
 namespace Phauthentic\CognitiveCodeAnalysis\Business\SemanticCoupling\Report;
 
 use Phauthentic\CognitiveCodeAnalysis\Business\SemanticCoupling\SemanticCouplingCollection;
-use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report\TreemapMath;
 
 /**
- * Interactive treemap report for semantic coupling analysis.
+ * Interactive hierarchical treemap report for semantic coupling analysis.
  * 
  * Allows users to select terms and visualize which areas of the program
- * share those terms using color gradients (red for high sharing, blue for low).
+ * share those terms using color gradients. Supports zooming into directories.
  */
 class InteractiveTreemapReport extends AbstractReport
 {
     private const SVG_WIDTH = 1400;
     private const SVG_HEIGHT = 900;
-    private const PADDING = 2;
-    private const RECT_MIN_SIZE = 20;
-
-    private TreemapMath $treemapMath;
-
-    public function __construct()
-    {
-        $this->treemapMath = new TreemapMath();
-    }
 
     /**
      * @throws \Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException
@@ -48,17 +38,11 @@ class InteractiveTreemapReport extends AbstractReport
         // Extract all unique terms from couplings
         $allTerms = $this->extractAllTerms($couplings);
         
-        // Prepare entity data for treemap
-        $entityData = $this->prepareEntityData($couplings);
-        
-        // Calculate treemap layout
-        $rects = $this->calculateTreemapLayout($entityData);
-        
-        // Generate SVG treemap
-        $svg = $this->generateSvgTreemap($rects, $entityData);
+        // Build hierarchical tree structure from entity paths
+        $tree = $this->buildHierarchicalTree($couplings);
         
         // Generate HTML with interactive controls
-        return $this->wrapInHtml($svg, $allTerms, $granularity, $entityData);
+        return $this->wrapInHtml($allTerms, $granularity, $tree);
     }
 
     /**
@@ -77,160 +61,165 @@ class InteractiveTreemapReport extends AbstractReport
     }
 
     /**
-     * Prepare entity data for treemap calculation.
+     * Build hierarchical tree structure from entity paths.
      */
-    private function prepareEntityData(SemanticCouplingCollection $couplings): array
+    private function buildHierarchicalTree(SemanticCouplingCollection $couplings): array
     {
-        $entities = [];
-        $entityTerms = [];
+        $tree = [
+            'name' => 'root',
+            'path' => '',
+            'type' => 'directory',
+            'children' => [],
+            'terms' => [],
+            'score' => 0,
+            'size' => 0
+        ];
         
-        // Collect all entities and their terms
+        $entityData = [];
+        
+        // Collect all entities and their data
         foreach ($couplings as $coupling) {
             $entity1 = $coupling->getEntity1();
             $entity2 = $coupling->getEntity2();
             
-            if (!isset($entities[$entity1])) {
-                $entities[$entity1] = [
-                    'name' => $entity1,
-                    'score' => 0,
-                    'terms' => []
+            if (!isset($entityData[$entity1])) {
+                $entityData[$entity1] = [
+                    'terms' => [],
+                    'score' => 0
                 ];
             }
             
-            if (!isset($entities[$entity2])) {
-                $entities[$entity2] = [
-                    'name' => $entity2,
-                    'score' => 0,
-                    'terms' => []
+            if (!isset($entityData[$entity2])) {
+                $entityData[$entity2] = [
+                    'terms' => [],
+                    'score' => 0
                 ];
             }
             
-            // Store terms for each entity
-            $entities[$entity1]['terms'] = array_unique(array_merge(
-                $entities[$entity1]['terms'],
+            $entityData[$entity1]['terms'] = array_unique(array_merge(
+                $entityData[$entity1]['terms'],
                 $coupling->getEntity1Terms()
             ));
             
-            $entities[$entity2]['terms'] = array_unique(array_merge(
-                $entities[$entity2]['terms'],
+            $entityData[$entity2]['terms'] = array_unique(array_merge(
+                $entityData[$entity2]['terms'],
                 $coupling->getEntity2Terms()
             ));
             
-            // Use max coupling score as entity score
-            $entities[$entity1]['score'] = max($entities[$entity1]['score'], $coupling->getScore());
-            $entities[$entity2]['score'] = max($entities[$entity2]['score'], $coupling->getScore());
+            $entityData[$entity1]['score'] = max($entityData[$entity1]['score'], $coupling->getScore());
+            $entityData[$entity2]['score'] = max($entityData[$entity2]['score'], $coupling->getScore());
         }
         
-        return array_values($entities);
+        // Insert each entity into the tree
+        foreach ($entityData as $path => $data) {
+            $this->insertIntoTree($tree, $path, $data['terms'], $data['score']);
+        }
+        
+        // Calculate sizes for directories
+        $this->calculateDirectorySizes($tree);
+        
+        // Aggregate terms to root
+        $this->aggregateTermsToRoot($tree);
+        
+        return $tree;
     }
 
     /**
-     * Calculate treemap layout using TreemapMath.
+     * Insert a file path into the tree structure.
      */
-    private function calculateTreemapLayout(array $entityData): array
+    private function insertIntoTree(array &$node, string $path, array $terms, float $score): void
     {
-        // Convert to format expected by TreemapMath
-        $items = [];
-        foreach ($entityData as $entity) {
-            $items[] = [
-                'class' => $entity['name'],
-                'score' => $entity['score'],
-                'churn' => $entity['score'], // Use score as churn for size calculation
-                'terms' => $entity['terms']
-            ];
-        }
+        $parts = explode('/', trim($path, '/'));
+        $current = &$node;
         
-        [$minScore, $maxScore] = $this->treemapMath->findScoreRange($items);
-        
-        return $this->treemapMath->calculateTreemapLayout(
-            items: $items,
-            x: 0,
-            y: 0,
-            width: self::SVG_WIDTH,
-            height: self::SVG_HEIGHT,
-            vertical: true,
-            padding: self::PADDING
-        );
-    }
-
-    /**
-     * Generate SVG treemap.
-     */
-    private function generateSvgTreemap(array $rects, array $entityData): string
-    {
-        $svgRects = [];
-        
-        foreach ($rects as $rect) {
-            $entityName = $rect['class'];
-            $entity = $this->findEntityByName($entityName, $entityData);
+        for ($i = 0; $i < count($parts); $i++) {
+            $part = $parts[$i];
+            $isLast = ($i === count($parts) - 1);
             
-            if ($entity === null) {
-                continue;
+            // Find or create child node
+            $found = false;
+            foreach ($current['children'] as &$child) {
+                if ($child['name'] === $part) {
+                    $current = &$child;
+                    $found = true;
+                    break;
+                }
             }
             
-            $svgRects[] = $this->renderSvgRect($rect, $entity);
-        }
-        
-        return implode("\n", $svgRects);
-    }
-
-    /**
-     * Find entity by name in entity data.
-     */
-    private function findEntityByName(string $name, array $entityData): ?array
-    {
-        foreach ($entityData as $entity) {
-            if ($entity['name'] === $name) {
-                return $entity;
+            if (!$found) {
+                $newNode = [
+                    'name' => $part,
+                    'path' => implode('/', array_slice($parts, 0, $i + 1)),
+                    'type' => $isLast ? 'file' : 'directory',
+                    'children' => [],
+                    'terms' => [],
+                    'score' => $isLast ? $score : 0,
+                    'size' => $isLast ? 1 : 0
+                ];
+                $current['children'][] = $newNode;
+                $current = &$current['children'][count($current['children']) - 1];
+            }
+            
+            // Always merge terms up the tree (for both files and directories)
+            if (!empty($terms)) {
+                $current['terms'] = array_unique(array_merge($current['terms'], $terms));
+            }
+            
+            // Update score to max score of any child
+            if (!$isLast && $score > $current['score']) {
+                $current['score'] = $score;
             }
         }
-        return null;
     }
 
     /**
-     * Render a single SVG rectangle.
+     * Calculate sizes for directories (sum of children).
      */
-    private function renderSvgRect(array $rect, array $entity): string
+    private function calculateDirectorySizes(array &$node): int
     {
-        $x = $rect['x'] + self::PADDING;
-        $y = $rect['y'] + self::PADDING;
-        $width = max(self::RECT_MIN_SIZE, $rect['width'] - self::PADDING * 2);
-        $height = max(self::RECT_MIN_SIZE, $rect['height'] - self::PADDING * 2);
+        if ($node['type'] === 'file') {
+            return $node['size'];
+        }
         
-        $entityName = htmlspecialchars($rect['class']);
-        $termsJson = htmlspecialchars(json_encode($entity['terms']));
-        $textX = $x + 4;
-        $textY = $y + 16;
-        $label = htmlspecialchars(mb_strimwidth($entityName, 0, 30, '…'));
+        $totalSize = 0;
+        foreach ($node['children'] as &$child) {
+            $totalSize += $this->calculateDirectorySizes($child);
+        }
         
-        return sprintf(
-            '<g class="treemap-rect" data-entity="%s" data-terms=\'%s\'>' .
-            '<rect x="%.2f" y="%.2f" width="%.2f" height="%.2f" fill="#e0e0e0" stroke="#333" stroke-width="1"/>' .
-            '<title>%s&#10;Terms: %s</title>' .
-            '<text x="%.2f" y="%.2f" font-size="12" fill="#000">%s</text>' .
-            '</g>',
-            $entityName,
-            $termsJson,
-            $x,
-            $y,
-            $width,
-            $height,
-            $entityName,
-            implode(', ', $entity['terms']),
-            $textX,
-            $textY,
-            $label
-        );
+        $node['size'] = max(1, $totalSize);
+        return $node['size'];
     }
 
     /**
-     * Wrap SVG in interactive HTML.
+     * Aggregate all terms up to root level.
      */
-    private function wrapInHtml(string $svg, array $allTerms, string $granularity, array $entityData): string
+    private function aggregateTermsToRoot(array &$node): array
+    {
+        $allTerms = [];
+        
+        if ($node['type'] === 'file') {
+            return $node['terms'];
+        }
+        
+        foreach ($node['children'] as &$child) {
+            $childTerms = $this->aggregateTermsToRoot($child);
+            $allTerms = array_merge($allTerms, $childTerms);
+        }
+        
+        $allTerms = array_unique($allTerms);
+        $node['terms'] = array_merge($node['terms'], $allTerms);
+        $node['terms'] = array_unique($node['terms']);
+        
+        return $node['terms'];
+    }
+
+    /**
+     * Wrap in interactive HTML.
+     */
+    private function wrapInHtml(array $allTerms, string $granularity, array $tree): string
     {
         $termsJson = json_encode($allTerms, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
-        $entityDataJson = json_encode($entityData, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
-        $totalEntities = count($entityData);
+        $treeJson = json_encode($tree, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
         $totalTerms = count($allTerms);
         $svgWidth = self::SVG_WIDTH;
         $svgHeight = self::SVG_HEIGHT;
@@ -243,8 +232,9 @@ class InteractiveTreemapReport extends AbstractReport
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Semantic Coupling Interactive Treemap</title>
     <style>
+        * { box-sizing: border-box; }
         body { 
-            font-family: Arial, sans-serif; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0; 
             padding: 20px; 
             background-color: #f5f5f5;
@@ -263,20 +253,45 @@ class InteractiveTreemapReport extends AbstractReport
             margin-bottom: 20px; 
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+        .breadcrumb-item {
+            color: #007bff;
+            cursor: pointer;
+            text-decoration: none;
+            padding: 4px 8px;
+            border-radius: 3px;
+        }
+        .breadcrumb-item:hover {
+            background: #e9ecef;
+        }
+        .breadcrumb-separator {
+            color: #6c757d;
+        }
         .term-selector { 
             display: flex; 
             flex-wrap: wrap; 
             gap: 10px; 
             margin-bottom: 15px;
+            max-height: 200px;
+            overflow-y: auto;
         }
         .term-checkbox { 
             display: flex; 
             align-items: center; 
             background: #f0f0f0; 
-            padding: 8px 12px; 
+            padding: 6px 12px; 
             border-radius: 20px; 
             cursor: pointer; 
             transition: all 0.2s;
+            font-size: 13px;
         }
         .term-checkbox:hover { 
             background: #e0e0e0; 
@@ -286,18 +301,20 @@ class InteractiveTreemapReport extends AbstractReport
             color: white; 
         }
         .term-checkbox input { 
-            margin-right: 8px; 
+            margin-right: 6px; 
         }
         .legend { 
             display: flex; 
             align-items: center; 
             gap: 20px; 
             margin-top: 15px;
+            flex-wrap: wrap;
         }
         .legend-item { 
             display: flex; 
             align-items: center; 
             gap: 8px;
+            font-size: 13px;
         }
         .legend-color { 
             width: 20px; 
@@ -309,20 +326,37 @@ class InteractiveTreemapReport extends AbstractReport
             padding: 20px; 
             border-radius: 8px; 
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            overflow: auto;
+            overflow: hidden;
         }
-        .treemap-rect { 
-            cursor: pointer; 
-            transition: all 0.2s;
+        .treemap-rect {
+            cursor: pointer;
+            transition: opacity 0.2s;
         }
-        .treemap-rect:hover { 
-            stroke: #000 !important; 
-            stroke-width: 3 !important; 
+        .treemap-rect:hover {
+            opacity: 0.8;
+        }
+        .treemap-rect.directory {
+            stroke: #333;
+            stroke-width: 2;
+        }
+        .treemap-rect.file {
+            stroke: #666;
+            stroke-width: 1;
+        }
+        .treemap-text {
+            pointer-events: none;
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            font-weight: normal;
+            fill: #333;
         }
         .stats { 
             margin-top: 15px; 
             font-size: 14px; 
             color: #666;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 4px;
         }
         .clear-selection { 
             background: #dc3545; 
@@ -332,6 +366,7 @@ class InteractiveTreemapReport extends AbstractReport
             border-radius: 4px; 
             cursor: pointer; 
             margin-left: 10px;
+            font-size: 14px;
         }
         .clear-selection:hover { 
             background: #c82333; 
@@ -341,7 +376,17 @@ class InteractiveTreemapReport extends AbstractReport
 <body>
     <div class="header">
         <h1>Semantic Coupling Interactive Treemap</h1>
-        <p><strong>Granularity:</strong> {$granularity} | <strong>Total Entities:</strong> {$totalEntities} | <strong>Total Terms:</strong> {$totalTerms}</p>
+        <p><strong>Granularity:</strong> {$granularity} | <strong>Total Terms:</strong> {$totalTerms}</p>
+        <div id="levelInfo" style="margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 4px; font-size: 14px;">
+            <strong>Current Level:</strong> <span id="currentPath">Root</span> | 
+            <strong>Items:</strong> <span id="itemCount">0</span> | 
+            <strong>Terms in this level:</strong> <span id="termCount">0</span>
+        </div>
+        <p style="color: #666; font-size: 14px; margin-top: 10px;">
+            📁 <strong>Folders</strong> have thick borders (click to zoom in) | 
+            📄 <strong>Files</strong> have thin borders | 
+            Use breadcrumb navigation to go back
+        </p>
     </div>
 
     <div class="controls">
@@ -353,12 +398,16 @@ class InteractiveTreemapReport extends AbstractReport
         
         <div class="legend">
             <div class="legend-item">
-                <div class="legend-color" style="background: linear-gradient(90deg, #ff0000, #ff6666);"></div>
+                <div class="legend-color" style="background: #ff4444;"></div>
                 <span>High term sharing (red)</span>
             </div>
             <div class="legend-item">
-                <div class="legend-color" style="background: linear-gradient(90deg, #6666ff, #0000ff);"></div>
-                <span>Low term sharing (blue)</span>
+                <div class="legend-color" style="background: #ffaa44;"></div>
+                <span>Medium term sharing (orange)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #4444ff;"></div>
+                <span>Low/No term sharing (blue)</span>
             </div>
             <div class="legend-item">
                 <div class="legend-color" style="background: #e0e0e0;"></div>
@@ -371,27 +420,21 @@ class InteractiveTreemapReport extends AbstractReport
         </div>
     </div>
 
+    <div class="breadcrumb" id="breadcrumb">
+        <span class="breadcrumb-item" onclick="navigateToRoot()">🏠 Root</span>
+    </div>
+
     <div class="treemap-container">
-        <svg width="{$svgWidth}" height="{$svgHeight}" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-                <linearGradient id="redGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" style="stop-color:#ff0000;stop-opacity:1" />
-                    <stop offset="100%" style="stop-color:#ff6666;stop-opacity:1" />
-                </linearGradient>
-                <linearGradient id="blueGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" style="stop-color:#6666ff;stop-opacity:1" />
-                    <stop offset="100%" style="stop-color:#0000ff;stop-opacity:1" />
-                </linearGradient>
-            </defs>
-            <rect x="0" y="0" width="{$svgWidth}" height="{$svgHeight}" fill="#f8f9fa"/>
-            {$svg}
+        <svg width="{$svgWidth}" height="{$svgHeight}" xmlns="http://www.w3.org/2000/svg" id="treemap">
         </svg>
     </div>
 
     <script>
         const allTerms = {$termsJson};
-        const entityData = {$entityDataJson};
+        const rootTree = {$treeJson};
         let selectedTerms = new Set();
+        let currentNode = rootTree;
+        let breadcrumbPath = [];
 
         // Initialize term selector
         function initializeTermSelector() {
@@ -419,7 +462,7 @@ class InteractiveTreemapReport extends AbstractReport
                 container.classList.remove('selected');
             }
             
-            updateTreemap();
+            renderTreemap();
             updateStats();
         }
 
@@ -430,40 +473,298 @@ class InteractiveTreemapReport extends AbstractReport
                 checkbox.checked = false;
                 checkbox.closest('.term-checkbox').classList.remove('selected');
             });
-            updateTreemap();
+            renderTreemap();
             updateStats();
         }
 
-        // Update treemap colors based on selected terms
-        function updateTreemap() {
-            const rects = document.querySelectorAll('.treemap-rect');
+        // Calculate color based on term sharing
+        function calculateColor(terms) {
+            if (selectedTerms.size === 0) {
+                return '#f5f5f5'; // Light gray when no selection
+            }
+            
+            const sharedTerms = terms.filter(term => selectedTerms.has(term));
+            const sharingRatio = sharedTerms.length / selectedTerms.size;
+            
+            if (sharingRatio > 0.5) {
+                // High sharing - very light red
+                return '#ffe6e6';
+            } else if (sharingRatio > 0.2) {
+                // Medium sharing - very light orange
+                return '#fff2e6';
+            } else if (sharingRatio > 0) {
+                // Low sharing - very light blue
+                return '#e6f2ff';
+            } else {
+                // No sharing - very light blue
+                return '#f0f8ff';
+            }
+        }
+
+        // Proper squarify treemap algorithm
+        function squarify(children, x, y, width, height) {
+            if (children.length === 0) return [];
+            if (children.length === 1) {
+                return [{
+                    ...children[0],
+                    x: x,
+                    y: y,
+                    width: width,
+                    height: height
+                }];
+            }
+            
+            const totalSize = children.reduce((sum, child) => sum + child.size, 0);
+            if (totalSize === 0) return [];
+            
+            // Sort by size descending for better aspect ratios
+            const sorted = [...children].sort((a, b) => b.size - a.size);
+            
+            return squarifyHelper(sorted, [], x, y, width, height, totalSize);
+        }
+        
+        function squarifyHelper(children, row, x, y, width, height, total) {
+            if (children.length === 0) {
+                return layoutRow(row, x, y, width, height, total);
+            }
+            
+            const child = children[0];
+            const newRow = [...row, child];
+            
+            if (row.length === 0 || improveAspectRatio(row, child, width, height, total)) {
+                // Add to current row
+                return squarifyHelper(children.slice(1), newRow, x, y, width, height, total);
+            } else {
+                // Layout current row and start new one
+                const rowRects = layoutRow(row, x, y, width, height, total);
+                const rowSize = row.reduce((sum, r) => sum + r.size, 0);
+                
+                if (width >= height) {
+                    // Rows are vertical, next row shifts right
+                    const rowWidth = (rowSize / total) * width;
+                    return rowRects.concat(
+                        squarifyHelper(children, [], x + rowWidth, y, width - rowWidth, height, total - rowSize)
+                    );
+                } else {
+                    // Rows are horizontal, next row shifts down
+                    const rowHeight = (rowSize / total) * height;
+                    return rowRects.concat(
+                        squarifyHelper(children, [], x, y + rowHeight, width, height - rowHeight, total - rowSize)
+                    );
+                }
+            }
+        }
+        
+        function improveAspectRatio(row, child, width, height, total) {
+            if (row.length === 0) return true;
+            
+            const rowSize = row.reduce((sum, r) => sum + r.size, 0);
+            const newRowSize = rowSize + child.size;
+            
+            const currentWorst = worstAspectRatio(row, rowSize, width, height, total);
+            const newWorst = worstAspectRatio([...row, child], newRowSize, width, height, total);
+            
+            return newWorst <= currentWorst;
+        }
+        
+        function worstAspectRatio(row, rowSize, width, height, total) {
+            if (rowSize === 0) return Infinity;
+            
+            const isVertical = width >= height;
+            const length = isVertical ? height : width;
+            const thickness = (rowSize / total) * (isVertical ? width : height);
+            
+            if (thickness === 0) return Infinity;
+            
+            let worst = 0;
+            row.forEach(child => {
+                const size = (child.size / rowSize) * length;
+                const ratio = Math.max(thickness / size, size / thickness);
+                worst = Math.max(worst, ratio);
+            });
+            
+            return worst;
+        }
+        
+        function layoutRow(row, x, y, width, height, total) {
+            const rowSize = row.reduce((sum, r) => sum + r.size, 0);
+            if (rowSize === 0) return [];
+            
+            const isVertical = width >= height;
+            const rects = [];
+            
+            if (isVertical) {
+                // Vertical row (stacked vertically, extends horizontally)
+                const rowWidth = (rowSize / total) * width;
+                let currentY = y;
+                
+                row.forEach(child => {
+                    const rectHeight = (child.size / rowSize) * height;
+                    rects.push({
+                        ...child,
+                        x: x,
+                        y: currentY,
+                        width: Math.max(1, rowWidth),
+                        height: Math.max(1, rectHeight)
+                    });
+                    currentY += rectHeight;
+                });
+            } else {
+                // Horizontal row (stacked horizontally, extends vertically)
+                const rowHeight = (rowSize / total) * height;
+                let currentX = x;
+                
+                row.forEach(child => {
+                    const rectWidth = (child.size / rowSize) * width;
+                    rects.push({
+                        ...child,
+                        x: currentX,
+                        y: y,
+                        width: Math.max(1, rectWidth),
+                        height: Math.max(1, rowHeight)
+                    });
+                    currentX += rectWidth;
+                });
+            }
+            
+            return rects;
+        }
+
+        // Update level information
+        function updateLevelInfo() {
+            const pathElement = document.getElementById('currentPath');
+            const itemCountElement = document.getElementById('itemCount');
+            const termCountElement = document.getElementById('termCount');
+            
+            pathElement.textContent = currentNode.path || 'Root';
+            itemCountElement.textContent = currentNode.children.length;
+            termCountElement.textContent = currentNode.terms.length;
+        }
+
+        // Render treemap
+        function renderTreemap() {
+            const svg = document.getElementById('treemap');
+            svg.innerHTML = '';
+            
+            updateLevelInfo();
+            
+            const padding = 2;
+            const rects = squarify(currentNode.children, 0, 0, {$svgWidth}, {$svgHeight});
             
             rects.forEach(rect => {
-                const entityName = rect.dataset.entity;
-                const entityTerms = JSON.parse(rect.dataset.terms);
-                const rectElement = rect.querySelector('rect');
+                if (rect.width < 1 || rect.height < 1) return;
                 
-                if (selectedTerms.size === 0) {
-                    // No selection - gray
-                    rectElement.setAttribute('fill', '#e0e0e0');
+                const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                g.setAttribute('class', 'treemap-rect ' + rect.type);
+                
+                // Apply padding
+                const paddedX = rect.x + padding;
+                const paddedY = rect.y + padding;
+                const paddedWidth = Math.max(1, rect.width - padding * 2);
+                const paddedHeight = Math.max(1, rect.height - padding * 2);
+                
+                const rectEl = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                rectEl.setAttribute('x', paddedX);
+                rectEl.setAttribute('y', paddedY);
+                rectEl.setAttribute('width', paddedWidth);
+                rectEl.setAttribute('height', paddedHeight);
+                rectEl.setAttribute('fill', calculateColor(rect.terms));
+                rectEl.setAttribute('rx', '3');  // Rounded corners
+                
+                // Different styling for directories vs files
+                if (rect.type === 'directory') {
+                    rectEl.setAttribute('stroke', '#333');
+                    rectEl.setAttribute('stroke-width', '3');
+                    rectEl.style.cursor = 'pointer';
+                    g.onclick = () => navigateToNode(rect);
                 } else {
-                    // Calculate term sharing ratio
-                    const sharedTerms = entityTerms.filter(term => selectedTerms.has(term));
-                    const sharingRatio = sharedTerms.length / selectedTerms.size;
+                    rectEl.setAttribute('stroke', '#666');
+                    rectEl.setAttribute('stroke-width', '1');
+                }
+                
+                g.appendChild(rectEl);
+                
+                // Add title
+                const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+                title.textContent = rect.name + (rect.type === 'directory' ? ' 📁 (click to open)' : ' 📄') + 
+                    '\\nTerms: ' + rect.terms.length + 
+                    '\\nSize: ' + rect.size +
+                    (rect.type === 'directory' ? '\\nChildren: ' + rect.children.length : '');
+                g.appendChild(title);
+                
+                // Add text label if there's enough space
+                if (paddedWidth > 50 && paddedHeight > 25) {
+                    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    text.setAttribute('class', 'treemap-text');
+                    text.setAttribute('x', paddedX + 5);
+                    text.setAttribute('y', paddedY + 18);
+                    text.setAttribute('font-weight', rect.type === 'directory' ? 'normal' : 'normal');
                     
-                    if (sharingRatio > 0.5) {
-                        // High sharing - red gradient
-                        rectElement.setAttribute('fill', 'url(#redGradient)');
-                    } else if (sharingRatio > 0) {
-                        // Medium sharing - mix of red and blue
-                        const redIntensity = Math.floor(sharingRatio * 255);
-                        const blueIntensity = 255 - redIntensity;
-                        rectElement.setAttribute('fill', 'rgb(' + redIntensity + ', 0, ' + blueIntensity + ')');
-                    } else {
-                        // Low sharing - blue gradient
-                        rectElement.setAttribute('fill', 'url(#blueGradient)');
+                    // Add folder icon for directories
+                    const displayName = (rect.type === 'directory' ? '📁 ' : '') + 
+                        (rect.name.length > 25 ? rect.name.substring(0, 25) + '...' : rect.name);
+                    text.textContent = displayName;
+                    g.appendChild(text);
+                    
+                    // Add size info on second line if there's space
+                    if (paddedHeight > 40) {
+                        const sizeText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                        sizeText.setAttribute('class', 'treemap-text');
+                        sizeText.setAttribute('x', paddedX + 5);
+                        sizeText.setAttribute('y', paddedY + 33);
+                        sizeText.setAttribute('font-size', '10');
+                        sizeText.setAttribute('fill', '#666');
+                        sizeText.textContent = rect.type === 'directory' ? 
+                            rect.children.length + ' items' : 
+                            rect.terms.length + ' terms';
+                        g.appendChild(sizeText);
                     }
                 }
+                
+                svg.appendChild(g);
+            });
+        }
+
+        // Navigate to a node
+        function navigateToNode(node) {
+            if (node.type !== 'directory') return;
+            
+            currentNode = node;
+            breadcrumbPath.push(node);
+            updateBreadcrumb();
+            renderTreemap();
+        }
+
+        // Navigate to root
+        function navigateToRoot() {
+            currentNode = rootTree;
+            breadcrumbPath = [];
+            updateBreadcrumb();
+            renderTreemap();
+        }
+
+        // Navigate to specific breadcrumb level
+        function navigateToBreadcrumb(index) {
+            if (index === -1) {
+                navigateToRoot();
+                return;
+            }
+            
+            currentNode = breadcrumbPath[index];
+            breadcrumbPath = breadcrumbPath.slice(0, index + 1);
+            updateBreadcrumb();
+            renderTreemap();
+        }
+
+        // Update breadcrumb
+        function updateBreadcrumb() {
+            const breadcrumb = document.getElementById('breadcrumb');
+            breadcrumb.innerHTML = '<span class="breadcrumb-item" onclick="navigateToRoot()">🏠 Root</span>';
+            
+            breadcrumbPath.forEach((node, index) => {
+                breadcrumb.innerHTML += '<span class="breadcrumb-separator">/</span>';
+                breadcrumb.innerHTML += '<span class="breadcrumb-item" onclick="navigateToBreadcrumb(' + index + ')">' + 
+                    node.name + '</span>';
             });
         }
 
@@ -472,7 +773,9 @@ class InteractiveTreemapReport extends AbstractReport
             const statsElement = document.getElementById('stats');
             
             if (selectedTerms.size === 0) {
-                statsElement.textContent = 'No terms selected';
+                statsElement.innerHTML = 'No terms selected. Select terms above to highlight areas with shared terminology.<br>' +
+                    '<strong>Current level has ' + currentNode.children.length + ' items with ' + 
+                    currentNode.terms.length + ' unique terms.</strong>';
                 return;
             }
             
@@ -480,29 +783,32 @@ class InteractiveTreemapReport extends AbstractReport
             let mediumSharing = 0;
             let lowSharing = 0;
             
-            entityData.forEach(entity => {
-                const sharedTerms = entity.terms.filter(term => selectedTerms.has(term));
+            // Count only items at current level
+            currentNode.children.forEach(child => {
+                const sharedTerms = child.terms.filter(term => selectedTerms.has(term));
                 const sharingRatio = sharedTerms.length / selectedTerms.size;
                 
                 if (sharingRatio > 0.5) {
                     highSharing++;
-                } else if (sharingRatio > 0) {
+                } else if (sharingRatio > 0.2) {
                     mediumSharing++;
-                } else {
+                } else if (sharingRatio > 0) {
                     lowSharing++;
                 }
             });
             
             statsElement.innerHTML = 
                 '<strong>Selected Terms:</strong> ' + Array.from(selectedTerms).join(', ') + '<br>' +
-                '<strong>High Sharing (red):</strong> ' + highSharing + ' entities | ' +
-                '<strong>Medium Sharing:</strong> ' + mediumSharing + ' entities | ' +
-                '<strong>Low Sharing (blue):</strong> ' + lowSharing + ' entities';
+                '<strong>At current level:</strong> ' +
+                '<strong>High Sharing (red):</strong> ' + highSharing + ' items | ' +
+                '<strong>Medium Sharing (orange):</strong> ' + mediumSharing + ' items | ' +
+                '<strong>Low Sharing (blue):</strong> ' + lowSharing + ' items';
         }
 
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', function() {
             initializeTermSelector();
+            renderTreemap();
             updateStats();
         });
     </script>
