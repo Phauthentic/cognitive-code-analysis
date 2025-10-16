@@ -92,7 +92,7 @@ class SemanticAnalysisCommand extends Command
                 name: self::OPTION_REPORT_TYPE,
                 shortcut: 'r',
                 mode: InputOption::VALUE_REQUIRED,
-                description: 'Type of report to generate (json, csv, html, html-heatmap, interactive-treemap)',
+                description: 'Type of report to generate (json, csv, html, html-heatmap, interactive-treemap, interactive-tree)',
             )
             ->addOption(
                 name: self::OPTION_REPORT_FILE,

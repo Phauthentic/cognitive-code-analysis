@@ -20,6 +20,7 @@ class SemanticCouplingReportFactory implements SemanticCouplingReportFactoryInte
         'html' => HtmlReport::class,
         'html-heatmap' => HtmlHeatmapReport::class,
         'interactive-treemap' => InteractiveTreemapReport::class,
+        'interactive-tree' => InteractiveTreeReport::class,
     ];
 
     public function __construct(
