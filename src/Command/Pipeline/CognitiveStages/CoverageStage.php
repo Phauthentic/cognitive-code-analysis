@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\Stages;
+namespace Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\CognitiveStages;
 
 use Phauthentic\CognitiveCodeAnalysis\Business\CodeCoverage\CodeCoverageFactory;
 use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\ExecutionContext;
@@ -73,6 +73,12 @@ class CoverageStage extends PipelineStage
         }
 
         return null;
+    }
+
+    public function shouldSkip(ExecutionContext $context): bool
+    {
+        $commandContext = $context->getCommandContext();
+        return $commandContext->getCoverageFile() === null;
     }
 
     public function getStageName(): string

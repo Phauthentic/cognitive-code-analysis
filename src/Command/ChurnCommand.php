@@ -4,18 +4,9 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Command;
 
-use Exception;
-use Phauthentic\CognitiveCodeAnalysis\Business\CodeCoverage\CloverReader;
-use Phauthentic\CognitiveCodeAnalysis\Business\CodeCoverage\CoberturaReader;
-use Phauthentic\CognitiveCodeAnalysis\Business\CodeCoverage\CoverageReportReaderInterface;
-use Phauthentic\CognitiveCodeAnalysis\Business\MetricsFacade;
-use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
-use Phauthentic\CognitiveCodeAnalysis\Command\Handler\ChurnReportHandler;
-use Phauthentic\CognitiveCodeAnalysis\Command\Presentation\ChurnTextRenderer;
+use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\ChurnExecutionContext;
+use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\ChurnPipelineFactory;
 use Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications\ChurnCommandContext;
-use Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications\CompositeChurnSpecification;
-use Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications\ChurnValidationSpecificationFactory;
-use Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications\CustomExporter;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -38,19 +29,10 @@ class ChurnCommand extends Command
     public const OPTION_COVERAGE_COBERTURA = 'coverage-cobertura';
     public const OPTION_COVERAGE_CLOVER = 'coverage-clover';
 
-    private CompositeChurnSpecification $validationSpecification;
-
-    /**
-     * Constructor to initialize dependencies.
-     */
     public function __construct(
-        readonly private MetricsFacade $metricsFacade,
-        readonly private ChurnTextRenderer $renderer,
-        readonly private ChurnReportHandler $report,
-        readonly private ChurnValidationSpecificationFactory $validationSpecificationFactory
+        readonly private ChurnPipelineFactory $pipelineFactory
     ) {
         parent::__construct();
-        $this->validationSpecification = $this->validationSpecificationFactory->create();
     }
 
 
@@ -118,151 +100,60 @@ class ChurnCommand extends Command
     /**
      * Executes the command.
      *
-     * @SuppressWarnings("UnusedFormalParameter")
      * @param InputInterface $input
      * @param OutputInterface $output
      * @return int Command status code.
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $context = new ChurnCommandContext($input);
+        $commandContext = new ChurnCommandContext($input);
+        $executionContext = new ChurnExecutionContext($commandContext, $output);
 
-        // Validate all specifications (except custom exporters which need config)
-        if (!$this->validationSpecification->isSatisfiedBy($context)) {
-            $errorMessage = $this->validationSpecification->getDetailedErrorMessage($context);
-            $output->writeln('<error>' . $errorMessage . '</error>');
-            return self::FAILURE;
+        // Build pipeline with stages
+        $pipeline = $this->pipelineFactory->createPipeline();
+
+        // Execute pipeline
+        $result = $pipeline->execute($executionContext);
+
+        // Output execution summary if debug mode
+        if ($input->getOption(self::OPTION_DEBUG)) {
+            $this->outputExecutionSummary($executionContext, $output);
         }
 
-        // Load configuration if provided
-        if ($context->hasConfigFile()) {
-            $configFile = $context->getConfigFile();
-            if ($configFile !== null && !$this->loadConfiguration($configFile, $output)) {
-                return self::FAILURE;
-            }
+        // Display error message if pipeline failed
+        if ($result->isFailure()) {
+            $output->writeln('<error>' . $result->getErrorMessage() . '</error>');
+            return Command::FAILURE;
         }
 
-        // Validate custom exporters after config is loaded
-        if ($context->hasReportOptions()) {
-            $customExporterValidation = new CustomExporter(
-                $this->report->getReportFactory(),
-                $this->report->getConfigService()
-            );
-            if (!$customExporterValidation->isSatisfiedBy($context)) {
-                $errorMessage = $customExporterValidation->getErrorMessageWithContext($context);
-                $output->writeln('<error>' . $errorMessage . '</error>');
-                return self::FAILURE;
-            }
-        }
-
-        // Load coverage reader
-        $coverageReader = $this->loadCoverageReader($context, $output);
-        if ($coverageReader === false) {
-            return self::FAILURE;
-        }
-
-        // Calculate churn metrics
-        $metrics = $this->metricsFacade->calculateChurn(
-            path: $context->getPath(),
-            vcsType: $context->getVcsType(),
-            since: $context->getSince(),
-            coverageReader: $coverageReader
-        );
-
-        // Handle report generation or display
-        if ($context->hasReportOptions()) {
-            return $this->report->exportToFile(
-                $metrics,
-                $context->getReportType(),
-                $context->getReportFile()
-            );
-        }
-
-        $this->renderer->renderChurnTable(metrics: $metrics);
-        return self::SUCCESS;
+        return Command::SUCCESS;
     }
 
     /**
-     * Load coverage reader from file
-     *
-     * @param ChurnCommandContext $context Command context containing coverage file information
-     * @param OutputInterface $output Output interface for error messages
-     * @return CoverageReportReaderInterface|null|false Returns reader instance, null if no file provided, or false on error
+     * Output execution summary with timing information.
      */
-    private function loadCoverageReader(
-        ChurnCommandContext $context,
-        OutputInterface $output
-    ): CoverageReportReaderInterface|null|false {
-        $coverageFile = $context->getCoverageFile();
-        $format = $context->getCoverageFormat();
-
-        if ($coverageFile === null) {
-            return null;
-        }
-
-        // Auto-detect format if not specified
-        if ($format === null) {
-            $format = $this->detectCoverageFormat($coverageFile);
-            if ($format === null) {
-                $output->writeln('<error>Unable to detect coverage file format. Please specify format explicitly.</error>');
-                return false;
-            }
-        }
-
-        try {
-            return match ($format) {
-                'cobertura' => new CoberturaReader($coverageFile),
-                'clover' => new CloverReader($coverageFile),
-                default => throw new CognitiveAnalysisException("Unsupported coverage format: {$format}"),
-            };
-        } catch (CognitiveAnalysisException $e) {
-            $output->writeln(sprintf(
-                '<error>Failed to load coverage file: %s</error>',
-                $e->getMessage()
-            ));
-            return false;
-        }
-    }
-
-    /**
-     * Detect coverage file format by examining the XML structure
-     */
-    private function detectCoverageFormat(string $coverageFile): ?string
+    private function outputExecutionSummary(ChurnExecutionContext $context, OutputInterface $output): void
     {
-        $content = file_get_contents($coverageFile);
-        if ($content === false) {
-            return null;
+        $timings = $context->getTimings();
+        $statistics = $context->getStatistics();
+
+        $output->writeln('<info>Execution Summary:</info>');
+        $output->writeln(sprintf('  Total execution time: %.3fs', $context->getTotalTime()));
+
+        if (!empty($timings)) {
+            $output->writeln('<info>Stage timings:</info>');
+            foreach ($timings as $stage => $duration) {
+                $output->writeln(sprintf('    %s: %.3fs', $stage, $duration));
+            }
         }
 
-        // Cobertura format has <coverage> root element with line-rate attribute
-        if (preg_match('/<coverage[^>]*line-rate=/', $content)) {
-            return 'cobertura';
+        if (empty($statistics)) {
+            return;
         }
 
-        // Clover format has <coverage> with generated attribute and <project> child
-        if (preg_match('/<coverage[^>]*generated=.*<project/', $content)) {
-            return 'clover';
-        }
-
-        return null;
-    }
-
-
-    /**
-     * Loads configuration and handles errors.
-     *
-     * @param string $configFile
-     * @param OutputInterface $output
-     * @return bool Success or failure.
-     */
-    private function loadConfiguration(string $configFile, OutputInterface $output): bool
-    {
-        try {
-            $this->metricsFacade->loadConfig($configFile);
-            return true;
-        } catch (Exception $e) {
-            $output->writeln('<error>Failed to load configuration: ' . $e->getMessage() . '</error>');
-            return false;
+        $output->writeln('<info>Statistics:</info>');
+        foreach ($statistics as $key => $value) {
+            $output->writeln(sprintf('    %s: %s', $key, $value));
         }
     }
 }

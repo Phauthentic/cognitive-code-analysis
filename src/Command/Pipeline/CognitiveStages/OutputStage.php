@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\Stages;
+namespace Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\CognitiveStages;
 
 use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\ExecutionContext;
 use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\PipelineStage;

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\Stages;
+namespace Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\CognitiveStages;
 
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsSorter;
 use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\ExecutionContext;
@@ -45,6 +45,11 @@ class SortingStage extends PipelineStage
                 "Sorting error: {$e->getMessage()}. Available sort fields: {$availableFields}"
             );
         }
+    }
+
+    public function shouldSkip(ExecutionContext $context): bool
+    {
+        return false; // Sorting should never be skipped
     }
 
     public function getStageName(): string

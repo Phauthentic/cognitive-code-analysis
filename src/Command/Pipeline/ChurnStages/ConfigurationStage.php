@@ -2,26 +2,25 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\Stages;
+namespace Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\ChurnStages;
 
 use Exception;
 use Phauthentic\CognitiveCodeAnalysis\Business\MetricsFacade;
-use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\ExecutionContext;
-use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\PipelineStage;
+use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\ChurnExecutionContext;
+use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\ChurnPipelineStage;
 use Phauthentic\CognitiveCodeAnalysis\Command\Result\OperationResult;
 
 /**
- * Pipeline stage for loading configuration files.
- * Encapsulates configuration loading logic and error handling.
+ * Pipeline stage for loading configuration files for churn analysis.
  */
-class ConfigurationStage extends PipelineStage
+class ConfigurationStage implements ChurnPipelineStage
 {
     public function __construct(
         private readonly MetricsFacade $metricsFacade
     ) {
     }
 
-    public function execute(ExecutionContext $context): OperationResult
+    public function execute(ChurnExecutionContext $context): OperationResult
     {
         $commandContext = $context->getCommandContext();
 
@@ -38,8 +37,15 @@ class ConfigurationStage extends PipelineStage
             $this->metricsFacade->loadConfig($configFile);
             return OperationResult::success();
         } catch (Exception $e) {
+            $context->getOutput()->writeln('<error>Failed to load configuration: ' . $e->getMessage() . '</error>');
             return OperationResult::failure('Failed to load configuration: ' . $e->getMessage());
         }
+    }
+
+    public function shouldSkip(ChurnExecutionContext $context): bool
+    {
+        $commandContext = $context->getCommandContext();
+        return !$commandContext->hasConfigFile();
     }
 
     public function getStageName(): string

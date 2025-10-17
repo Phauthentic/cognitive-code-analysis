@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\Stages;
+namespace Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\CognitiveStages;
 
 use Exception;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report\CognitiveReportFactoryInterface;

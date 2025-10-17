@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Command\Pipeline;
 
-use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\Stages\BaselineStage;
-use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\Stages\ConfigurationStage;
-use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\Stages\CoverageStage;
-use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\Stages\MetricsCollectionStage;
-use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\Stages\OutputStage;
-use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\Stages\ReportGenerationStage;
-use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\Stages\SortingStage;
-use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\Stages\ValidationStage;
+use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\CognitiveStages\BaselineStage;
+use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\CognitiveStages\ConfigurationStage;
+use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\CognitiveStages\CoverageStage;
+use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\CognitiveStages\MetricsCollectionStage;
+use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\CognitiveStages\OutputStage;
+use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\CognitiveStages\ReportGenerationStage;
+use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\CognitiveStages\SortingStage;
+use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\CognitiveStages\ValidationStage;
 
 /**
  * Factory for creating command pipelines with the correct stage order.

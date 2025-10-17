@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\Stages;
+namespace Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\CognitiveStages;
 
 use Phauthentic\CognitiveCodeAnalysis\Business\MetricsFacade;
 use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\ExecutionContext;
@@ -40,6 +40,11 @@ class MetricsCollectionStage extends PipelineStage
         $context->setStatistic('metricsCollected', count($metricsCollection));
 
         return OperationResult::success();
+    }
+
+    public function shouldSkip(ExecutionContext $context): bool
+    {
+        return false; // Metrics collection should never be skipped
     }
 
     public function getStageName(): string

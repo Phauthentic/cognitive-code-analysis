@@ -27,10 +27,7 @@ abstract class PipelineStage
      * @param ExecutionContext $context The execution context
      * @return bool True if the stage should be skipped
      */
-    public function shouldSkip(ExecutionContext $context): bool
-    {
-        return false;
-    }
+    abstract public function shouldSkip(ExecutionContext $context): bool;
 
     /**
      * Get the name of this stage for logging and timing purposes.
