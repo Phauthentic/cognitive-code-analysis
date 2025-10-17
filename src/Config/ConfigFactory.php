@@ -28,6 +28,13 @@ class ConfigFactory
                 );
         }
 
+        $performanceConfig = null;
+        if (isset($config['cognitive']['performance'])) {
+            $performanceConfig = new PerformanceConfig(
+                batchSize: $config['cognitive']['performance']['batchSize'] ?? 100
+            );
+        }
+
         return new CognitiveConfig(
             excludeFilePatterns: $config['cognitive']['excludeFilePatterns'],
             excludePatterns: $config['cognitive']['excludePatterns'],
@@ -39,6 +46,7 @@ class ConfigFactory
             groupByClass: $config['cognitive']['groupByClass'] ?? true,
             showDetailedCognitiveMetrics: $config['cognitive']['showDetailedCognitiveMetrics'] ?? true,
             cache: $cacheConfig,
+            performance: $performanceConfig,
             customReporters: $config['cognitive']['customReporters'] ?? []
         );
     }

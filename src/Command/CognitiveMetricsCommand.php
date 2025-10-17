@@ -4,17 +4,9 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Command;
 
-use Phauthentic\CognitiveCodeAnalysis\Business\MetricsFacade;
-use Phauthentic\CognitiveCodeAnalysis\Command\Handler\CognitiveAnalysis\BaselineHandler;
-use Phauthentic\CognitiveCodeAnalysis\Command\Handler\CognitiveAnalysis\ConfigurationLoadHandler;
-use Phauthentic\CognitiveCodeAnalysis\Command\Handler\CognitiveAnalysis\CoverageLoadHandler;
-use Phauthentic\CognitiveCodeAnalysis\Command\Handler\CognitiveAnalysis\SortingHandler;
-use Phauthentic\CognitiveCodeAnalysis\Command\Handler\CognitiveMetricsReportHandler;
-use Phauthentic\CognitiveCodeAnalysis\Command\Presentation\CognitiveMetricTextRendererInterface;
+use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\CommandPipelineFactory;
+use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\ExecutionContext;
 use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\CognitiveMetricsCommandContext;
-use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\CompositeCognitiveMetricsValidationSpecification;
-use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\CognitiveMetricsValidationSpecificationFactory;
-use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\CustomExporterValidation;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -43,20 +35,10 @@ class CognitiveMetricsCommand extends Command
     public const OPTION_COVERAGE_CLOVER = 'coverage-clover';
     private const ARGUMENT_PATH = 'path';
 
-    private CompositeCognitiveMetricsValidationSpecification $specification;
-
     public function __construct(
-        readonly private MetricsFacade $metricsFacade,
-        readonly private CognitiveMetricTextRendererInterface $renderer,
-        readonly private CognitiveMetricsReportHandler $reportHandler,
-        readonly private ConfigurationLoadHandler $configHandler,
-        readonly private CoverageLoadHandler $coverageHandler,
-        readonly private BaselineHandler $baselineHandler,
-        readonly private SortingHandler $sortingHandler,
-        readonly private CognitiveMetricsValidationSpecificationFactory $specificationFactory
+        readonly private CommandPipelineFactory $pipelineFactory
     ) {
         parent::__construct();
-        $this->specification = $this->specificationFactory->create();
     }
 
 
@@ -135,84 +117,54 @@ class CognitiveMetricsCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $context = new CognitiveMetricsCommandContext($input);
+        $commandContext = new CognitiveMetricsCommandContext($input);
+        $executionContext = new ExecutionContext($commandContext, $output);
 
-        // Validate all specifications
-        if (!$this->specification->isSatisfiedBy($context)) {
-            return $this->handleValidationError($context, $output);
+        // Build pipeline with stages
+        $pipeline = $this->pipelineFactory->createPipeline();
+
+        // Execute pipeline
+        $result = $pipeline->execute($executionContext);
+
+        // Output execution summary if debug mode
+        if ($input->getOption(self::OPTION_DEBUG)) {
+            $this->outputExecutionSummary($executionContext, $output);
         }
 
-        // Load configuration
-        $configResult = $this->configHandler->load($context);
-        if ($configResult->isFailure()) {
-            return $configResult->toCommandStatus($output);
+        // Display error message if pipeline failed
+        if ($result->isFailure()) {
+            $output->writeln('<error>' . $result->getErrorMessage() . '</error>');
+            return Command::FAILURE;
         }
-
-        // Validate custom exporters after config is loaded
-        if ($context->hasReportOptions()) {
-            $customExporterValidation = new CustomExporterValidation(
-                $this->reportHandler->getReportFactory(),
-                $this->reportHandler->getConfigService()
-            );
-
-            if (!$customExporterValidation->isSatisfiedBy($context)) {
-                return $this->handleValidationError($context, $output, $customExporterValidation);
-            }
-        }
-
-        // Load coverage reader
-        $coverageResult = $this->coverageHandler->load($context);
-        if ($coverageResult->isFailure()) {
-            return $coverageResult->toCommandStatus($output);
-        }
-
-        // Get metrics
-        $metricsCollection = $this->metricsFacade->getCognitiveMetricsFromPaths(
-            $context->getPaths(),
-            $coverageResult->getData()
-        );
-
-        // Apply baseline
-        $baselineResult = $this->baselineHandler->apply($context, $metricsCollection);
-        if ($baselineResult->isFailure()) {
-            return $baselineResult->toCommandStatus($output);
-        }
-
-        // Apply sorting
-        $sortResult = $this->sortingHandler->sort($context, $metricsCollection);
-        if ($sortResult->isFailure()) {
-            return $sortResult->toCommandStatus($output);
-        }
-
-        // Generate report or display results
-        if ($context->hasReportOptions()) {
-            return $this->reportHandler->handle(
-                $sortResult->getData(),
-                $context->getReportType(),
-                $context->getReportFile()
-            );
-        }
-
-        $this->renderer->render($sortResult->getData(), $output);
 
         return Command::SUCCESS;
     }
 
-
     /**
-     * Handle validation errors with consistent error output.
+     * Output execution summary with timing information.
      */
-    private function handleValidationError(
-        CognitiveMetricsCommandContext $context,
-        OutputInterface $output,
-        ?CustomExporterValidation $customExporterValidation = null
-    ): int {
-        $errorMessage = $customExporterValidation !== null
-            ? $customExporterValidation->getErrorMessageWithContext($context)
-            : $this->specification->getDetailedErrorMessage($context);
+    private function outputExecutionSummary(ExecutionContext $context, OutputInterface $output): void
+    {
+        $timings = $context->getTimings();
+        $statistics = $context->getStatistics();
 
-        $output->writeln('<error>' . $errorMessage . '</error>');
+        $output->writeln('<info>Execution Summary:</info>');
+        $output->writeln(sprintf('  Total execution time: %.3fs', $context->getTotalTime()));
 
-        return Command::FAILURE;
+        if (!empty($timings)) {
+            $output->writeln('<info>Stage timings:</info>');
+            foreach ($timings as $stage => $duration) {
+                $output->writeln(sprintf('    %s: %.3fs', $stage, $duration));
+            }
+        }
+
+        if (empty($statistics)) {
+            return;
+        }
+
+        $output->writeln('<info>Statistics:</info>');
+        foreach ($statistics as $key => $value) {
+            $output->writeln(sprintf('    %s: %s', $key, $value));
+        }
     }
 }

@@ -2,36 +2,34 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CognitiveCodeAnalysis\Command\Handler\CognitiveAnalysis;
+namespace Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\Stages;
 
 use Exception;
 use Phauthentic\CognitiveCodeAnalysis\Business\MetricsFacade;
-use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\CognitiveMetricsCommandContext;
+use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\ExecutionContext;
+use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\PipelineStage;
 use Phauthentic\CognitiveCodeAnalysis\Command\Result\OperationResult;
 
 /**
- * Handler for loading configuration files in cognitive metrics command.
+ * Pipeline stage for loading configuration files.
  * Encapsulates configuration loading logic and error handling.
  */
-class ConfigurationLoadHandler
+class ConfigurationStage extends PipelineStage
 {
     public function __construct(
         private readonly MetricsFacade $metricsFacade
     ) {
     }
 
-    /**
-     * Load configuration from the context.
-     * Returns success result if no config file is provided or loading succeeds.
-     * Returns failure result if loading fails.
-     */
-    public function load(CognitiveMetricsCommandContext $context): OperationResult
+    public function execute(ExecutionContext $context): OperationResult
     {
-        if (!$context->hasConfigFile()) {
+        $commandContext = $context->getCommandContext();
+
+        if (!$commandContext->hasConfigFile()) {
             return OperationResult::success();
         }
 
-        $configFile = $context->getConfigFile();
+        $configFile = $commandContext->getConfigFile();
         if ($configFile === null) {
             return OperationResult::success();
         }
@@ -42,5 +40,10 @@ class ConfigurationLoadHandler
         } catch (Exception $e) {
             return OperationResult::failure('Failed to load configuration: ' . $e->getMessage());
         }
+    }
+
+    public function getStageName(): string
+    {
+        return 'Configuration';
     }
 }

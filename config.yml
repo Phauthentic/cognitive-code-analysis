@@ -43,6 +43,8 @@ cognitive:
   cache:
     enabled: false
     directory: './.phpcca.cache'
+  performance:
+    batchSize: 100  # Files to process before flushing to report
   # Example of custom reporters:
   # customReporters:
   #   cognitive:
