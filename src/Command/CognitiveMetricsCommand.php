@@ -10,6 +10,7 @@ use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\Cog
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -26,6 +27,7 @@ class CognitiveMetricsCommand extends Command
 {
     public const OPTION_CONFIG_FILE = 'config';
     public const OPTION_BASELINE = 'baseline';
+    public const OPTION_GENERATE_BASELINE = 'generate-baseline';
     public const OPTION_REPORT_TYPE = 'report-type';
     public const OPTION_REPORT_FILE = 'report-file';
     public const OPTION_DEBUG = 'debug';
@@ -64,6 +66,12 @@ class CognitiveMetricsCommand extends Command
                 shortcut: 'b',
                 mode: InputArgument::OPTIONAL,
                 description: 'Baseline file to get the delta.',
+            )
+            ->addOption(
+                name: self::OPTION_GENERATE_BASELINE,
+                shortcut: 'g',
+                mode: InputOption::VALUE_NONE,
+                description: 'Generate a baseline file with the current analysis.',
             )
             ->addOption(
                 name: self::OPTION_REPORT_TYPE,

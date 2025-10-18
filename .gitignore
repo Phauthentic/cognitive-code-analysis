@@ -5,6 +5,7 @@
 /.phive/
 /.phpunit.cache/
 /.phpcca.cache/
+/.phpcca/
 /tmp/
 /tools/
 /benchmarks/storage/

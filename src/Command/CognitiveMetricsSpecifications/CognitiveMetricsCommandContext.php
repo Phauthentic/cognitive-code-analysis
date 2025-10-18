@@ -99,6 +99,39 @@ class CognitiveMetricsCommandContext
         return $this->getBaselineFile() !== null;
     }
 
+    public function getGenerateBaseline(): ?string
+    {
+        $value = $this->input->getOption('generate-baseline');
+
+        // For VALUE_NONE, true means option is present, false means not present
+        if ($value === true) {
+            return ''; // Auto-generate filename
+        }
+
+        return null; // Option not present
+    }
+
+    public function hasGenerateBaseline(): bool
+    {
+        $value = $this->input->getOption('generate-baseline');
+
+        // For VALUE_NONE, true means option is present, false means not present
+        return $value === true;
+    }
+
+    public function getBaselineOutputPath(): string
+    {
+        $filename = $this->getGenerateBaseline();
+
+        if (empty($filename)) {
+            // Generate timestamped filename
+            $timestamp = date('Y-m-d_H-i-s');
+            $filename = "./.phpcca/baseline/baseline-{$timestamp}.json";
+        }
+
+        return $filename;
+    }
+
     /**
      * @return array<string>
      */

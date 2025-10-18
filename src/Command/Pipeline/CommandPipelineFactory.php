@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phauthentic\CognitiveCodeAnalysis\Command\Pipeline;
 
 use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\CognitiveStages\BaselineStage;
+use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\CognitiveStages\BaselineGenerationStage;
 use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\CognitiveStages\ConfigurationStage;
 use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\CognitiveStages\CoverageStage;
 use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\CognitiveStages\MetricsCollectionStage;
@@ -25,6 +26,7 @@ class CommandPipelineFactory
         private readonly MetricsCollectionStage $metricsCollectionStage,
         private readonly BaselineStage $baselineStage,
         private readonly SortingStage $sortingStage,
+        private readonly BaselineGenerationStage $baselineGenerationStage,
         private readonly ReportGenerationStage $reportGenerationStage,
         private readonly OutputStage $outputStage
     ) {
@@ -42,6 +44,7 @@ class CommandPipelineFactory
             $this->metricsCollectionStage,
             $this->baselineStage,
             $this->sortingStage,
+            $this->baselineGenerationStage,
             $this->reportGenerationStage,
             $this->outputStage,
         ]);

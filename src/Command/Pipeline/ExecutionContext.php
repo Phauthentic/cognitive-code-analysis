@@ -19,6 +19,8 @@ class ExecutionContext
     private array $statistics = [];
     /** @var array<string, mixed> */
     private array $data = [];
+    /** @var array<string> */
+    private array $warnings = [];
 
     public function __construct(
         private readonly CognitiveMetricsCommandContext $commandContext,
@@ -132,5 +134,41 @@ class ExecutionContext
     public function getStatistics(): array
     {
         return $this->statistics;
+    }
+
+    /**
+     * Add a warning message.
+     */
+    public function addWarning(string $warning): void
+    {
+        $this->warnings[] = $warning;
+    }
+
+    /**
+     * Add multiple warning messages.
+     *
+     * @param array<string> $warnings
+     */
+    public function addWarnings(array $warnings): void
+    {
+        $this->warnings = array_merge($this->warnings, $warnings);
+    }
+
+    /**
+     * Get all warnings.
+     *
+     * @return array<string>
+     */
+    public function getWarnings(): array
+    {
+        return $this->warnings;
+    }
+
+    /**
+     * Check if there are any warnings.
+     */
+    public function hasWarnings(): bool
+    {
+        return !empty($this->warnings);
     }
 }

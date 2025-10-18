@@ -9,7 +9,7 @@ use Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChurnCalculator;
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report\ChurnReportFactory;
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report\ChurnReportFactoryInterface;
 use Phauthentic\CognitiveCodeAnalysis\Business\CodeCoverage\CodeCoverageFactory;
-use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Baseline;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Baseline\Baseline;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollector;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsSorter;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Events\FileProcessed;
@@ -40,6 +40,7 @@ use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\ChurnStages\OutputStage a
 use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\ChurnStages\ReportGenerationStage as ChurnReportGenerationStage;
 use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\ChurnStages\ValidationStage as ChurnValidationStage;
 use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\CognitiveStages\BaselineStage;
+use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\CognitiveStages\BaselineGenerationStage;
 use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\CognitiveStages\ConfigurationStage;
 use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\CognitiveStages\CoverageStage;
 use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\CognitiveStages\MetricsCollectionStage;
@@ -317,12 +318,19 @@ class Application
         $this->containerBuilder->register(BaselineStage::class, BaselineStage::class)
             ->setArguments([
                 new Reference(Baseline::class),
+                new Reference(ConfigService::class),
             ])
             ->setPublic(true);
 
         $this->containerBuilder->register(SortingStage::class, SortingStage::class)
             ->setArguments([
                 new Reference(CognitiveMetricsSorter::class),
+            ])
+            ->setPublic(true);
+
+        $this->containerBuilder->register(BaselineGenerationStage::class, BaselineGenerationStage::class)
+            ->setArguments([
+                new Reference(ConfigService::class),
             ])
             ->setPublic(true);
 
@@ -347,6 +355,7 @@ class Application
                 new Reference(MetricsCollectionStage::class),
                 new Reference(BaselineStage::class),
                 new Reference(SortingStage::class),
+                new Reference(BaselineGenerationStage::class),
                 new Reference(ReportGenerationStage::class),
                 new Reference(OutputStage::class),
             ])

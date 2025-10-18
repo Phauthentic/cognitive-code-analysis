@@ -28,6 +28,22 @@ class OutputStage extends PipelineStage
             return OperationResult::failure('Metrics collection not available for console output.');
         }
 
+        // Display warnings if any
+        if ($context->hasWarnings()) {
+            $output = $context->getOutput();
+            $output->writeln('');
+            foreach ($context->getWarnings() as $warning) {
+                $output->writeln('<comment>' . $warning . '</comment>');
+            }
+            $output->writeln('');
+        }
+
+        // Display baseline generation message if generated
+        $baselineGenerated = $context->getData('baselineGenerated');
+        if ($baselineGenerated !== null) {
+            $context->getOutput()->writeln('<info>Baseline file generated: ' . $baselineGenerated . '</info>');
+        }
+
         // Render to console
         $this->renderer->render($sortedMetricsCollection, $context->getOutput());
 
