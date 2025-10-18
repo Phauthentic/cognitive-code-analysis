@@ -52,7 +52,7 @@ class BaselineStage extends PipelineStage
             $result = $this->baselineService->loadBaselineWithValidation($baselineFile, $config);
 
             // Calculate deltas with the extracted metrics
-            $warnings = $this->baselineService->calculateDeltas(
+            $this->baselineService->calculateDeltas(
                 $metricsCollection,
                 $result['metrics']
             );

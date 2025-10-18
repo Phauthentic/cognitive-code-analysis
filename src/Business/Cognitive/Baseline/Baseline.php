@@ -14,15 +14,11 @@ class Baseline
     /**
      * @param CognitiveMetricsCollection $metricsCollection
      * @param array<string, array<string, mixed>> $baseline
-     * @param bool $validateConfigHash Whether to validate config hash and emit warnings
-     * @param CognitiveConfig|null $currentConfig Current configuration for hash validation
      * @return array<string> Array of warning messages
      */
     public function calculateDeltas(
         CognitiveMetricsCollection $metricsCollection,
-        array $baseline,
-        bool $validateConfigHash = false,
-        ?CognitiveConfig $currentConfig = null
+        array $baseline
     ): array {
         $warnings = [];
 
@@ -112,6 +108,7 @@ class Baseline
     /**
      * Find the latest baseline file in the default directory.
      *
+     * @SuppressWarnings("PHPMD.ShortVariable")
      * @param string $baselineDirectory
      * @return string|null Path to the latest baseline file, or null if none found
      */

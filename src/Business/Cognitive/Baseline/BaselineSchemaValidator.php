@@ -7,6 +7,8 @@ namespace Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Baseline;
 /**
  * JSON Schema validator for baseline files.
  * Validates baseline files against the defined schema structure.
+ *
+ * @SuppressWarnings("PHPMD")
  */
 class BaselineSchemaValidator
 {
