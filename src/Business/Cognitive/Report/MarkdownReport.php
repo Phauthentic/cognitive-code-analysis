@@ -15,11 +15,16 @@ use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
 /**
  * @SuppressWarnings("PHPMD.ExcessiveClassComplexity")
  */
-class MarkdownReport implements ReportGeneratorInterface
+class MarkdownReport implements ReportGeneratorInterface, StreamableReportInterface
 {
     use MarkdownFormatterTrait;
 
     private CognitiveConfig $config;
+    /** @var resource|false|null */
+    private $fileHandle = null;
+    private bool $isStreaming = false;
+    /** @var array<int|string> */
+    private array $processedClasses = [];
 
     public function __construct(CognitiveConfig $config)
     {
@@ -416,5 +421,107 @@ class MarkdownReport implements ReportGeneratorInterface
         }
 
         return $markdown;
+    }
+
+    /**
+     * @throws CognitiveAnalysisException
+     */
+    public function startReport(string $filename): void
+    {
+        $this->fileHandle = fopen($filename, 'wb');
+        if ($this->fileHandle === false) {
+            throw new CognitiveAnalysisException(sprintf('Could not open file %s for writing', $filename));
+        }
+
+        $this->isStreaming = true;
+        $this->processedClasses = [];
+
+        // Write initial header
+        $datetime = (new Datetime())->format('Y-m-d H:i:s');
+        $header = "# Cognitive Metrics Report\n\n";
+        $header .= "**Generated:** {$datetime}\n\n";
+
+        if ($this->config->showOnlyMethodsExceedingThreshold && $this->config->scoreThreshold > 0) {
+            $header .= "**Note:** Only showing methods exceeding threshold of " . $this->formatNumber($this->config->scoreThreshold) . "\n\n";
+        }
+
+        $header .= "---\n\n";
+
+        fwrite($this->fileHandle, $header);
+    }
+
+    /**
+     * @throws CognitiveAnalysisException
+     */
+    public function writeMetricBatch(CognitiveMetricsCollection $batch): void
+    {
+        if (!$this->isStreaming || $this->fileHandle === null) {
+            throw new CognitiveAnalysisException('Streaming not started. Call startReport() first.');
+        }
+
+        // Type guard: fileHandle is guaranteed to be resource at this point
+        assert($this->fileHandle !== false);
+
+        $groupedByClass = $batch->groupBy('class');
+
+        foreach ($groupedByClass as $class => $methods) {
+            $filteredMethods = $this->filterMetrics($methods);
+
+            if (count($filteredMethods) === 0) {
+                continue;
+            }
+
+            // Check if we've already processed this class
+            if (in_array($class, $this->processedClasses, true)) {
+                continue;
+            }
+
+            $this->processedClasses[] = $class;
+
+            // Get file path from first method in the collection
+            $firstMethod = null;
+            foreach ($filteredMethods as $method) {
+                $firstMethod = $method;
+                break;
+            }
+
+            $classSection = "* **Class:** " . $this->escape((string)$class) . "\n";
+            if ($firstMethod !== null) {
+                $classSection .= "* **File:** " . $this->escape($firstMethod->getFileName()) . "\n";
+            }
+            $classSection .= "\n";
+
+            // Table header and separator
+            $classSection .= $this->buildTableHeader() . "\n";
+            $classSection .= $this->buildTableSeparator() . "\n";
+
+            // Table rows
+            foreach ($filteredMethods as $data) {
+                $classSection .= $this->buildTableRow($data) . "\n";
+            }
+
+            $classSection .= "\n---\n\n";
+
+            fwrite($this->fileHandle, $classSection);
+        }
+    }
+
+    /**
+     * @throws CognitiveAnalysisException
+     */
+    public function finalizeReport(): void
+    {
+        if (!$this->isStreaming || $this->fileHandle === null) {
+            throw new CognitiveAnalysisException('Streaming not started or file handle not available.');
+        }
+
+        // Type guard: fileHandle is guaranteed to be resource at this point
+        assert($this->fileHandle !== false);
+
+        fclose($this->fileHandle);
+
+        $this->isStreaming = false;
+        $this->fileHandle = null;
+        $this->processedClasses = [];
     }
 }

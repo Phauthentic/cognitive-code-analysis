@@ -33,6 +33,16 @@ class CognitiveMetricsCollection implements IteratorAggregate, Countable, JsonSe
     }
 
     /**
+     * Merge another collection into this one
+     */
+    public function merge(CognitiveMetricsCollection $other): void
+    {
+        foreach ($other->metrics as $metric) {
+            $this->add($metric);
+        }
+    }
+
+    /**
      * Filter the collection using a callback function
      *
      * @return self A new collection with filtered results
