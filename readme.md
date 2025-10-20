@@ -6,13 +6,29 @@ Cognitive Code Analysis is an approach to understanding and improving code by fo
 
 [Source: Human Cognitive Limitations. Broad, Consistent, Clinical Application of Physiological Principles Will Require Decision Support](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5822395/)
 
+## Features 💎
+
+* Cognitive Complexity Analysis:
+  * Calculates a cognitive complexity score for each class and method
+  * Provides detailed cognitive complexity metrics
+  * Generate reports in various formats (JSON, CSV, HTML)
+  * Baseline comparison to track complexity changes over time
+  * Configurable thresholds and weights for complexity analysis
+  * Optional result cache for faster subsequent runs (must be enabled in config)
+  * Custom report generators
+  * Also provides Halstead Complexity Metrics (must be enabled in config)
+  * Also provides Cyclomatic Complexity Metrics (must be enabled in config) 
+* Cognitive Complexity Churn Analysis to identify hotspots in the codebase
+  * Generate reports in various formats (JSON, CSV, HTML)
+  * Custom report generators
+
 ## Installation ⚙️
 
 ```bash
 composer require --dev phauthentic/cognitive-code-analysis
 ```
 
-## Running it
+## Running it 🧑‍💻
 
 Cognitive Complexity Analysis
 

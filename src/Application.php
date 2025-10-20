@@ -9,7 +9,7 @@ use Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChurnCalculator;
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report\ChurnReportFactory;
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report\ChurnReportFactoryInterface;
 use Phauthentic\CognitiveCodeAnalysis\Business\CodeCoverage\CodeCoverageFactory;
-use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Baseline;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Baseline\Baseline;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollector;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsSorter;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Events\FileProcessed;
@@ -24,17 +24,30 @@ use Phauthentic\CognitiveCodeAnalysis\Business\Utility\DirectoryScanner;
 use Phauthentic\CognitiveCodeAnalysis\Cache\FileCache;
 use Phauthentic\CognitiveCodeAnalysis\Command\ChurnCommand;
 use Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications\ChurnValidationSpecificationFactory;
+use Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications\CompositeChurnSpecification;
 use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsCommand;
 use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\CognitiveMetricsValidationSpecificationFactory;
+use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\CompositeCognitiveMetricsValidationSpecification;
 use Phauthentic\CognitiveCodeAnalysis\Command\EventHandler\ParserErrorHandler;
 use Phauthentic\CognitiveCodeAnalysis\Command\EventHandler\ProgressBarHandler;
 use Phauthentic\CognitiveCodeAnalysis\Command\EventHandler\VerboseHandler;
-use Phauthentic\CognitiveCodeAnalysis\Command\Handler\ChurnReportHandler;
-use Phauthentic\CognitiveCodeAnalysis\Command\Handler\CognitiveAnalysis\BaselineHandler;
-use Phauthentic\CognitiveCodeAnalysis\Command\Handler\CognitiveAnalysis\ConfigurationLoadHandler;
-use Phauthentic\CognitiveCodeAnalysis\Command\Handler\CognitiveAnalysis\CoverageLoadHandler;
-use Phauthentic\CognitiveCodeAnalysis\Command\Handler\CognitiveAnalysis\SortingHandler;
-use Phauthentic\CognitiveCodeAnalysis\Command\Handler\CognitiveMetricsReportHandler;
+use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\CommandPipelineFactory;
+use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\ChurnPipelineFactory;
+use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\ChurnStages\ChurnCalculationStage;
+use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\ChurnStages\ConfigurationStage as ChurnConfigurationStage;
+use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\ChurnStages\CoverageStage as ChurnCoverageStage;
+use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\ChurnStages\OutputStage as ChurnOutputStage;
+use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\ChurnStages\ReportGenerationStage as ChurnReportGenerationStage;
+use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\ChurnStages\ValidationStage as ChurnValidationStage;
+use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\CognitiveStages\BaselineStage;
+use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\CognitiveStages\BaselineGenerationStage;
+use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\CognitiveStages\ConfigurationStage;
+use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\CognitiveStages\CoverageStage;
+use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\CognitiveStages\MetricsCollectionStage;
+use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\CognitiveStages\OutputStage;
+use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\CognitiveStages\ReportGenerationStage;
+use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\CognitiveStages\SortingStage;
+use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\CognitiveStages\ValidationStage;
 use Phauthentic\CognitiveCodeAnalysis\Command\Presentation\ChurnTextRenderer;
 use Phauthentic\CognitiveCodeAnalysis\Command\Presentation\CognitiveMetricTextRenderer;
 use Phauthentic\CognitiveCodeAnalysis\Command\Presentation\CognitiveMetricTextRendererInterface;
@@ -119,6 +132,10 @@ class Application
         $this->containerBuilder->register(CognitiveMetricsValidationSpecificationFactory::class, CognitiveMetricsValidationSpecificationFactory::class)
             ->setPublic(true);
 
+        $this->containerBuilder->register(CompositeCognitiveMetricsValidationSpecification::class, CompositeCognitiveMetricsValidationSpecification::class)
+            ->setFactory([new Reference(CognitiveMetricsValidationSpecificationFactory::class), 'create'])
+            ->setPublic(true);
+
         $this->containerBuilder->register(ChurnValidationSpecificationFactory::class, ChurnValidationSpecificationFactory::class)
             ->setPublic(true);
     }
@@ -190,45 +207,8 @@ class Application
 
     private function registerCommandHandlers(): void
     {
-        $this->containerBuilder->register(ChurnReportHandler::class, ChurnReportHandler::class)
-            ->setArguments([
-                new Reference(MetricsFacade::class),
-                new Reference(OutputInterface::class),
-                new Reference(ChurnReportFactoryInterface::class),
-            ])
-            ->setPublic(true);
-
-        $this->containerBuilder->register(CognitiveMetricsReportHandler::class, CognitiveMetricsReportHandler::class)
-            ->setArguments([
-                new Reference(MetricsFacade::class),
-                new Reference(OutputInterface::class),
-                new Reference(CognitiveReportFactoryInterface::class),
-            ])
-            ->setPublic(true);
-
-        // Register cognitive analysis handlers
-        $this->containerBuilder->register(ConfigurationLoadHandler::class, ConfigurationLoadHandler::class)
-            ->setArguments([
-                new Reference(MetricsFacade::class),
-            ])
-            ->setPublic(true);
-
-        $this->containerBuilder->register(CoverageLoadHandler::class, CoverageLoadHandler::class)
-            ->setArguments([
-                new Reference(CodeCoverageFactory::class),
-            ])
-            ->setPublic(true);
-
-        $this->containerBuilder->register(BaselineHandler::class, BaselineHandler::class)
-            ->setArguments([
-                new Reference(Baseline::class),
-            ])
-            ->setPublic(true);
-
-        $this->containerBuilder->register(SortingHandler::class, SortingHandler::class)
-            ->setArguments([
-                new Reference(CognitiveMetricsSorter::class),
-            ])
+        $this->containerBuilder->register(CompositeChurnSpecification::class, CompositeChurnSpecification::class)
+            ->setFactory([new Reference(ChurnValidationSpecificationFactory::class), 'create'])
             ->setPublic(true);
     }
 
@@ -239,6 +219,7 @@ class Application
         $this->bootstrapMetricsCollectors();
         $this->configureConfigService();
         $this->registerMetricsFacade();
+        $this->registerPipelineStages();
         $this->registerCommands();
         $this->configureApplication();
     }
@@ -301,27 +282,146 @@ class Application
             ->setPublic(true);
     }
 
+    private function registerPipelineStages(): void
+    {
+        $this->registerCognitivePipelineStages();
+        $this->registerChurnPipelineStages();
+    }
+
+    private function registerCognitivePipelineStages(): void
+    {
+        // Register cognitive pipeline stages
+        $this->containerBuilder->register(ValidationStage::class, ValidationStage::class)
+            ->setArguments([
+                new Reference(CompositeCognitiveMetricsValidationSpecification::class),
+            ])
+            ->setPublic(true);
+
+        $this->containerBuilder->register(ConfigurationStage::class, ConfigurationStage::class)
+            ->setArguments([
+                new Reference(MetricsFacade::class),
+            ])
+            ->setPublic(true);
+
+        $this->containerBuilder->register(CoverageStage::class, CoverageStage::class)
+            ->setArguments([
+                new Reference(CodeCoverageFactory::class),
+            ])
+            ->setPublic(true);
+
+        $this->containerBuilder->register(MetricsCollectionStage::class, MetricsCollectionStage::class)
+            ->setArguments([
+                new Reference(MetricsFacade::class),
+            ])
+            ->setPublic(true);
+
+        $this->containerBuilder->register(BaselineStage::class, BaselineStage::class)
+            ->setArguments([
+                new Reference(Baseline::class),
+                new Reference(ConfigService::class),
+            ])
+            ->setPublic(true);
+
+        $this->containerBuilder->register(SortingStage::class, SortingStage::class)
+            ->setArguments([
+                new Reference(CognitiveMetricsSorter::class),
+            ])
+            ->setPublic(true);
+
+        $this->containerBuilder->register(BaselineGenerationStage::class, BaselineGenerationStage::class)
+            ->setArguments([
+                new Reference(ConfigService::class),
+            ])
+            ->setPublic(true);
+
+        $this->containerBuilder->register(ReportGenerationStage::class, ReportGenerationStage::class)
+            ->setArguments([
+                new Reference(MetricsFacade::class),
+                new Reference(CognitiveReportFactoryInterface::class),
+            ])
+            ->setPublic(true);
+
+        $this->containerBuilder->register(OutputStage::class, OutputStage::class)
+            ->setArguments([
+                new Reference(CognitiveMetricTextRendererInterface::class),
+            ])
+            ->setPublic(true);
+
+        $this->containerBuilder->register(CommandPipelineFactory::class, CommandPipelineFactory::class)
+            ->setArguments([
+                new Reference(ValidationStage::class),
+                new Reference(ConfigurationStage::class),
+                new Reference(CoverageStage::class),
+                new Reference(MetricsCollectionStage::class),
+                new Reference(BaselineStage::class),
+                new Reference(SortingStage::class),
+                new Reference(BaselineGenerationStage::class),
+                new Reference(ReportGenerationStage::class),
+                new Reference(OutputStage::class),
+            ])
+            ->setPublic(true);
+    }
+
+    private function registerChurnPipelineStages(): void
+    {
+        // Register churn pipeline stages
+        $this->containerBuilder->register(ChurnValidationStage::class, ChurnValidationStage::class)
+            ->setArguments([
+                new Reference(CompositeChurnSpecification::class),
+            ])
+            ->setPublic(true);
+
+        $this->containerBuilder->register(ChurnConfigurationStage::class, ChurnConfigurationStage::class)
+            ->setArguments([
+                new Reference(MetricsFacade::class),
+            ])
+            ->setPublic(true);
+
+        $this->containerBuilder->register(ChurnCoverageStage::class, ChurnCoverageStage::class)
+            ->setPublic(true);
+
+        $this->containerBuilder->register(ChurnCalculationStage::class, ChurnCalculationStage::class)
+            ->setArguments([
+                new Reference(MetricsFacade::class),
+            ])
+            ->setPublic(true);
+
+        $this->containerBuilder->register(ChurnReportGenerationStage::class, ChurnReportGenerationStage::class)
+            ->setArguments([
+                new Reference(MetricsFacade::class),
+                new Reference(ChurnReportFactoryInterface::class),
+            ])
+            ->setPublic(true);
+
+        $this->containerBuilder->register(ChurnOutputStage::class, ChurnOutputStage::class)
+            ->setArguments([
+                new Reference(ChurnTextRenderer::class),
+            ])
+            ->setPublic(true);
+
+        $this->containerBuilder->register(ChurnPipelineFactory::class, ChurnPipelineFactory::class)
+            ->setArguments([
+                new Reference(ChurnValidationStage::class),
+                new Reference(ChurnConfigurationStage::class),
+                new Reference(ChurnCoverageStage::class),
+                new Reference(ChurnCalculationStage::class),
+                new Reference(ChurnReportGenerationStage::class),
+                new Reference(ChurnOutputStage::class),
+            ])
+            ->setPublic(true);
+    }
+
     private function registerCommands(): void
     {
         $this->containerBuilder->register(CognitiveMetricsCommand::class, CognitiveMetricsCommand::class)
             ->setArguments([
-                new Reference(MetricsFacade::class),
-                new Reference(CognitiveMetricTextRendererInterface::class),
-                new Reference(CognitiveMetricsReportHandler::class),
-                new Reference(ConfigurationLoadHandler::class),
-                new Reference(CoverageLoadHandler::class),
-                new Reference(BaselineHandler::class),
-                new Reference(SortingHandler::class),
-                new Reference(CognitiveMetricsValidationSpecificationFactory::class),
+                new Reference(CommandPipelineFactory::class),
             ])
             ->setPublic(true);
 
         $this->containerBuilder->register(ChurnCommand::class, ChurnCommand::class)
             ->setArguments([
-                new Reference(MetricsFacade::class),
-                new Reference(ChurnTextRenderer::class),
-                new Reference(ChurnReportHandler::class),
-                new Reference(ChurnValidationSpecificationFactory::class),
+                new Reference(ChurnPipelineFactory::class),
             ])
             ->setPublic(true);
     }

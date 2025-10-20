@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business\Cognitive;
 
-use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Baseline;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Baseline\Baseline;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -55,8 +55,27 @@ class BaselineServiceTest extends TestCase
             'TestClass' => [
                 'methods' => [
                     'testMethod' => [
-                        'complexity' => 8,
-                        'size' => 18
+                        'class' => 'TestClass',
+                        'method' => 'testMethod',
+                        'file' => 'TestClass.php',
+                        'line' => 10,
+                        'lineCount' => 5,
+                        'argCount' => 2,
+                        'returnCount' => 1,
+                        'variableCount' => 3,
+                        'propertyCallCount' => 1,
+                        'ifCount' => 2,
+                        'ifNestingLevel' => 1,
+                        'elseCount' => 1,
+                        'lineCountWeight' => 0.5,
+                        'argCountWeight' => 0.3,
+                        'returnCountWeight' => 0.2,
+                        'variableCountWeight' => 0.4,
+                        'propertyCallCountWeight' => 0.1,
+                        'ifCountWeight' => 0.6,
+                        'ifNestingLevelWeight' => 0.7,
+                        'elseCountWeight' => 0.2,
+                        'score' => 8.5
                     ]
                 ]
             ]
@@ -67,9 +86,12 @@ class BaselineServiceTest extends TestCase
         $result = $this->baselineService->loadBaseline($filePath);
 
         $this->assertIsArray($result);
-        $this->assertArrayHasKey('TestClass', $result);
-        $this->assertArrayHasKey('methods', $result['TestClass']);
-        $this->assertArrayHasKey('testMethod', $result['TestClass']['methods']);
+        $this->assertArrayHasKey('metrics', $result);
+        $this->assertArrayHasKey('baselineFile', $result);
+        $this->assertArrayHasKey('warnings', $result);
+        $this->assertArrayHasKey('TestClass', $result['metrics']);
+        $this->assertArrayHasKey('methods', $result['metrics']['TestClass']);
+        $this->assertArrayHasKey('testMethod', $result['metrics']['TestClass']['methods']);
 
         unlink($filePath); // Clean up
     }

@@ -1,0 +1,111 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\ChurnStages;
+
+use Exception;
+use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report\ChurnReportFactoryInterface;
+use Phauthentic\CognitiveCodeAnalysis\Business\MetricsFacade;
+use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\ChurnExecutionContext;
+use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\ChurnPipelineStage;
+use Phauthentic\CognitiveCodeAnalysis\Command\Result\OperationResult;
+
+/**
+ * Pipeline stage for generating churn reports.
+ */
+class ReportGenerationStage implements ChurnPipelineStage
+{
+    public function __construct(
+        private readonly MetricsFacade $metricsFacade,
+        private readonly ChurnReportFactoryInterface $reportFactory
+    ) {
+    }
+
+    public function execute(ChurnExecutionContext $context): OperationResult
+    {
+        $commandContext = $context->getCommandContext();
+        $churnMetrics = $context->getData('churnMetrics');
+
+        if ($churnMetrics === null) {
+            return OperationResult::failure('Churn metrics not available for report generation.');
+        }
+
+        $reportType = $commandContext->getReportType();
+        $reportFile = $commandContext->getReportFile();
+
+        // Validate report options
+        if ($this->hasIncompleteReportOptions($reportType, $reportFile)) {
+            $context->getOutput()->writeln('<error>Both report type and file must be provided.</error>');
+            return OperationResult::failure('Incomplete report options provided.');
+        }
+
+        if (!$this->isValidReportType($reportType)) {
+            return $this->handleInvalidReportType($context, $reportType);
+        }
+
+        try {
+            $this->metricsFacade->exportChurnReport(
+                metrics: $churnMetrics,
+                reportType: (string)$reportType,
+                filename: (string)$reportFile
+            );
+
+            // Record success statistics
+            $context->setStatistic('reportGenerated', true);
+            $context->setStatistic('reportType', $reportType);
+            $context->setStatistic('reportFile', $reportFile);
+
+            return OperationResult::success();
+        } catch (Exception $exception) {
+            return $this->handleExceptions($context, $exception);
+        }
+    }
+
+    public function shouldSkip(ChurnExecutionContext $context): bool
+    {
+        $commandContext = $context->getCommandContext();
+        return !$commandContext->hasReportOptions();
+    }
+
+    public function getStageName(): string
+    {
+        return 'ReportGeneration';
+    }
+
+    private function hasIncompleteReportOptions(?string $reportType, ?string $reportFile): bool
+    {
+        return ($reportType === null && $reportFile !== null) || ($reportType !== null && $reportFile === null);
+    }
+
+    private function isValidReportType(?string $reportType): bool
+    {
+        if ($reportType === null) {
+            return false;
+        }
+        return $this->reportFactory->isSupported($reportType);
+    }
+
+    private function handleExceptions(ChurnExecutionContext $context, Exception $exception): OperationResult
+    {
+        $context->getOutput()->writeln(sprintf(
+            '<error>Error generating report: %s</error>',
+            $exception->getMessage()
+        ));
+
+        return OperationResult::failure('Report generation failed: ' . $exception->getMessage());
+    }
+
+    private function handleInvalidReportType(ChurnExecutionContext $context, ?string $reportType): OperationResult
+    {
+        $supportedTypes = $this->reportFactory->getSupportedTypes();
+
+        $context->getOutput()->writeln(sprintf(
+            '<error>Invalid report type `%s` provided. Supported types: %s</error>',
+            $reportType,
+            implode(', ', $supportedTypes)
+        ));
+
+        return OperationResult::failure('Invalid report type provided.');
+    }
+}

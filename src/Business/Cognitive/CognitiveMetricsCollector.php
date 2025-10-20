@@ -73,6 +73,35 @@ class CognitiveMetricsCollector
     }
 
     /**
+     * Collect cognitive metrics from multiple paths in batches.
+     * Yields batches of metrics for streaming report generation.
+     *
+     * @param array<string> $paths Array of paths to process
+     * @param CognitiveConfig $config
+     * @param callable(CognitiveMetricsCollection): void $batchCallback Callback to process each batch
+     * @param int $batchSize Number of files to process before yielding a batch
+     * @return CognitiveMetricsCollection Final merged collection
+     * @throws \Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException|\InvalidArgumentException
+     */
+    public function collectFromPathsInBatches(
+        array $paths,
+        CognitiveConfig $config,
+        callable $batchCallback,
+        int $batchSize = 100
+    ): CognitiveMetricsCollection {
+        $allFiles = [];
+
+        foreach ($paths as $path) {
+            $files = $this->findSourceFiles($path, $config->excludeFilePatterns);
+            $allFiles = array_merge($allFiles, iterator_to_array($files));
+        }
+
+        $this->messageBus->dispatch(new SourceFilesFound(array_values($allFiles)));
+
+        return $this->findMetricsInBatches($allFiles, $batchCallback, $batchSize);
+    }
+
+    /**
      * @throws CognitiveAnalysisException
      */
     private function getCodeFromFile(SplFileInfo $file): string
@@ -124,6 +153,72 @@ class CognitiveMetricsCollector
         }
 
         return $metricsCollection;
+    }
+
+    /**
+     * Collect metrics from the found source files in batches
+     *
+     * @param iterable<SplFileInfo> $files
+     * @param callable(CognitiveMetricsCollection): void $batchCallback
+     * @param int $batchSize
+     * @return CognitiveMetricsCollection
+     * @throws \InvalidArgumentException
+     */
+    private function findMetricsInBatches(
+        iterable $files,
+        callable $batchCallback,
+        int $batchSize
+    ): CognitiveMetricsCollection {
+        $finalMetricsCollection = new CognitiveMetricsCollection();
+        $currentBatch = new CognitiveMetricsCollection();
+        $fileCount = 0;
+        $processedFiles = 0;
+        $config = $this->configService->getConfig();
+        $configHash = $this->generateConfigHash($config);
+        $useCache = $config->cache?->enabled === true;
+
+        foreach ($files as $file) {
+            // Try to get cached metrics
+            $cached = $this->getCachedMetrics($file, $configHash, $useCache);
+            $metrics = $cached['metrics'];
+
+            // If not cached, process the file
+            if ($metrics === null) {
+                $metrics = $this->processFile($file, $fileCount, $cached['cacheItem'], $useCache, $configHash);
+
+                if ($metrics === null) {
+                    continue;
+                }
+            }
+
+            $currentBatch = $this->processMethodMetrics(
+                $metrics,
+                $currentBatch,
+                FilenameNormalizer::normalize($file)
+            );
+
+            $processedFiles++;
+
+            // If we've processed enough files, yield the batch
+            if ($processedFiles < $batchSize) {
+                continue;
+            }
+
+            if (count($currentBatch) > 0) {
+                $batchCallback($currentBatch);
+                $finalMetricsCollection->merge($currentBatch);
+                $currentBatch = new CognitiveMetricsCollection();
+            }
+            $processedFiles = 0;
+        }
+
+        // Process any remaining files in the final batch
+        if (count($currentBatch) > 0) {
+            $batchCallback($currentBatch);
+            $finalMetricsCollection->merge($currentBatch);
+        }
+
+        return $finalMetricsCollection;
     }
 
     /**

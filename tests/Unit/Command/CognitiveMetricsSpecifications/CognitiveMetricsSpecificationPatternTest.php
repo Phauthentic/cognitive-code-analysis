@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CognitiveCodeAnalysis\Tests\Command\CognitiveMetricsSpecifications;
+namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Command\CognitiveMetricsSpecifications;
 
 use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\CognitiveMetricsCommandContext;
-use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\CoverageFormatExclusivity;
-use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\CoverageFileExists;
 use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\CompositeCognitiveMetricsValidationSpecification;
+use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\CoverageFileExists;
+use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\CoverageFormatExclusivity;
 use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\SortFieldValid;
 use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\SortOrderValid;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Input\ArrayInput;
-use Symfony\Component\Console\Input\InputDefinition;
 use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputDefinition;
 use Symfony\Component\Console\Input\InputOption;
 
 class CognitiveMetricsSpecificationPatternTest extends TestCase

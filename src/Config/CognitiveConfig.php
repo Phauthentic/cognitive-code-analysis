@@ -28,6 +28,7 @@ class CognitiveConfig
         public readonly bool $groupByClass = false,
         public readonly bool $showDetailedCognitiveMetrics = true,
         public readonly ?CacheConfig $cache = null,
+        public readonly ?PerformanceConfig $performance = null,
         public readonly array $customReporters = [],
     ) {
     }
@@ -55,6 +56,7 @@ class CognitiveConfig
             'groupByClass' => $this->groupByClass,
             'showDetailedCognitiveMetrics' => $this->showDetailedCognitiveMetrics,
             'cache' => $this->cache?->toArray(),
+            'performance' => $this->performance?->toArray(),
             'customReporters' => $this->customReporters,
         ];
     }

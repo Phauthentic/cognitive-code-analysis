@@ -1,0 +1,205 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/phauthentic/cognitive-code-checker/schemas/baseline.json",
+  "title": "Cognitive Code Analysis Baseline File",
+  "description": "Schema for validating baseline files used in cognitive complexity analysis",
+  "type": "object",
+  "oneOf": [
+    {
+      "$comment": "New format (version 2.0) with metadata",
+      "type": "object",
+      "required": ["version", "createdAt", "configHash", "metrics"],
+      "properties": {
+        "version": {
+          "type": "string",
+          "const": "2.0",
+          "description": "Baseline file format version"
+        },
+        "createdAt": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$",
+          "description": "Creation timestamp in YYYY-MM-DD HH:MM:SS format"
+        },
+        "configHash": {
+          "type": "string",
+          "minLength": 1,
+          "description": "MD5 hash of the metrics configuration used to generate this baseline"
+        },
+        "metrics": {
+          "$ref": "#/$defs/metrics"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "$comment": "Legacy format (direct metrics structure)",
+      "type": "object",
+      "patternProperties": {
+        "^[A-Za-z_][A-Za-z0-9_\\\\]*$": {
+          "$ref": "#/$defs/classMetrics"
+        }
+      },
+      "minProperties": 1,
+      "additionalProperties": false
+    }
+  ],
+  "$defs": {
+    "metrics": {
+      "type": "object",
+      "patternProperties": {
+        "^[A-Za-z_][A-Za-z0-9_\\\\]*$": {
+          "$ref": "#/$defs/classMetrics"
+        }
+      },
+      "minProperties": 1,
+      "additionalProperties": false
+    },
+    "classMetrics": {
+      "type": "object",
+      "required": ["methods"],
+      "properties": {
+        "methods": {
+          "type": "object",
+          "patternProperties": {
+            "^[A-Za-z_][A-Za-z0-9_]*$": {
+              "$ref": "#/$defs/methodMetrics"
+            }
+          },
+          "minProperties": 1,
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "methodMetrics": {
+      "type": "object",
+      "required": [
+        "class",
+        "method",
+        "lineCount",
+        "argCount",
+        "returnCount",
+        "variableCount",
+        "propertyCallCount",
+        "ifCount",
+        "ifNestingLevel",
+        "elseCount",
+        "lineCountWeight",
+        "argCountWeight",
+        "returnCountWeight",
+        "variableCountWeight",
+        "propertyCallCountWeight",
+        "ifCountWeight",
+        "ifNestingLevelWeight",
+        "elseCountWeight"
+      ],
+      "properties": {
+        "class": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Fully qualified class name"
+        },
+        "method": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Method name"
+        },
+        "file": {
+          "type": ["string", "null"],
+          "description": "File path where the method is located"
+        },
+        "line": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Line number where the method starts"
+        },
+        "lineCount": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of lines in the method"
+        },
+        "argCount": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of method arguments"
+        },
+        "returnCount": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of return statements"
+        },
+        "variableCount": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of variables used in the method"
+        },
+        "propertyCallCount": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of property accesses"
+        },
+        "ifCount": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of if statements"
+        },
+        "ifNestingLevel": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Maximum nesting level of if statements"
+        },
+        "elseCount": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of else statements"
+        },
+        "lineCountWeight": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Weighted score for line count metric"
+        },
+        "argCountWeight": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Weighted score for argument count metric"
+        },
+        "returnCountWeight": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Weighted score for return count metric"
+        },
+        "variableCountWeight": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Weighted score for variable count metric"
+        },
+        "propertyCallCountWeight": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Weighted score for property call count metric"
+        },
+        "ifCountWeight": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Weighted score for if count metric"
+        },
+        "ifNestingLevelWeight": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Weighted score for if nesting level metric"
+        },
+        "elseCountWeight": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Weighted score for else count metric"
+        },
+        "score": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Total cognitive complexity score for the method"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

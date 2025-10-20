@@ -2,41 +2,41 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CognitiveCodeAnalysis\Command\Handler\CognitiveAnalysis;
+namespace Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\CognitiveStages;
 
 use Phauthentic\CognitiveCodeAnalysis\Business\CodeCoverage\CodeCoverageFactory;
-use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\CognitiveMetricsCommandContext;
+use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\ExecutionContext;
+use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\PipelineStage;
 use Phauthentic\CognitiveCodeAnalysis\Command\Result\OperationResult;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 
 /**
- * Handler for loading coverage files in cognitive metrics command.
+ * Pipeline stage for loading coverage files.
  * Encapsulates coverage loading logic, format detection, and error handling.
  */
-class CoverageLoadHandler
+class CoverageStage extends PipelineStage
 {
     public function __construct(
         private readonly CodeCoverageFactory $coverageFactory
     ) {
     }
 
-    /**
-     * Load coverage reader from the context.
-     * Returns success result with reader if file is provided and loading succeeds.
-     * Returns success result with null if no file is provided.
-     * Returns failure result if loading fails.
-     */
-    public function load(CognitiveMetricsCommandContext $context): OperationResult
+    public function execute(ExecutionContext $context): OperationResult
     {
-        $coverageFile = $context->getCoverageFile();
-        $format = $context->getCoverageFormat();
+        $commandContext = $context->getCommandContext();
+        $coverageFile = $commandContext->getCoverageFile();
+        $format = $commandContext->getCoverageFormat();
 
         if ($coverageFile === null) {
-            return OperationResult::success(null);
+            return OperationResult::success();
         }
 
         // Auto-detect format if not specified
         if ($format === null) {
+            if (!file_exists($coverageFile)) {
+                return OperationResult::failure('Coverage file not found: ' . $coverageFile);
+            }
+
             $format = $this->detectCoverageFormat($coverageFile);
             if ($format === null) {
                 return OperationResult::failure('Unable to detect coverage file format. Please specify format explicitly.');
@@ -45,7 +45,8 @@ class CoverageLoadHandler
 
         try {
             $reader = $this->coverageFactory->createFromName($format, $coverageFile);
-            return OperationResult::success($reader);
+            $context->setData('coverageReader', $reader);
+            return OperationResult::success();
         } catch (CognitiveAnalysisException $e) {
             return OperationResult::failure('Failed to load coverage file: ' . $e->getMessage());
         }
@@ -72,5 +73,16 @@ class CoverageLoadHandler
         }
 
         return null;
+    }
+
+    public function shouldSkip(ExecutionContext $context): bool
+    {
+        $commandContext = $context->getCommandContext();
+        return $commandContext->getCoverageFile() === null;
+    }
+
+    public function getStageName(): string
+    {
+        return 'Coverage';
     }
 }

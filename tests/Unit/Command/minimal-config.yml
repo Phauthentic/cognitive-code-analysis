@@ -1,6 +1,6 @@
 cognitive:
-  excludeFilePatterns:
-  excludePatterns:
+  excludeFilePatterns: []
+  excludePatterns: []
   scoreThreshold: 0.5
   showOnlyMethodsExceedingThreshold: false
   showHalsteadComplexity: false
@@ -43,14 +43,3 @@ cognitive:
   cache:
     enabled: false
     directory: './.phpcca.cache'
-  performance:
-    batchSize: 100  # Files to process before flushing to report
-  # Example of custom reporters:
-  # customReporters:
-  #   cognitive:
-  #     pdf:
-  #       class: 'My\Custom\PdfReporter'
-  #       file: '/path/to/PdfReporter.php'
-  #     churn:
-  #       class: 'My\Custom\ChurnReporter'
-  #       file: '/path/to/ChurnReporter.php'
