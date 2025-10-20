@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Phauthentic\CognitiveCodeAnalysis\Tests\Command\ChurnSpecifications;
+namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Command;
 
 use Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications\ChurnCommandContext;
-use Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications\CoverageFormatExclusivity;
-use Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications\CoverageFileExists;
 use Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications\CompositeChurnSpecification;
+use Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications\CoverageFileExists;
+use Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications\CoverageFormatExclusivity;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Input\ArrayInput;
-use Symfony\Component\Console\Input\InputDefinition;
 use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputDefinition;
 use Symfony\Component\Console\Input\InputOption;
 
 class ChurnSpecificationPatternTest extends TestCase
