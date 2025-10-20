@@ -213,9 +213,11 @@ class CognitiveMetrics implements JsonSerializable
         }
 
         // Calculate Cyclomatic delta if both metrics have Cyclomatic data
-        if ($this->cyclomatic !== null && $other->getCyclomatic() !== null) {
-            $this->cyclomaticComplexityDelta = new Delta($other->getCyclomatic()->complexity, $this->cyclomatic->complexity);
+        if ($this->cyclomatic === null || $other->getCyclomatic() === null) {
+            return;
         }
+
+        $this->cyclomaticComplexityDelta = new Delta($other->getCyclomatic()->complexity, $this->cyclomatic->complexity);
     }
 
     /**

@@ -295,9 +295,11 @@ class BaselineSchemaValidator
         // Validate optional Halstead fields
         $halsteadFields = ['halsteadVolume', 'halsteadDifficulty', 'halsteadEffort'];
         foreach ($halsteadFields as $field) {
-            if (isset($methodData[$field]) && (!is_numeric($methodData[$field]) || $methodData[$field] < 0)) {
-                $errors[] = "Field '{$field}' in method '{$className}::{$methodName}' must be a non-negative number";
+            if (!isset($methodData[$field]) || (is_numeric($methodData[$field]) && $methodData[$field] >= 0)) {
+                continue;
             }
+
+            $errors[] = "Field '{$field}' in method '{$className}::{$methodName}' must be a non-negative number";
         }
 
         // Validate optional cyclomatic fields
