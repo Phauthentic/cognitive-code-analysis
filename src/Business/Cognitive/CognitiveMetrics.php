@@ -62,6 +62,11 @@ class CognitiveMetrics implements JsonSerializable
     private ?Delta $ifNestingLevelWeightDelta = null;
     private ?Delta $elseCountWeightDelta = null;
 
+    private ?Delta $halsteadVolumeDelta = null;
+    private ?Delta $halsteadDifficultyDelta = null;
+    private ?Delta $halsteadEffortDelta = null;
+    private ?Delta $cyclomaticComplexityDelta = null;
+
     private ?HalsteadMetrics $halstead = null;
     private ?CyclomaticMetrics $cyclomatic = null;
     private ?float $coverage = null;
@@ -86,7 +91,26 @@ class CognitiveMetrics implements JsonSerializable
             $this->halstead = new HalsteadMetrics($metrics['halstead']);
         }
 
+        // Handle baseline format with individual halstead fields
+        if (isset($metrics['halsteadVolume']) && !isset($metrics['halstead'])) {
+            $this->halstead = new HalsteadMetrics([
+                'n1' => 0, 'n2' => 0, 'N1' => 0, 'N2' => 0,
+                'programLength' => 0, 'programVocabulary' => 0,
+                'volume' => $metrics['halsteadVolume'],
+                'difficulty' => $metrics['halsteadDifficulty'] ?? 0.0,
+                'effort' => $metrics['halsteadEffort'] ?? 0.0,
+                'fqName' => $metrics['class'] . '::' . $metrics['method']
+            ]);
+        }
+
         if (!isset($metrics['cyclomatic_complexity'])) {
+            // Handle baseline format with individual cyclomatic fields
+            if (isset($metrics['cyclomaticComplexity']) && !isset($metrics['cyclomatic_complexity'])) {
+                $this->cyclomatic = new CyclomaticMetrics([
+                    'complexity' => $metrics['cyclomaticComplexity'],
+                    'riskLevel' => $metrics['cyclomaticRiskLevel'] ?? 'unknown'
+                ]);
+            }
             return;
         }
 
@@ -180,6 +204,18 @@ class CognitiveMetrics implements JsonSerializable
         $this->ifCountWeightDelta = new Delta($other->getIfCountWeight(), $this->ifCountWeight);
         $this->ifNestingLevelWeightDelta = new Delta($other->getIfNestingLevelWeight(), $this->ifNestingLevelWeight);
         $this->elseCountWeightDelta = new Delta($other->getElseCountWeight(), $this->elseCountWeight);
+
+        // Calculate Halstead deltas if both metrics have Halstead data
+        if ($this->halstead !== null && $other->getHalstead() !== null) {
+            $this->halsteadVolumeDelta = new Delta($other->getHalstead()->volume, $this->halstead->volume);
+            $this->halsteadDifficultyDelta = new Delta($other->getHalstead()->difficulty, $this->halstead->difficulty);
+            $this->halsteadEffortDelta = new Delta($other->getHalstead()->effort, $this->halstead->effort);
+        }
+
+        // Calculate Cyclomatic delta if both metrics have Cyclomatic data
+        if ($this->cyclomatic !== null && $other->getCyclomatic() !== null) {
+            $this->cyclomaticComplexityDelta = new Delta($other->getCyclomatic()->complexity, $this->cyclomatic->complexity);
+        }
     }
 
     /**
@@ -391,6 +427,26 @@ class CognitiveMetrics implements JsonSerializable
     public function getElseCountWeightDelta(): ?Delta
     {
         return $this->elseCountWeightDelta;
+    }
+
+    public function getHalsteadVolumeDelta(): ?Delta
+    {
+        return $this->halsteadVolumeDelta;
+    }
+
+    public function getHalsteadDifficultyDelta(): ?Delta
+    {
+        return $this->halsteadDifficultyDelta;
+    }
+
+    public function getHalsteadEffortDelta(): ?Delta
+    {
+        return $this->halsteadEffortDelta;
+    }
+
+    public function getCyclomaticComplexityDelta(): ?Delta
+    {
+        return $this->cyclomaticComplexityDelta;
     }
 
     public function getTimesChanged(): int

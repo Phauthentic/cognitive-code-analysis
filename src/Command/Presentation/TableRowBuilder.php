@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phauthentic\CognitiveCodeAnalysis\Command\Presentation;
 
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetrics;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Delta;
 use Phauthentic\CognitiveCodeAnalysis\Business\Halstead\HalsteadMetrics;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cyclomatic\CyclomaticMetrics;
 use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
@@ -44,6 +45,12 @@ class TableRowBuilder
         if ($this->hasCoverage) {
             $row = $this->addCoverageValue($metrics, $row);
         }
+
+        // Add deltas for Halstead metrics
+        $row = $this->addHalsteadDeltas($metrics, $row);
+
+        // Add deltas for Cyclomatic metrics
+        $row = $this->addCyclomaticDeltas($metrics, $row);
 
         return $row;
     }
@@ -251,5 +258,59 @@ class TableRowBuilder
         $fields = $this->addCyclomaticFields($fields, $metrics->getCyclomatic());
 
         return $fields;
+    }
+
+    /**
+     * @param array<string, mixed> $row
+     * @return array<string, mixed>
+     */
+    private function addHalsteadDeltas(CognitiveMetrics $metrics, array $row): array
+    {
+        if (!$this->config->showHalsteadComplexity || !isset($row['halsteadVolume'])) {
+            return $row;
+        }
+
+        $volumeDelta = $metrics->getHalsteadVolumeDelta();
+        if ($volumeDelta !== null && !$volumeDelta->hasNotChanged()) {
+            $row['halsteadVolume'] .= $this->formatDelta($volumeDelta);
+        }
+
+        $difficultyDelta = $metrics->getHalsteadDifficultyDelta();
+        if ($difficultyDelta !== null && !$difficultyDelta->hasNotChanged()) {
+            $row['halsteadDifficulty'] .= $this->formatDelta($difficultyDelta);
+        }
+
+        $effortDelta = $metrics->getHalsteadEffortDelta();
+        if ($effortDelta !== null && !$effortDelta->hasNotChanged()) {
+            $row['halsteadEffort'] .= $this->formatDelta($effortDelta);
+        }
+
+        return $row;
+    }
+
+    /**
+     * @param array<string, mixed> $row
+     * @return array<string, mixed>
+     */
+    private function addCyclomaticDeltas(CognitiveMetrics $metrics, array $row): array
+    {
+        if (!$this->config->showCyclomaticComplexity || !isset($row['cyclomaticComplexity'])) {
+            return $row;
+        }
+
+        $complexityDelta = $metrics->getCyclomaticComplexityDelta();
+        if ($complexityDelta !== null && !$complexityDelta->hasNotChanged()) {
+            $row['cyclomaticComplexity'] .= $this->formatDelta($complexityDelta);
+        }
+
+        return $row;
+    }
+
+    private function formatDelta(Delta $delta): string
+    {
+        if ($delta->hasIncreased()) {
+            return PHP_EOL . '<error>Δ +' . round($delta->getValue(), 3) . '</error>';
+        }
+        return PHP_EOL . '<info>Δ ' . round($delta->getValue(), 3) . '</info>';
     }
 }

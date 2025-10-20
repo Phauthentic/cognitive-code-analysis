@@ -182,6 +182,7 @@ class CognitiveMetricsCommandTest extends TestCase
 
         $tester->execute([
             'path' => __DIR__ . '/../../../tests/TestCode',
+            '--config' => __DIR__ . '/minimal-config.yml',
         ]);
 
         $this->assertStringEqualsFile(__DIR__ . '/OutputWithoutOptions.txt', $tester->getDisplay(true));

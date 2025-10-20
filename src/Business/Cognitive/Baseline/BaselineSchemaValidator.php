@@ -292,6 +292,23 @@ class BaselineSchemaValidator
             $errors[] = "Field 'file' in method '{$className}::{$methodName}' must be a string or null";
         }
 
+        // Validate optional Halstead fields
+        $halsteadFields = ['halsteadVolume', 'halsteadDifficulty', 'halsteadEffort'];
+        foreach ($halsteadFields as $field) {
+            if (isset($methodData[$field]) && (!is_numeric($methodData[$field]) || $methodData[$field] < 0)) {
+                $errors[] = "Field '{$field}' in method '{$className}::{$methodName}' must be a non-negative number";
+            }
+        }
+
+        // Validate optional cyclomatic fields
+        if (isset($methodData['cyclomaticComplexity']) && (!is_int($methodData['cyclomaticComplexity']) || $methodData['cyclomaticComplexity'] < 0)) {
+            $errors[] = "Field 'cyclomaticComplexity' in method '{$className}::{$methodName}' must be a non-negative integer";
+        }
+
+        if (isset($methodData['cyclomaticRiskLevel']) && !is_string($methodData['cyclomaticRiskLevel'])) {
+            $errors[] = "Field 'cyclomaticRiskLevel' in method '{$className}::{$methodName}' must be a string";
+        }
+
         return $errors;
     }
 

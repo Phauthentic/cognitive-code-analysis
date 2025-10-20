@@ -116,6 +116,11 @@ class BaselineFile implements JsonSerializable
                     'ifNestingLevelWeight' => $methodMetrics->getIfNestingLevelWeight(),
                     'elseCountWeight' => $methodMetrics->getElseCountWeight(),
                     'score' => $methodMetrics->getScore(),
+                    'halsteadVolume' => $methodMetrics->getHalstead()?->volume,
+                    'halsteadDifficulty' => $methodMetrics->getHalstead()?->difficulty,
+                    'halsteadEffort' => $methodMetrics->getHalstead()?->effort,
+                    'cyclomaticComplexity' => $methodMetrics->getCyclomatic()?->complexity,
+                    'cyclomaticRiskLevel' => $methodMetrics->getCyclomatic()?->riskLevel,
                 ];
             }
         }
