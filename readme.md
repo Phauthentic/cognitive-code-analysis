@@ -11,7 +11,7 @@ Cognitive Code Analysis is an approach to understanding and improving code by fo
 * Cognitive Complexity Analysis:
   * Calculates a cognitive complexity score for each class and method
   * Provides detailed cognitive complexity metrics
-  * Generate reports in various formats (JSON, CSV, HTML)
+  * Generate reports in various formats (JSON, CSV, HTML, Markdown, Checkstyle XML, JUnit XML, SARIF, GitLab Code Quality, GitHub Actions)
   * Baseline comparison to track complexity changes over time
   * Configurable thresholds and weights for complexity analysis
   * Optional result cache for faster subsequent runs (must be enabled in config)
@@ -36,7 +36,7 @@ Cognitive Complexity Analysis
 bin/phpcca analyse <path-to-folder>
 ```
 
-Generate a report, supported types are `json`, `csv`, `html`.
+Generate a report, supported types are `json`, `csv`, `html`, `markdown`, `checkstyle`, `junit`, `sarif`, `gitlab-codequality`, `github-actions`.
 
 ```bash
 bin/phpcca analyse <path-to-folder> --report-type json --report-file cognitive.json
