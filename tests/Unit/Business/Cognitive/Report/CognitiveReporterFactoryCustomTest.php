@@ -220,7 +220,17 @@ PHP;
         $factory = new CognitiveReportFactory($this->createMockConfigService($customReporters));
         $supportedTypes = $factory->getSupportedTypes();
 
-        $expectedBuiltInTypes = ['json', 'csv', 'html', 'markdown'];
+        $expectedBuiltInTypes = [
+            'json',
+            'csv',
+            'html',
+            'markdown',
+            'checkstyle',
+            'junit',
+            'sarif',
+            'gitlab-codequality',
+            'github-actions',
+        ];
         $expectedCustomTypes = ['custom1', 'custom2'];
 
         foreach ($expectedBuiltInTypes as $type) {
@@ -230,6 +240,51 @@ PHP;
         foreach ($expectedCustomTypes as $type) {
             $this->assertContains($type, $supportedTypes);
         }
+    }
+
+    #[Test]
+    public function testCreateCheckstyleExporter(): void
+    {
+        $factory = new CognitiveReportFactory($this->createMockConfigService());
+        $exporter = $factory->create('checkstyle');
+        $this->assertInstanceOf(ReportGeneratorInterface::class, $exporter);
+        $this->assertInstanceOf('Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report\CheckstyleReport', $exporter);
+    }
+
+    #[Test]
+    public function testCreateJUnitExporter(): void
+    {
+        $factory = new CognitiveReportFactory($this->createMockConfigService());
+        $exporter = $factory->create('junit');
+        $this->assertInstanceOf(ReportGeneratorInterface::class, $exporter);
+        $this->assertInstanceOf('Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report\JUnitReport', $exporter);
+    }
+
+    #[Test]
+    public function testCreateSarifExporter(): void
+    {
+        $factory = new CognitiveReportFactory($this->createMockConfigService());
+        $exporter = $factory->create('sarif');
+        $this->assertInstanceOf(ReportGeneratorInterface::class, $exporter);
+        $this->assertInstanceOf('Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report\SarifReport', $exporter);
+    }
+
+    #[Test]
+    public function testCreateGitLabCodeQualityExporter(): void
+    {
+        $factory = new CognitiveReportFactory($this->createMockConfigService());
+        $exporter = $factory->create('gitlab-codequality');
+        $this->assertInstanceOf(ReportGeneratorInterface::class, $exporter);
+        $this->assertInstanceOf('Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report\GitLabCodeQualityReport', $exporter);
+    }
+
+    #[Test]
+    public function testCreateGitHubActionsExporter(): void
+    {
+        $factory = new CognitiveReportFactory($this->createMockConfigService());
+        $exporter = $factory->create('github-actions');
+        $this->assertInstanceOf(ReportGeneratorInterface::class, $exporter);
+        $this->assertInstanceOf('Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report\GitHubActionsReport', $exporter);
     }
 
     #[Test]
