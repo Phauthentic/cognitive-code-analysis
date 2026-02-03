@@ -24,7 +24,7 @@ class CognitiveReportFactory implements CognitiveReportFactoryInterface
     /**
      * Create an exporter instance based on the report type.
      *
-     * @param string $type The type of exporter to create (json, csv, html, markdown)
+     * @param string $type The type of exporter to create (json, csv, html, markdown, checkstyle, junit, sarif, gitlab-codequality, github-actions)
      * @return ReportGeneratorInterface
      * @throws InvalidArgumentException If the type is not supported
      */
@@ -39,6 +39,11 @@ class CognitiveReportFactory implements CognitiveReportFactoryInterface
             'csv' => new CsvReport(),
             'html' => new HtmlReport(),
             'markdown' => new MarkdownReport($config),
+            'checkstyle' => new CheckstyleReport($config),
+            'junit' => new JUnitReport($config),
+            'sarif' => new SarifReport($config),
+            'gitlab-codequality' => new GitLabCodeQualityReport($config),
+            'github-actions' => new GitHubActionsReport($config),
             default => null,
         };
 
@@ -86,7 +91,17 @@ class CognitiveReportFactory implements CognitiveReportFactoryInterface
         $customReporters = $config->customReporters['cognitive'] ?? [];
 
         return array_merge(
-            ['json', 'csv', 'html', 'markdown'],
+            [
+                'json',
+                'csv',
+                'html',
+                'markdown',
+                'checkstyle',
+                'junit',
+                'sarif',
+                'gitlab-codequality',
+                'github-actions',
+            ],
             array_keys($customReporters)
         );
     }
