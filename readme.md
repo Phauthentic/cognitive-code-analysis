@@ -6,6 +6,10 @@ Cognitive Code Analysis is an approach to understanding and improving code by fo
 
 [Source: Human Cognitive Limitations. Broad, Consistent, Clinical Application of Physiological Principles Will Require Decision Support](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5822395/)
 
+---
+
+A [c# version](https://github.com/floriankraemer/csharp-cognitive-code-analysis) and a [Java version](https://github.com/floriankraemer/cognitive-code-analysis-java) are also available.
+
 ## Features 💎
 
 * Cognitive Complexity Analysis:
