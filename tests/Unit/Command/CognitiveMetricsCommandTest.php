@@ -228,6 +228,11 @@ class CognitiveMetricsCommandTest extends TestCase
                 'OutputWithCyclomaticOnly.txt',
                 'Should show only Cyclomatic complexity metrics'
             ],
+            'understandability only' => [
+                'understandability-config.yml',
+                'OutputWithUnderstandability.txt',
+                'Should show Sonar-style Understandability metric'
+            ],
             'no detailed metrics' => [
                 'no-detailed-metrics-config.yml',
                 'OutputWithoutDetailedMetrics.txt',

@@ -75,6 +75,7 @@ class Parser
         $methodMetrics = $this->combinedVisitor->getMethodMetrics();
         $cyclomaticMetrics = $this->combinedVisitor->getMethodComplexity();
         $halsteadMetrics = $this->combinedVisitor->getHalsteadMethodMetrics();
+        $understandabilityMetrics = $this->combinedVisitor->getMethodUnderstandability();
 
         // Now reset the combined visitor
         $this->combinedVisitor->resetAll();
@@ -100,6 +101,20 @@ class Parser
             }
 
             $methodMetrics[$method]['halstead'] = $metrics;
+        }
+
+        foreach ($understandabilityMetrics as $method => $complexityData) {
+            if (!isset($methodMetrics[$method])) {
+                continue;
+            }
+
+            $complexity = $complexityData['complexity'] ?? $complexityData;
+            $riskLevel = $complexityData['risk_level'] ?? 'unknown';
+            $methodMetrics[$method]['understandability'] = [
+                'complexity' => $complexity,
+                'risk_level' => $riskLevel,
+                'breakdown' => $complexityData['breakdown'] ?? [],
+            ];
         }
 
         return $methodMetrics;

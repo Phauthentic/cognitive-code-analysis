@@ -43,6 +43,7 @@ class ConfigFactory
             scoreThreshold: $config['cognitive']['scoreThreshold'],
             showHalsteadComplexity: $config['cognitive']['showHalsteadComplexity'] ?? false,
             showCyclomaticComplexity: $config['cognitive']['showCyclomaticComplexity'] ?? false,
+            showUnderstandability: $config['cognitive']['showUnderstandability'] ?? false,
             groupByClass: $config['cognitive']['groupByClass'] ?? true,
             showDetailedCognitiveMetrics: $config['cognitive']['showDetailedCognitiveMetrics'] ?? true,
             cache: $cacheConfig,

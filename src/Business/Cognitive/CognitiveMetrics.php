@@ -6,6 +6,7 @@ namespace Phauthentic\CognitiveCodeAnalysis\Business\Cognitive;
 
 use Phauthentic\CognitiveCodeAnalysis\Business\Halstead\HalsteadMetrics;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cyclomatic\CyclomaticMetrics;
+use Phauthentic\CognitiveCodeAnalysis\Business\Understandability\UnderstandabilityMetrics;
 use InvalidArgumentException;
 use JsonSerializable;
 
@@ -69,6 +70,7 @@ class CognitiveMetrics implements JsonSerializable
 
     private ?HalsteadMetrics $halstead = null;
     private ?CyclomaticMetrics $cyclomatic = null;
+    private ?UnderstandabilityMetrics $understandability = null;
     private ?float $coverage = null;
 
     /**
@@ -103,18 +105,23 @@ class CognitiveMetrics implements JsonSerializable
             ]);
         }
 
-        if (!isset($metrics['cyclomatic_complexity'])) {
-            // Handle baseline format with individual cyclomatic fields
-            if (isset($metrics['cyclomaticComplexity']) && !isset($metrics['cyclomatic_complexity'])) {
-                $this->cyclomatic = new CyclomaticMetrics([
-                    'complexity' => $metrics['cyclomaticComplexity'],
-                    'riskLevel' => $metrics['cyclomaticRiskLevel'] ?? 'unknown'
-                ]);
-            }
-            return;
+        if (isset($metrics['cyclomatic_complexity'])) {
+            $this->cyclomatic = new CyclomaticMetrics($metrics['cyclomatic_complexity']);
+        } elseif (isset($metrics['cyclomaticComplexity'])) {
+            $this->cyclomatic = new CyclomaticMetrics([
+                'complexity' => $metrics['cyclomaticComplexity'],
+                'riskLevel' => $metrics['cyclomaticRiskLevel'] ?? 'unknown',
+            ]);
         }
 
-        $this->cyclomatic = new CyclomaticMetrics($metrics['cyclomatic_complexity']);
+        if (isset($metrics['understandability'])) {
+            $this->understandability = new UnderstandabilityMetrics($metrics['understandability']);
+        } elseif (isset($metrics['understandabilityComplexity'])) {
+            $this->understandability = new UnderstandabilityMetrics([
+                'complexity' => $metrics['understandabilityComplexity'],
+                'riskLevel' => $metrics['understandabilityRiskLevel'] ?? 'unknown',
+            ]);
+        }
     }
 
     /**
@@ -526,5 +533,10 @@ class CognitiveMetrics implements JsonSerializable
     public function getCyclomatic(): ?CyclomaticMetrics
     {
         return $this->cyclomatic;
+    }
+
+    public function getUnderstandability(): ?UnderstandabilityMetrics
+    {
+        return $this->understandability;
     }
 }
