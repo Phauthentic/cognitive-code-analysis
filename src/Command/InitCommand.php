@@ -63,11 +63,11 @@ class InitCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $io = new SymfonyStyle($input, $output);
+        $style = new SymfonyStyle($input, $output);
         $targetPath = $this->resolveTargetPath($input);
 
         if (is_file($targetPath) && !$input->getOption(self::OPTION_FORCE)) {
-            $io->error(sprintf(
+            $style->error(sprintf(
                 'Config file already exists at %s. Use --force to overwrite.',
                 $targetPath
             ));
@@ -76,16 +76,16 @@ class InitCommand extends Command
         }
 
         try {
-            $overrides = $this->collectSettings($input, $io);
+            $overrides = $this->collectSettings($input, $style);
             $config = $this->configInitializer->createDefaultConfig($overrides);
             $this->configInitializer->writeConfigFile($targetPath, $config);
         } catch (CognitiveAnalysisException $exception) {
-            $io->error($exception->getMessage());
+            $style->error($exception->getMessage());
 
             return Command::FAILURE;
         }
 
-        $io->success(sprintf('Created config at: %s', $targetPath));
+        $style->success(sprintf('Created config at: %s', $targetPath));
 
         return Command::SUCCESS;
     }
@@ -104,7 +104,7 @@ class InitCommand extends Command
     /**
      * @return array<string, mixed>
      */
-    private function collectSettings(InputInterface $input, SymfonyStyle $io): array
+    private function collectSettings(InputInterface $input, SymfonyStyle $style): array
     {
         if ($input->getOption(self::OPTION_SILENT) || !$input->isInteractive()) {
             return $this->getDefaultOverrides();
@@ -112,37 +112,37 @@ class InitCommand extends Command
 
         return [
             'cognitive' => [
-                'scoreThreshold' => $this->askScoreThreshold($io),
+                'scoreThreshold' => $this->askScoreThreshold($style),
                 'showOnlyMethodsExceedingThreshold' => $this->askBooleanSetting(
-                    $io,
+                    $style,
                     'When enabled, only methods whose cognitive score exceeds the threshold are shown in output. '
                     . 'Useful to focus on the most complex methods.',
                     'Show only methods exceeding the threshold?',
                     self::DEFAULT_SHOW_ONLY_METHODS_EXCEEDING_THRESHOLD,
                 ),
                 'showHalsteadComplexity' => $this->askBooleanSetting(
-                    $io,
+                    $style,
                     'When enabled, Halstead complexity metrics are included in output. '
                     . 'Halstead measures program length and vocabulary as a different aspect of complexity.',
                     'Show Halstead complexity metrics?',
                     self::DEFAULT_SHOW_HALSTEAD_COMPLEXITY,
                 ),
                 'showCyclomaticComplexity' => $this->askBooleanSetting(
-                    $io,
+                    $style,
                     'When enabled, cyclomatic complexity metrics are included in output. '
                     . 'Cyclomatic complexity measures the number of independent paths through code.',
                     'Show cyclomatic complexity metrics?',
                     self::DEFAULT_SHOW_CYCLOMATIC_COMPLEXITY,
                 ),
                 'showDetailedCognitiveMetrics' => $this->askBooleanSetting(
-                    $io,
+                    $style,
                     'When enabled, individual metric columns (line count, arguments, returns, etc.) '
                     . 'are shown in table output. When disabled, only the overall cognitive score is displayed.',
                     'Show detailed cognitive metrics?',
                     self::DEFAULT_SHOW_DETAILED_COGNITIVE_METRICS,
                 ),
                 'groupByClass' => $this->askBooleanSetting(
-                    $io,
+                    $style,
                     'When enabled, results are grouped by class in separate tables. '
                     . 'When disabled, all methods appear in one flat table sorted by complexity score.',
                     'Group results by class?',
@@ -169,15 +169,15 @@ class InitCommand extends Command
         ];
     }
 
-    private function askScoreThreshold(SymfonyStyle $io): float
+    private function askScoreThreshold(SymfonyStyle $style): float
     {
-        $io->writeln(
+        $style->writeln(
             'Methods with a score above this threshold are considered complex. '
             . 'It is used for highlighting in reports and for filtering when only showing methods '
             . 'exceeding the threshold.'
         );
 
-        $value = $io->ask(
+        $value = $style->ask(
             'Score threshold',
             (string) self::DEFAULT_SCORE_THRESHOLD,
             static function (mixed $answer): float {
@@ -198,13 +198,13 @@ class InitCommand extends Command
     }
 
     private function askBooleanSetting(
-        SymfonyStyle $io,
+        SymfonyStyle $style,
         string $explanation,
         string $question,
         bool $default,
     ): bool {
-        $io->writeln($explanation);
+        $style->writeln($explanation);
 
-        return (bool) $io->confirm($question, $default);
+        return (bool) $style->confirm($question, $default);
     }
 }
