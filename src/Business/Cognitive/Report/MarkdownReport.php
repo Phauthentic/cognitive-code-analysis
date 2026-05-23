@@ -472,6 +472,14 @@ class MarkdownReport implements ReportGeneratorInterface, StreamableReportInterf
             return;
         }
 
+        $this->writeGroupedByClassBatch($batch, $fileHandle);
+    }
+
+    /**
+     * @param resource $fileHandle
+     */
+    private function writeGroupedByClassBatch(CognitiveMetricsCollection $batch, $fileHandle): void
+    {
         $groupedByClass = $batch->groupBy('class');
 
         foreach ($groupedByClass as $class => $methods) {
@@ -481,39 +489,37 @@ class MarkdownReport implements ReportGeneratorInterface, StreamableReportInterf
                 continue;
             }
 
-            // Check if we've already processed this class
             if (in_array($class, $this->processedClasses, true)) {
                 continue;
             }
 
             $this->processedClasses[] = $class;
 
-            // Get file path from first method in the collection
-            $firstMethod = null;
-            foreach ($filteredMethods as $method) {
-                $firstMethod = $method;
-                break;
-            }
-
-            $classSection = "* **Class:** " . $this->escape((string)$class) . "\n";
-            if ($firstMethod !== null) {
-                $classSection .= "* **File:** " . $this->escape($firstMethod->getFileName()) . "\n";
-            }
-            $classSection .= "\n";
-
-            // Table header and separator
-            $classSection .= $this->buildTableHeader() . "\n";
-            $classSection .= $this->buildTableSeparator() . "\n";
-
-            // Table rows
-            foreach ($filteredMethods as $data) {
-                $classSection .= $this->buildTableRow($data) . "\n";
-            }
-
-            $classSection .= "\n---\n\n";
-
-            fwrite($fileHandle, $classSection);
+            fwrite($fileHandle, $this->buildClassSection((string) $class, $filteredMethods));
         }
+    }
+
+    private function buildClassSection(string $class, CognitiveMetricsCollection $filteredMethods): string
+    {
+        $firstMethod = null;
+        foreach ($filteredMethods as $method) {
+            $firstMethod = $method;
+            break;
+        }
+
+        $classSection = "* **Class:** " . $this->escape($class) . "\n";
+        if ($firstMethod !== null) {
+            $classSection .= "* **File:** " . $this->escape($firstMethod->getFileName()) . "\n";
+        }
+        $classSection .= "\n";
+        $classSection .= $this->buildTableHeader() . "\n";
+        $classSection .= $this->buildTableSeparator() . "\n";
+
+        foreach ($filteredMethods as $data) {
+            $classSection .= $this->buildTableRow($data) . "\n";
+        }
+
+        return $classSection . "\n---\n\n";
     }
 
     /**
