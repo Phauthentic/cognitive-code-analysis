@@ -7,6 +7,7 @@ namespace Phauthentic\CognitiveCodeAnalysis\Command;
 use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\CommandPipelineFactory;
 use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\ExecutionContext;
 use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\CognitiveMetricsCommandContext;
+use Phauthentic\CognitiveCodeAnalysis\Config\ConfigFileResolver;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -38,7 +39,8 @@ class CognitiveMetricsCommand extends Command
     private const ARGUMENT_PATH = 'path';
 
     public function __construct(
-        readonly private CommandPipelineFactory $pipelineFactory
+        readonly private CommandPipelineFactory $pipelineFactory,
+        readonly private ConfigFileResolver $configFileResolver,
     ) {
         parent::__construct();
     }
@@ -125,7 +127,7 @@ class CognitiveMetricsCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $commandContext = new CognitiveMetricsCommandContext($input);
+        $commandContext = new CognitiveMetricsCommandContext($input, $this->configFileResolver);
         $executionContext = new ExecutionContext($commandContext, $output);
 
         // Build pipeline with stages

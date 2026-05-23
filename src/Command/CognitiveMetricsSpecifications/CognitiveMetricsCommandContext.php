@@ -4,18 +4,20 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications;
 
+use Phauthentic\CognitiveCodeAnalysis\Config\ConfigFileResolver;
 use Symfony\Component\Console\Input\InputInterface;
 
 class CognitiveMetricsCommandContext
 {
     public function __construct(
-        private InputInterface $input
+        private InputInterface $input,
+        private ConfigFileResolver $configFileResolver,
     ) {
     }
 
     public function getConfigFile(): ?string
     {
-        return $this->input->getOption('config');
+        return $this->configFileResolver->resolve($this->input->getOption('config'));
     }
 
     public function hasConfigFile(): bool
