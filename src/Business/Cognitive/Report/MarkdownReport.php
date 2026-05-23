@@ -20,7 +20,7 @@ class MarkdownReport implements ReportGeneratorInterface, StreamableReportInterf
     use MarkdownFormatterTrait;
 
     private CognitiveConfig $config;
-    /** @var resource|false|null */
+    /** @var resource|null */
     private $fileHandle = null;
     private bool $isStreaming = false;
     /** @var array<int|string> */
@@ -428,11 +428,12 @@ class MarkdownReport implements ReportGeneratorInterface, StreamableReportInterf
      */
     public function startReport(string $filename): void
     {
-        $this->fileHandle = fopen($filename, 'wb');
-        if ($this->fileHandle === false) {
+        $fileHandle = fopen($filename, 'wb');
+        if ($fileHandle === false) {
             throw new CognitiveAnalysisException(sprintf('Could not open file %s for writing', $filename));
         }
 
+        $this->fileHandle = $fileHandle;
         $this->isStreaming = true;
         $this->processedClasses = [];
 
@@ -447,7 +448,13 @@ class MarkdownReport implements ReportGeneratorInterface, StreamableReportInterf
 
         $header .= "---\n\n";
 
-        fwrite($this->fileHandle, $header);
+        if (!$this->config->groupByClass) {
+            $header .= "## All Methods\n\n";
+            $header .= $this->buildTableHeaderWithClass() . "\n";
+            $header .= $this->buildTableSeparatorWithClass() . "\n";
+        }
+
+        fwrite($fileHandle, $header);
     }
 
     /**
@@ -455,13 +462,24 @@ class MarkdownReport implements ReportGeneratorInterface, StreamableReportInterf
      */
     public function writeMetricBatch(CognitiveMetricsCollection $batch): void
     {
-        if (!$this->isStreaming || $this->fileHandle === null) {
+        $fileHandle = $this->fileHandle;
+        if (!$this->isStreaming || $fileHandle === null) {
             throw new CognitiveAnalysisException('Streaming not started. Call startReport() first.');
         }
 
-        // Type guard: fileHandle is guaranteed to be resource at this point
-        assert($this->fileHandle !== false);
+        if (!$this->config->groupByClass) {
+            $this->writeSingleTableBatch($batch, $fileHandle);
+            return;
+        }
 
+        $this->writeGroupedByClassBatch($batch, $fileHandle);
+    }
+
+    /**
+     * @param resource $fileHandle
+     */
+    private function writeGroupedByClassBatch(CognitiveMetricsCollection $batch, $fileHandle): void
+    {
         $groupedByClass = $batch->groupBy('class');
 
         foreach ($groupedByClass as $class => $methods) {
@@ -471,39 +489,56 @@ class MarkdownReport implements ReportGeneratorInterface, StreamableReportInterf
                 continue;
             }
 
-            // Check if we've already processed this class
             if (in_array($class, $this->processedClasses, true)) {
                 continue;
             }
 
             $this->processedClasses[] = $class;
 
-            // Get file path from first method in the collection
-            $firstMethod = null;
-            foreach ($filteredMethods as $method) {
-                $firstMethod = $method;
-                break;
-            }
-
-            $classSection = "* **Class:** " . $this->escape((string)$class) . "\n";
-            if ($firstMethod !== null) {
-                $classSection .= "* **File:** " . $this->escape($firstMethod->getFileName()) . "\n";
-            }
-            $classSection .= "\n";
-
-            // Table header and separator
-            $classSection .= $this->buildTableHeader() . "\n";
-            $classSection .= $this->buildTableSeparator() . "\n";
-
-            // Table rows
-            foreach ($filteredMethods as $data) {
-                $classSection .= $this->buildTableRow($data) . "\n";
-            }
-
-            $classSection .= "\n---\n\n";
-
-            fwrite($this->fileHandle, $classSection);
+            fwrite($fileHandle, $this->buildClassSection((string) $class, $filteredMethods));
         }
+    }
+
+    private function buildClassSection(string $class, CognitiveMetricsCollection $filteredMethods): string
+    {
+        $firstMethod = null;
+        foreach ($filteredMethods as $method) {
+            $firstMethod = $method;
+            break;
+        }
+
+        $classSection = "* **Class:** " . $this->escape($class) . "\n";
+        if ($firstMethod !== null) {
+            $classSection .= "* **File:** " . $this->escape($firstMethod->getFileName()) . "\n";
+        }
+        $classSection .= "\n";
+        $classSection .= $this->buildTableHeader() . "\n";
+        $classSection .= $this->buildTableSeparator() . "\n";
+
+        foreach ($filteredMethods as $data) {
+            $classSection .= $this->buildTableRow($data) . "\n";
+        }
+
+        return $classSection . "\n---\n\n";
+    }
+
+    /**
+     * @param resource $fileHandle
+     */
+    private function writeSingleTableBatch(CognitiveMetricsCollection $batch, $fileHandle): void
+    {
+        $filteredMetrics = $this->filterMetrics($batch);
+        $rows = '';
+
+        foreach ($filteredMetrics as $data) {
+            $rows .= $this->buildTableRowWithClass($data) . "\n";
+        }
+
+        if ($rows === '') {
+            return;
+        }
+
+        fwrite($fileHandle, $rows);
     }
 
     /**
@@ -511,14 +546,12 @@ class MarkdownReport implements ReportGeneratorInterface, StreamableReportInterf
      */
     public function finalizeReport(): void
     {
-        if (!$this->isStreaming || $this->fileHandle === null) {
+        $fileHandle = $this->fileHandle;
+        if (!$this->isStreaming || $fileHandle === null) {
             throw new CognitiveAnalysisException('Streaming not started or file handle not available.');
         }
 
-        // Type guard: fileHandle is guaranteed to be resource at this point
-        assert($this->fileHandle !== false);
-
-        fclose($this->fileHandle);
+        fclose($fileHandle);
 
         $this->isStreaming = false;
         $this->fileHandle = null;
