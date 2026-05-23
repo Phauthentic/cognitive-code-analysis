@@ -28,6 +28,7 @@ use Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications\CompositeChurn
 use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsCommand;
 use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\CognitiveMetricsValidationSpecificationFactory;
 use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\CompositeCognitiveMetricsValidationSpecification;
+use Phauthentic\CognitiveCodeAnalysis\Command\InitCommand;
 use Phauthentic\CognitiveCodeAnalysis\Command\EventHandler\ParserErrorHandler;
 use Phauthentic\CognitiveCodeAnalysis\Command\EventHandler\ProgressBarHandler;
 use Phauthentic\CognitiveCodeAnalysis\Command\EventHandler\VerboseHandler;
@@ -51,6 +52,8 @@ use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\CognitiveStages\Validatio
 use Phauthentic\CognitiveCodeAnalysis\Command\Presentation\ChurnTextRenderer;
 use Phauthentic\CognitiveCodeAnalysis\Command\Presentation\CognitiveMetricTextRenderer;
 use Phauthentic\CognitiveCodeAnalysis\Command\Presentation\CognitiveMetricTextRendererInterface;
+use Phauthentic\CognitiveCodeAnalysis\Config\ConfigFileResolver;
+use Phauthentic\CognitiveCodeAnalysis\Config\ConfigInitializer;
 use Phauthentic\CognitiveCodeAnalysis\Config\ConfigLoader;
 use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
 use PhpParser\NodeTraverser;
@@ -176,6 +179,17 @@ class Application
             ->setPublic(true);
 
         $this->containerBuilder->register(ConfigLoader::class, ConfigLoader::class)
+            ->setPublic(true);
+
+        $this->containerBuilder->register(ConfigFileResolver::class, ConfigFileResolver::class)
+            ->setPublic(true);
+
+        $this->containerBuilder->register(ConfigInitializer::class, ConfigInitializer::class)
+            ->setArguments([
+                new Reference(Processor::class),
+                new Reference(ConfigLoader::class),
+                __DIR__ . '/../config.yml',
+            ])
             ->setPublic(true);
 
         $this->containerBuilder->register(ParserFactory::class, ParserFactory::class)
@@ -416,12 +430,21 @@ class Application
         $this->containerBuilder->register(CognitiveMetricsCommand::class, CognitiveMetricsCommand::class)
             ->setArguments([
                 new Reference(CommandPipelineFactory::class),
+                new Reference(ConfigFileResolver::class),
             ])
             ->setPublic(true);
 
         $this->containerBuilder->register(ChurnCommand::class, ChurnCommand::class)
             ->setArguments([
                 new Reference(ChurnPipelineFactory::class),
+                new Reference(ConfigFileResolver::class),
+            ])
+            ->setPublic(true);
+
+        $this->containerBuilder->register(InitCommand::class, InitCommand::class)
+            ->setArguments([
+                new Reference(ConfigInitializer::class),
+                new Reference(ConfigFileResolver::class),
             ])
             ->setPublic(true);
     }
@@ -435,7 +458,8 @@ class Application
             ])
             ->setPublic(true)
             ->addMethodCall('add', [new Reference(CognitiveMetricsCommand::class)])
-            ->addMethodCall('add', [new Reference(ChurnCommand::class)]);
+            ->addMethodCall('add', [new Reference(ChurnCommand::class)])
+            ->addMethodCall('add', [new Reference(InitCommand::class)]);
     }
 
     public function run(): void

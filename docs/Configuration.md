@@ -1,5 +1,17 @@
 # Configuration
 
+## Creating a configuration file
+
+Run `init` to create a `cca.yaml` in your project:
+
+```bash
+bin/phpcca init
+bin/phpcca init --silent
+bin/phpcca init --path=/path/to/cca.yaml
+```
+
+When `cca.yaml` exists in the working directory, `analyse` and `churn` pick it up automatically. You only need `--config` for a custom path or filename.
+
 ## Passing a configuration file
 
 You can specify another configuration file by passing it to the config options:
@@ -7,6 +19,8 @@ You can specify another configuration file by passing it to the config options:
 ```bash
 bin/phpcca analyse <path-to-folder> --config=<path-to-config-file>
 ```
+
+When both `cca.yaml` and `--config` are available, the explicit `--config` path takes precedence.
 
 ## Excluding Classes and Methods
 

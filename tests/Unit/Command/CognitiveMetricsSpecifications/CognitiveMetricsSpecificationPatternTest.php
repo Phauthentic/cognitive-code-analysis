@@ -10,6 +10,7 @@ use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\Cov
 use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\CoverageFormatExclusivity;
 use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\SortFieldValid;
 use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\SortOrderValid;
+use Phauthentic\CognitiveCodeAnalysis\Config\ConfigFileResolver;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputArgument;
@@ -18,6 +19,18 @@ use Symfony\Component\Console\Input\InputOption;
 
 class CognitiveMetricsSpecificationPatternTest extends TestCase
 {
+    private ConfigFileResolver $configFileResolver;
+
+    protected function setUp(): void
+    {
+        $this->configFileResolver = new ConfigFileResolver();
+    }
+
+    private function createContext(ArrayInput $input): CognitiveMetricsCommandContext
+    {
+        return new CognitiveMetricsCommandContext($input, $this->configFileResolver);
+    }
+
     private function createInput(array $parameters): ArrayInput
     {
         $definition = new InputDefinition([
@@ -44,7 +57,7 @@ class CognitiveMetricsSpecificationPatternTest extends TestCase
             'path' => '/test',
             '--coverage-cobertura' => 'coverage.xml'
         ]);
-        $context1 = new CognitiveMetricsCommandContext($input1);
+        $context1 = $this->createContext($input1);
         $this->assertTrue($spec->isSatisfiedBy($context1));
 
         // Test valid case - only clover
@@ -52,7 +65,7 @@ class CognitiveMetricsSpecificationPatternTest extends TestCase
             'path' => '/test',
             '--coverage-clover' => 'coverage.xml'
         ]);
-        $context2 = new CognitiveMetricsCommandContext($input2);
+        $context2 = $this->createContext($input2);
         $this->assertTrue($spec->isSatisfiedBy($context2));
 
         // Test invalid case - both formats
@@ -61,7 +74,7 @@ class CognitiveMetricsSpecificationPatternTest extends TestCase
             '--coverage-cobertura' => 'cobertura.xml',
             '--coverage-clover' => 'clover.xml'
         ]);
-        $context3 = new CognitiveMetricsCommandContext($input3);
+        $context3 = $this->createContext($input3);
         $this->assertFalse($spec->isSatisfiedBy($context3));
         $this->assertEquals('Only one coverage format can be specified at a time.', $spec->getErrorMessage());
     }
@@ -72,7 +85,7 @@ class CognitiveMetricsSpecificationPatternTest extends TestCase
 
         // Test valid case - no coverage file
         $input1 = $this->createInput(['path' => '/test']);
-        $context1 = new CognitiveMetricsCommandContext($input1);
+        $context1 = $this->createContext($input1);
         $this->assertTrue($spec->isSatisfiedBy($context1));
 
         // Test invalid case - non-existent file
@@ -80,7 +93,7 @@ class CognitiveMetricsSpecificationPatternTest extends TestCase
             'path' => '/test',
             '--coverage-cobertura' => '/non/existent/file.xml'
         ]);
-        $context2 = new CognitiveMetricsCommandContext($input2);
+        $context2 = $this->createContext($input2);
         $this->assertFalse($spec->isSatisfiedBy($context2));
         $this->assertStringContainsString('Coverage file not found', $spec->getErrorMessage());
     }
@@ -91,7 +104,7 @@ class CognitiveMetricsSpecificationPatternTest extends TestCase
 
         // Test valid case - no sort field
         $input1 = $this->createInput(['path' => '/test']);
-        $context1 = new CognitiveMetricsCommandContext($input1);
+        $context1 = $this->createContext($input1);
         $this->assertTrue($spec->isSatisfiedBy($context1));
 
         // Test valid case - valid sort field
@@ -99,7 +112,7 @@ class CognitiveMetricsSpecificationPatternTest extends TestCase
             'path' => '/test',
             '--sort-by' => 'score'
         ]);
-        $context2 = new CognitiveMetricsCommandContext($input2);
+        $context2 = $this->createContext($input2);
         $this->assertTrue($spec->isSatisfiedBy($context2));
 
         // Test invalid case - invalid sort field
@@ -107,7 +120,7 @@ class CognitiveMetricsSpecificationPatternTest extends TestCase
             'path' => '/test',
             '--sort-by' => 'invalid_field'
         ]);
-        $context3 = new CognitiveMetricsCommandContext($input3);
+        $context3 = $this->createContext($input3);
         $this->assertFalse($spec->isSatisfiedBy($context3));
         $this->assertEquals('Invalid sort field provided.', $spec->getErrorMessage());
 
@@ -125,7 +138,7 @@ class CognitiveMetricsSpecificationPatternTest extends TestCase
             'path' => '/test',
             '--sort-order' => 'asc'
         ]);
-        $context1 = new CognitiveMetricsCommandContext($input1);
+        $context1 = $this->createContext($input1);
         $this->assertTrue($spec->isSatisfiedBy($context1));
 
         // Test valid case - desc
@@ -133,7 +146,7 @@ class CognitiveMetricsSpecificationPatternTest extends TestCase
             'path' => '/test',
             '--sort-order' => 'desc'
         ]);
-        $context2 = new CognitiveMetricsCommandContext($input2);
+        $context2 = $this->createContext($input2);
         $this->assertTrue($spec->isSatisfiedBy($context2));
 
         // Test invalid case - invalid sort order
@@ -141,7 +154,7 @@ class CognitiveMetricsSpecificationPatternTest extends TestCase
             'path' => '/test',
             '--sort-order' => 'invalid'
         ]);
-        $context3 = new CognitiveMetricsCommandContext($input3);
+        $context3 = $this->createContext($input3);
         $this->assertFalse($spec->isSatisfiedBy($context3));
         $this->assertEquals('Sort order must be "asc" or "desc"', $spec->getErrorMessage());
 
@@ -159,7 +172,7 @@ class CognitiveMetricsSpecificationPatternTest extends TestCase
 
         // Test valid case
         $input1 = $this->createInput(['path' => '/test']);
-        $context1 = new CognitiveMetricsCommandContext($input1);
+        $context1 = $this->createContext($input1);
         $this->assertTrue($spec->isSatisfiedBy($context1));
 
         // Test invalid case - both coverage formats
@@ -168,7 +181,7 @@ class CognitiveMetricsSpecificationPatternTest extends TestCase
             '--coverage-cobertura' => 'cobertura.xml',
             '--coverage-clover' => 'clover.xml'
         ]);
-        $context2 = new CognitiveMetricsCommandContext($input2);
+        $context2 = $this->createContext($input2);
         $this->assertFalse($spec->isSatisfiedBy($context2));
 
         $failedSpec = $spec->getFirstFailedSpecification($context2);
@@ -192,7 +205,7 @@ class CognitiveMetricsSpecificationPatternTest extends TestCase
             '--debug' => true
         ]);
 
-        $context = new CognitiveMetricsCommandContext($input);
+        $context = $this->createContext($input);
 
         $this->assertEquals('/test/path', $context->getPaths()[0]);
         $this->assertTrue($context->hasConfigFile());

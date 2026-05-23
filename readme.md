@@ -34,10 +34,21 @@ composer require --dev phauthentic/cognitive-code-analysis
 
 ## Running it 🧑‍💻
 
+Create a project configuration file:
+
+```bash
+bin/phpcca init                  # interactive setup → creates cca.yaml in current directory
+bin/phpcca init --silent         # non-interactive, all defaults
+bin/phpcca init --path=/path/to/cca.yaml
+```
+
+When `cca.yaml` exists in the current working directory, `analyse` and `churn` load it automatically. Use `--config` to specify a different file.
+
 Cognitive Complexity Analysis
 
 ```bash
 bin/phpcca analyse <path-to-folder>
+bin/phpcca analyse <path-to-folder> --config=custom.yaml  # explicit config overrides auto-discovery
 ```
 
 Generate a report, supported types are `json`, `csv`, `html`, `markdown`, `checkstyle`, `junit`, `sarif`, `gitlab-codequality`, `github-actions`.
