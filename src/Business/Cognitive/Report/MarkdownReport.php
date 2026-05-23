@@ -447,6 +447,12 @@ class MarkdownReport implements ReportGeneratorInterface, StreamableReportInterf
 
         $header .= "---\n\n";
 
+        if (!$this->config->groupByClass) {
+            $header .= "## All Methods\n\n";
+            $header .= $this->buildTableHeaderWithClass() . "\n";
+            $header .= $this->buildTableSeparatorWithClass() . "\n";
+        }
+
         fwrite($this->fileHandle, $header);
     }
 
@@ -461,6 +467,11 @@ class MarkdownReport implements ReportGeneratorInterface, StreamableReportInterf
 
         // Type guard: fileHandle is guaranteed to be resource at this point
         assert($this->fileHandle !== false);
+
+        if (!$this->config->groupByClass) {
+            $this->writeSingleTableBatch($batch);
+            return;
+        }
 
         $groupedByClass = $batch->groupBy('class');
 
@@ -504,6 +515,24 @@ class MarkdownReport implements ReportGeneratorInterface, StreamableReportInterf
 
             fwrite($this->fileHandle, $classSection);
         }
+    }
+
+    private function writeSingleTableBatch(CognitiveMetricsCollection $batch): void
+    {
+        assert($this->fileHandle !== false);
+
+        $filteredMetrics = $this->filterMetrics($batch);
+        $rows = '';
+
+        foreach ($filteredMetrics as $data) {
+            $rows .= $this->buildTableRowWithClass($data) . "\n";
+        }
+
+        if ($rows === '') {
+            return;
+        }
+
+        fwrite($this->fileHandle, $rows);
     }
 
     /**

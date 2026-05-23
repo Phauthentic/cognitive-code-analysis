@@ -72,6 +72,28 @@ class MarkdownReporterTest extends TestCase
         );
     }
 
+    #[Test]
+    public function testStreamingExportWithSingleTableConfiguration(): void
+    {
+        $configService = new ConfigService(
+            new Processor(),
+            new ConfigLoader()
+        );
+        $configService->loadConfig(__DIR__ . '/../../../../Fixtures/single-table-config.yml');
+        $config = $configService->getConfig();
+
+        $metricsCollection = $this->createTestMetricsCollection();
+        $exporter = new MarkdownReport($config);
+        $exporter->startReport($this->filename);
+        $exporter->writeMetricBatch($metricsCollection);
+        $exporter->finalizeReport();
+
+        $this->assertFileEquals(
+            __DIR__ . '/MarkdownReporterContent_SingleTableStreaming.md',
+            $this->filename
+        );
+    }
+
     private function createTestMetricsCollection(): CognitiveMetricsCollection
     {
         $metricsCollection = new CognitiveMetricsCollection();

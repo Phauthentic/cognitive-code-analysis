@@ -37,7 +37,7 @@ class CognitiveReportFactory implements CognitiveReportFactoryInterface
         $builtIn = match ($type) {
             'json' => new JsonReport(),
             'csv' => new CsvReport(),
-            'html' => new HtmlReport(),
+            'html' => new HtmlReport($config),
             'markdown' => new MarkdownReport($config),
             'checkstyle' => new CheckstyleReport($config),
             'junit' => new JUnitReport($config),
