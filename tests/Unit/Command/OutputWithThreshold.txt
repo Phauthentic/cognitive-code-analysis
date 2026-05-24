@@ -1,3 +1,6 @@
+Config: ./tests/Unit/Command/../../../tests/Fixtures/threshold-config.yml
+Cache: enabled
+
 Class: \Doctrine\ORM\Tools\Pagination\Paginator
 File: tests/TestCode/Paginator.php
 ┌───────────────────────────────────────────┬────────┬───────────┬─────────┬───────────┬──────────┬───────┬────────────┬───────────┬────────────┬──────────┬────────────┬──────────┬────────────┐
