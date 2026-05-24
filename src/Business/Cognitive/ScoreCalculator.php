@@ -48,9 +48,11 @@ class ScoreCalculator
         foreach ($this->combinedMetrics as $metric) {
             $methodName = 'get' . $metric . 'Weight';
             $weight = $metrics->{$methodName}();
-            if (is_int($weight) || is_float($weight)) {
-                $score += $weight;
+            if (!is_int($weight) && !is_float($weight)) {
+                continue;
             }
+
+            $score += $weight;
         }
 
         $metrics->setScore(round($score, 3));

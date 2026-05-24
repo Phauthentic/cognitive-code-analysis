@@ -117,11 +117,13 @@ class CognitiveMetrics implements JsonSerializable
             return;
         }
 
-        if (is_array($metrics['cyclomatic_complexity'])) {
-            /** @var array<string, mixed> $cyclomaticData */
-            $cyclomaticData = $metrics['cyclomatic_complexity'];
-            $this->cyclomatic = new CyclomaticMetrics($cyclomaticData);
+        if (!is_array($metrics['cyclomatic_complexity'])) {
+            return;
         }
+
+        /** @var array<string, mixed> $cyclomaticData */
+        $cyclomaticData = $metrics['cyclomatic_complexity'];
+        $this->cyclomatic = new CyclomaticMetrics($cyclomaticData);
     }
 
     /**

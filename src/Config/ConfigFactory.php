@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Config;
 
-
 /**
  * @phpstan-type MetricConfigArray array{threshold: int|float, scale: float, enabled: bool}
  * @phpstan-type CognitiveSectionArray array{
