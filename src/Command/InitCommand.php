@@ -94,7 +94,7 @@ class InitCommand extends Command
     {
         $path = $input->getOption(self::OPTION_PATH);
 
-        if ($path !== null) {
+        if (is_string($path)) {
             return $path;
         }
 
@@ -193,6 +193,10 @@ class InitCommand extends Command
                 return $threshold;
             }
         );
+
+        if (!is_float($value) && !is_int($value)) {
+            throw new CognitiveAnalysisException('Score threshold must be a number.');
+        }
 
         return (float) $value;
     }

@@ -4,50 +4,86 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Config;
 
+use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
+
+/**
+ * @phpstan-type MetricConfigArray array{threshold: int|float, scale: float, enabled: bool}
+ * @phpstan-type CognitiveSectionArray array{
+ *     excludeFilePatterns: list<string>,
+ *     excludePatterns: list<string>,
+ *     metrics: array<string, MetricConfigArray>,
+ *     showOnlyMethodsExceedingThreshold: bool,
+ *     scoreThreshold: float,
+ *     showHalsteadComplexity?: bool,
+ *     showCyclomaticComplexity?: bool,
+ *     groupByClass?: bool,
+ *     showDetailedCognitiveMetrics?: bool,
+ *     cache?: array{enabled?: bool, directory?: string},
+ *     performance?: array{batchSize?: int},
+ *     customReporters?: array<string, array<string, mixed>>
+ * }
+ */
 class ConfigFactory
 {
     /**
      * @param array<string, mixed> $config
-     * @return CognitiveConfig
      */
     public function fromArray(array $config): CognitiveConfig
     {
-        $metrics = array_map(function ($metric) {
-            return new MetricsConfig(
-                $metric['threshold'],
+        $cognitive = $this->resolveCognitiveSection($config);
+
+        $metrics = array_map(
+            fn (array $metric): MetricsConfig => new MetricsConfig(
+                (int) $metric['threshold'],
                 $metric['scale'],
-                $metric['enabled']
-            );
-        }, $config['cognitive']['metrics']);
+                $metric['enabled'],
+            ),
+            $cognitive['metrics'],
+        );
 
         $cacheConfig = null;
-        if (isset($config['cognitive']['cache'])) {
-                $cacheConfig = new CacheConfig(
-                    enabled: $config['cognitive']['cache']['enabled'] ?? true,
-                    directory: $config['cognitive']['cache']['directory'] ?? './.phpcca.cache',
-                );
+        if (isset($cognitive['cache'])) {
+            $cacheConfig = new CacheConfig(
+                enabled: $cognitive['cache']['enabled'] ?? true,
+                directory: $cognitive['cache']['directory'] ?? './.phpcca.cache',
+            );
         }
 
         $performanceConfig = null;
-        if (isset($config['cognitive']['performance'])) {
+        if (isset($cognitive['performance'])) {
             $performanceConfig = new PerformanceConfig(
-                batchSize: $config['cognitive']['performance']['batchSize'] ?? 100
+                batchSize: $cognitive['performance']['batchSize'] ?? 100
             );
         }
 
         return new CognitiveConfig(
-            excludeFilePatterns: $config['cognitive']['excludeFilePatterns'],
-            excludePatterns: $config['cognitive']['excludePatterns'],
+            excludeFilePatterns: $cognitive['excludeFilePatterns'],
+            excludePatterns: $cognitive['excludePatterns'],
             metrics: $metrics,
-            showOnlyMethodsExceedingThreshold: $config['cognitive']['showOnlyMethodsExceedingThreshold'],
-            scoreThreshold: $config['cognitive']['scoreThreshold'],
-            showHalsteadComplexity: $config['cognitive']['showHalsteadComplexity'] ?? false,
-            showCyclomaticComplexity: $config['cognitive']['showCyclomaticComplexity'] ?? false,
-            groupByClass: $config['cognitive']['groupByClass'] ?? true,
-            showDetailedCognitiveMetrics: $config['cognitive']['showDetailedCognitiveMetrics'] ?? true,
+            showOnlyMethodsExceedingThreshold: $cognitive['showOnlyMethodsExceedingThreshold'],
+            scoreThreshold: $cognitive['scoreThreshold'],
+            showHalsteadComplexity: $cognitive['showHalsteadComplexity'] ?? false,
+            showCyclomaticComplexity: $cognitive['showCyclomaticComplexity'] ?? false,
+            groupByClass: $cognitive['groupByClass'] ?? true,
+            showDetailedCognitiveMetrics: $cognitive['showDetailedCognitiveMetrics'] ?? true,
             cache: $cacheConfig,
             performance: $performanceConfig,
-            customReporters: $config['cognitive']['customReporters'] ?? []
+            customReporters: $cognitive['customReporters'] ?? []
         );
+    }
+
+    /**
+     * @param array<string, mixed> $config
+     * @return CognitiveSectionArray
+     */
+    private function resolveCognitiveSection(array $config): array
+    {
+        $cognitive = $config['cognitive'] ?? null;
+        if (!is_array($cognitive)) {
+            throw new CognitiveAnalysisException('Configuration must contain a "cognitive" section.');
+        }
+
+        /** @var CognitiveSectionArray $cognitive */
+        return $cognitive;
     }
 }

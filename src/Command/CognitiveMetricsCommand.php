@@ -174,7 +174,20 @@ class CognitiveMetricsCommand extends Command
 
         $output->writeln('<info>Statistics:</info>');
         foreach ($statistics as $key => $value) {
-            $output->writeln(sprintf('    %s: %s', $key, $value));
+            $output->writeln(sprintf('    %s: %s', $key, $this->formatStatisticValue($value)));
         }
+    }
+
+    private function formatStatisticValue(mixed $value): string
+    {
+        if (is_bool($value)) {
+            return $value ? 'true' : 'false';
+        }
+
+        if (is_string($value) || is_int($value) || is_float($value) || $value === null) {
+            return (string) $value;
+        }
+
+        return json_encode($value, JSON_THROW_ON_ERROR);
     }
 }

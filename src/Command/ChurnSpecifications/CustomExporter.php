@@ -62,8 +62,19 @@ class CustomExporter implements ChurnCommandSpecification
         }
 
         $exporterConfig = $customReporters[$reportType];
+        if (!is_array($exporterConfig)) {
+            return "Custom exporter `{$reportType}` has invalid configuration.";
+        }
+
         $class = $exporterConfig['class'] ?? '';
         $file = $exporterConfig['file'] ?? null;
+        if (!is_string($class)) {
+            return "Custom exporter `{$reportType}` must define a string 'class'.";
+        }
+
+        if ($file !== null && !is_string($file)) {
+            return "Custom exporter `{$reportType}` must define a string or null 'file'.";
+        }
 
         if ($file !== null && !file_exists($file)) {
             return "Exporter file not found: {$file}";
@@ -87,8 +98,19 @@ class CustomExporter implements ChurnCommandSpecification
             }
 
             $exporterConfig = $customReporters[$reportType];
+            if (!is_array($exporterConfig)) {
+                return false;
+            }
+
             $class = $exporterConfig['class'] ?? '';
             $file = $exporterConfig['file'] ?? null;
+            if (!is_string($class)) {
+                return false;
+            }
+
+            if ($file !== null && !is_string($file)) {
+                return false;
+            }
 
             // Validate file exists if specified
             if ($file !== null && !file_exists($file)) {

@@ -258,12 +258,12 @@ class Application
     private function configureEventBus(): void
     {
         $progressbar = new ProgressBarHandler(
-            $this->get(OutputInterface::class)
+            $this->resolveOutputInterface()
         );
 
         $verbose = new VerboseHandler(
-            $this->get(InputInterface::class),
-            $this->get(OutputInterface::class)
+            $this->resolveInputInterface(),
+            $this->resolveOutputInterface()
         );
 
         $handlersLocator = $this->setUpEventHandlersLocator($progressbar, $verbose);
@@ -502,8 +502,28 @@ class Application
                 $verbose
             ],
             ParserFailed::class => [
-                new ParserErrorHandler($this->get(OutputInterface::class))
+                new ParserErrorHandler($this->resolveOutputInterface())
             ],
         ]);
+    }
+
+    private function resolveInputInterface(): InputInterface
+    {
+        $input = $this->get(InputInterface::class);
+        if (!$input instanceof InputInterface) {
+            throw new CognitiveAnalysisException('Console input is not configured.');
+        }
+
+        return $input;
+    }
+
+    private function resolveOutputInterface(): OutputInterface
+    {
+        $output = $this->get(OutputInterface::class);
+        if (!$output instanceof OutputInterface) {
+            throw new CognitiveAnalysisException('Console output is not configured.');
+        }
+
+        return $output;
     }
 }

@@ -21,7 +21,7 @@ class OutputStage implements ChurnPipelineStage
 
     public function execute(ChurnExecutionContext $context): OperationResult
     {
-        $churnMetrics = $context->getData('churnMetrics');
+        $churnMetrics = $context->getChurnMetrics();
 
         if ($churnMetrics === null) {
             return OperationResult::failure('Churn metrics not available for console output.');

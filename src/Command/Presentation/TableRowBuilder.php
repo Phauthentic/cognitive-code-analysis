@@ -173,14 +173,18 @@ class TableRowBuilder
         }
 
         if ($delta->hasIncreased()) {
-            $row[$key] .= PHP_EOL . '<error>Δ +' . round($delta->getValue(), 3) . '</error>';
-
-            return $row;
+            return $this->appendToRowCell(
+                $row,
+                $key,
+                PHP_EOL . '<error>Δ +' . round($delta->getValue(), 3) . '</error>'
+            );
         }
 
-        $row[$key] .= PHP_EOL . '<info>Δ -' . $delta->getValue() . '</info>';
-
-        return $row;
+        return $this->appendToRowCell(
+            $row,
+            $key,
+            PHP_EOL . '<info>Δ -' . $delta->getValue() . '</info>'
+        );
     }
 
     /**
@@ -272,17 +276,17 @@ class TableRowBuilder
 
         $volumeDelta = $metrics->getHalsteadVolumeDelta();
         if ($volumeDelta !== null && !$volumeDelta->hasNotChanged()) {
-            $row['halsteadVolume'] .= $this->formatDelta($volumeDelta);
+            $row = $this->appendToRowCell($row, 'halsteadVolume', $this->formatDelta($volumeDelta));
         }
 
         $difficultyDelta = $metrics->getHalsteadDifficultyDelta();
         if ($difficultyDelta !== null && !$difficultyDelta->hasNotChanged()) {
-            $row['halsteadDifficulty'] .= $this->formatDelta($difficultyDelta);
+            $row = $this->appendToRowCell($row, 'halsteadDifficulty', $this->formatDelta($difficultyDelta));
         }
 
         $effortDelta = $metrics->getHalsteadEffortDelta();
         if ($effortDelta !== null && !$effortDelta->hasNotChanged()) {
-            $row['halsteadEffort'] .= $this->formatDelta($effortDelta);
+            $row = $this->appendToRowCell($row, 'halsteadEffort', $this->formatDelta($effortDelta));
         }
 
         return $row;
@@ -300,7 +304,7 @@ class TableRowBuilder
 
         $complexityDelta = $metrics->getCyclomaticComplexityDelta();
         if ($complexityDelta !== null && !$complexityDelta->hasNotChanged()) {
-            $row['cyclomaticComplexity'] .= $this->formatDelta($complexityDelta);
+            $row = $this->appendToRowCell($row, 'cyclomaticComplexity', $this->formatDelta($complexityDelta));
         }
 
         return $row;
@@ -312,5 +316,21 @@ class TableRowBuilder
             return PHP_EOL . '<error>Δ +' . round($delta->getValue(), 3) . '</error>';
         }
         return PHP_EOL . '<info>Δ ' . round($delta->getValue(), 3) . '</info>';
+    }
+
+    /**
+     * @param array<string, mixed> $row
+     * @return array<string, mixed>
+     */
+    private function appendToRowCell(array $row, string $key, string $suffix): array
+    {
+        $value = $row[$key] ?? '';
+        if (!is_string($value)) {
+            throw new CognitiveAnalysisException(sprintf('Expected string value for row key "%s".', $key));
+        }
+
+        $row[$key] = $value . $suffix;
+
+        return $row;
     }
 }

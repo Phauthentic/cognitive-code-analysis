@@ -233,12 +233,17 @@ class CognitiveMetricsCollector
         string $file
     ): CognitiveMetricsCollection {
         foreach ($methodMetrics as $classAndMethod => $metrics) {
+            if (!is_array($metrics)) {
+                continue;
+            }
+
             if ($this->isExcluded($classAndMethod)) {
                 continue;
             }
 
             [$class, $method] = explode('::', $classAndMethod);
 
+            /** @var array<string, mixed> $metricsArray */
             $metricsArray = array_merge($metrics, [
                 'class' => $class,
                 'method' => $method,
@@ -354,10 +359,22 @@ class CognitiveMetricsCollector
         }
 
         $cachedData = $cacheItem->get();
-        $this->ignoredItems = $cachedData['ignored_items'] ?? [];
+        if (!is_array($cachedData)) {
+            return ['metrics' => null, 'cacheItem' => $cacheItem];
+        }
+
+        $ignoredItems = $cachedData['ignored_items'] ?? [];
+        $this->ignoredItems = is_array($ignoredItems) ? $ignoredItems : [];
         $this->messageBus->dispatch(new FileProcessed($file));
 
-        return ['metrics' => $cachedData['analysis_result'], 'cacheItem' => $cacheItem];
+        $analysisResult = $cachedData['analysis_result'] ?? null;
+        if (!is_array($analysisResult)) {
+            return ['metrics' => null, 'cacheItem' => $cacheItem];
+        }
+
+        /** @var array<string, mixed> $analysisResult */
+
+        return ['metrics' => $analysisResult, 'cacheItem' => $cacheItem];
     }
 
     /**

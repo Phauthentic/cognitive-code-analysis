@@ -24,6 +24,11 @@ class ConfigInitializer
     public function createDefaultConfig(array $overrides = []): array
     {
         $defaultConfig = Yaml::parseFile($this->bundledConfigPath);
+        if (!is_array($defaultConfig)) {
+            throw new CognitiveAnalysisException(
+                sprintf('Bundled configuration file is invalid: %s', $this->bundledConfigPath)
+            );
+        }
 
         if ($overrides !== []) {
             $defaultConfig = array_replace_recursive($defaultConfig, $overrides);

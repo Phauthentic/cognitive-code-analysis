@@ -26,7 +26,7 @@ class ReportGenerationStage extends PipelineStage
     public function execute(ExecutionContext $context): OperationResult
     {
         $commandContext = $context->getCommandContext();
-        $sortedMetricsCollection = $context->getData('sortedMetricsCollection');
+        $sortedMetricsCollection = $context->getSortedMetricsCollection();
 
         if ($sortedMetricsCollection === null) {
             return OperationResult::failure('Metrics collection not available for report generation.');

@@ -82,7 +82,12 @@ class SvgTreemapReport extends AbstractReport
     {
         $svgRects = [];
         foreach ($rects as $rect) {
-            $normalizedScore = $this->treemapMath->normalizeScore(score: $rect['score'], minScore: $minScore, maxScore: $maxScore);
+            $score = $this->resolveFloatValue($rect['score'] ?? null, 0.0);
+            $normalizedScore = $this->treemapMath->normalizeScore(
+                score: $score,
+                minScore: $minScore,
+                maxScore: $maxScore
+            );
             $svgRects[] = $this->renderSvgRect(rect: $rect, normalizedScore: $normalizedScore);
         }
 
@@ -98,17 +103,18 @@ class SvgTreemapReport extends AbstractReport
      */
     private function renderSvgRect(array $rect, float $normalizedScore): string
     {
-        $x = $rect['x'] + self::PADDING;
-        $y = $rect['y'] + self::PADDING;
-        $width = max(0, $rect['width'] - self::PADDING * 2);
-        $height = max(0, $rect['height'] - self::PADDING * 2);
+        $x = $this->resolveFloatValue($rect['x'] ?? null, 0.0) + self::PADDING;
+        $y = $this->resolveFloatValue($rect['y'] ?? null, 0.0) + self::PADDING;
+        $width = max(0, $this->resolveFloatValue($rect['width'] ?? null, 0.0) - self::PADDING * 2);
+        $height = max(0, $this->resolveFloatValue($rect['height'] ?? null, 0.0) - self::PADDING * 2);
         $color = $this->treemapMath->scoreToColor(score: $normalizedScore);
-        $class = htmlspecialchars($rect['class']);
-        $churn = $rect['churn'];
-        $score = $rect['score'];
+        $className = is_string($rect['class'] ?? null) ? $rect['class'] : '';
+        $class = htmlspecialchars($className);
+        $churn = $this->resolveFloatValue($rect['churn'] ?? null, 0.0);
+        $score = $this->resolveFloatValue($rect['score'] ?? null, 0.0);
         $textX = $x + 4;
         $textY = $y + 18;
-        $label = htmlspecialchars(mb_strimwidth($rect['class'], 0, 40, '…'));
+        $label = htmlspecialchars(mb_strimwidth($className, 0, 40, '…'));
 
         return sprintf(
             '<g><rect x="%.2f" y="%.2f" width="%.2f" height="%.2f" fill="%s" stroke="#222" stroke-width="1"/><title>%s&#10;Churn: %s&#10;Score: %s</title><text x="%.2f" y="%.2f" font-size="13" fill="#000">%s</text></g>',
@@ -152,5 +158,14 @@ class SvgTreemapReport extends AbstractReport
     </g>
 </svg>
 SVG;
+    }
+
+    private function resolveFloatValue(mixed $value, float $default): float
+    {
+        if (is_int($value) || is_float($value)) {
+            return (float) $value;
+        }
+
+        return $default;
     }
 }
