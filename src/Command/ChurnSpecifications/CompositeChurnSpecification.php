@@ -37,10 +37,7 @@ class CompositeChurnSpecification implements ChurnCommandSpecification
         foreach ($this->specifications as $specification) {
             if (!$specification->isSatisfiedBy($context)) {
                 // Use context-specific error message if available
-                if (method_exists($specification, 'getErrorMessageWithContext')) {
-                    return $specification->getErrorMessageWithContext($context);
-                }
-                return $specification->getErrorMessage();
+                return $this->resolveSpecificationErrorMessage($specification, $context);
             }
         }
         return '';
@@ -54,5 +51,18 @@ class CompositeChurnSpecification implements ChurnCommandSpecification
             }
         }
         return null;
+    }
+
+    private function resolveSpecificationErrorMessage(
+        ChurnCommandSpecification $specification,
+        ChurnCommandContext $context
+    ): string {
+        return match (true) {
+            $specification instanceof CustomExporter,
+            $specification instanceof CoverageFileExists,
+            $specification instanceof CoverageFormatSupported =>
+                $specification->getErrorMessageWithContext($context),
+            default => $specification->getErrorMessage(),
+        };
     }
 }

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Config;
 
-use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 
 /**
  * @phpstan-type MetricConfigArray array{threshold: int|float, scale: float, enabled: bool}
@@ -80,7 +79,7 @@ class ConfigFactory
     {
         $cognitive = $config['cognitive'] ?? null;
         if (!is_array($cognitive)) {
-            throw new CognitiveAnalysisException('Configuration must contain a "cognitive" section.');
+            throw new ConfigException('Configuration must contain a "cognitive" section.');
         }
 
         /** @var CognitiveSectionArray $cognitive */

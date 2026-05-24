@@ -279,7 +279,7 @@ class CognitiveMetricsCollector
      * Find source files using DirectoryScanner
      *
      * @param string $path Path to the directory or file to scan
-     * @param array<int, string> $exclude List of regx to exclude
+     * @param array<string> $exclude List of regx to exclude
      * @return iterable<mixed, SplFileInfo> An iterable of SplFileInfo objects
      * @throws CognitiveAnalysisException
      */
@@ -364,7 +364,7 @@ class CognitiveMetricsCollector
         }
 
         $ignoredItems = $cachedData['ignored_items'] ?? [];
-        $this->ignoredItems = is_array($ignoredItems) ? $ignoredItems : [];
+        $this->ignoredItems = $this->normalizeIgnoredItems($ignoredItems);
         $this->messageBus->dispatch(new FileProcessed($file));
 
         $analysisResult = $cachedData['analysis_result'] ?? null;
@@ -419,5 +419,26 @@ class CognitiveMetricsCollector
 
             return null;
         }
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function normalizeIgnoredItems(mixed $ignoredItems): array
+    {
+        if (!is_array($ignoredItems)) {
+            return [];
+        }
+
+        $normalized = [];
+        foreach ($ignoredItems as $key => $value) {
+            if (!is_string($key)) {
+                continue;
+            }
+
+            $normalized[$key] = $value;
+        }
+
+        return $normalized;
     }
 }

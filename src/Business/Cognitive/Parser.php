@@ -60,7 +60,7 @@ class Parser
     }
 
     /**
-     * @return array<string, array<string, int>>
+     * @return array<string, array<string, mixed>>
      * @throws CognitiveAnalysisException
      */
     public function parse(string $code): array
@@ -72,37 +72,94 @@ class Parser
         $this->traverseAbstractSyntaxTreeWithCombinedVisitor($code);
 
         // Get all metrics before resetting
+        /** @var array<string, mixed> $methodMetrics */
         $methodMetrics = $this->combinedVisitor->getMethodMetrics();
+        /** @var array<string, mixed> $cyclomaticMetrics */
         $cyclomaticMetrics = $this->combinedVisitor->getMethodComplexity();
+        /** @var array<string, mixed> $halsteadMetrics */
         $halsteadMetrics = $this->combinedVisitor->getHalsteadMethodMetrics();
 
         // Now reset the combined visitor
         $this->combinedVisitor->resetAll();
 
-        // Add cyclomatic complexity to method metrics
+        $methodMetrics = $this->mergeCyclomaticMetrics($methodMetrics, $cyclomaticMetrics);
+        $methodMetrics = $this->mergeHalsteadMetrics($methodMetrics, $halsteadMetrics);
+
+        /** @var array<string, array<string, mixed>> $methodMetrics */
+        return $methodMetrics;
+    }
+
+    /**
+     * @param array<string, mixed> $methodMetrics
+     * @param array<string, mixed> $cyclomaticMetrics
+     * @return array<string, mixed>
+     */
+    private function mergeCyclomaticMetrics(array $methodMetrics, array $cyclomaticMetrics): array
+    {
         foreach ($cyclomaticMetrics as $method => $complexityData) {
-            if (!isset($methodMetrics[$method])) {
+            $methodMetric = $methodMetrics[$method] ?? null;
+            if (!is_array($methodMetric)) {
                 continue;
             }
 
-            $complexity = $complexityData['complexity'] ?? $complexityData;
-            $riskLevel = $complexityData['risk_level'] ?? $this->getRiskLevel($complexity);
-            $methodMetrics[$method]['cyclomatic_complexity'] = [
-                'complexity' => $complexity,
-                'risk_level' => $riskLevel
-            ];
-        }
-
-        // Add Halstead metrics to method metrics
-        foreach ($halsteadMetrics as $method => $metrics) {
-            if (!isset($methodMetrics[$method])) {
+            $resolved = $this->resolveCyclomaticData($complexityData);
+            if ($resolved === null) {
                 continue;
             }
 
-            $methodMetrics[$method]['halstead'] = $metrics;
+            $methodMetric['cyclomatic_complexity'] = $resolved;
+            $methodMetrics[$method] = $methodMetric;
         }
 
         return $methodMetrics;
+    }
+
+    /**
+     * @param array<string, mixed> $methodMetrics
+     * @param array<string, mixed> $halsteadMetrics
+     * @return array<string, mixed>
+     */
+    private function mergeHalsteadMetrics(array $methodMetrics, array $halsteadMetrics): array
+    {
+        foreach ($halsteadMetrics as $method => $metrics) {
+            $methodMetric = $methodMetrics[$method] ?? null;
+            if (!is_array($methodMetric) || !is_array($metrics)) {
+                continue;
+            }
+
+            $methodMetric['halstead'] = $metrics;
+            $methodMetrics[$method] = $methodMetric;
+        }
+
+        return $methodMetrics;
+    }
+
+    /**
+     * @return array{complexity: int, risk_level: string}|null
+     */
+    private function resolveCyclomaticData(mixed $complexityData): ?array
+    {
+        if (is_int($complexityData)) {
+            return [
+                'complexity' => $complexityData,
+                'risk_level' => $this->getRiskLevel($complexityData),
+            ];
+        }
+
+        if (!is_array($complexityData)) {
+            return null;
+        }
+
+        $complexity = is_int($complexityData['complexity'] ?? null)
+            ? $complexityData['complexity']
+            : 1;
+        $riskLevelValue = $complexityData['risk_level'] ?? $this->getRiskLevel($complexity);
+        $riskLevel = is_string($riskLevelValue) ? $riskLevelValue : $this->getRiskLevel($complexity);
+
+        return [
+            'complexity' => $complexity,
+            'risk_level' => $riskLevel,
+        ];
     }
 
     /**

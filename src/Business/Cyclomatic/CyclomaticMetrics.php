@@ -133,6 +133,7 @@ class CyclomaticMetrics
             $breakdown = [];
         }
 
+        /** @var array<string, mixed> $breakdown */
         $this->complexity = $this->resolveIntValue($data['complexity'] ?? null, 1);
         $this->riskLevel = $this->resolveRiskLevel($data);
         $this->totalCount = $this->resolveCountValue($data, $breakdown, 'totalCount', 'total', 0);

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications;
 
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report\CognitiveReportFactoryInterface;
+use Phauthentic\CognitiveCodeAnalysis\Business\Reporter\CustomExporterConfigValidator;
 use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
 
 /**
@@ -15,13 +16,13 @@ class CustomExporterValidation implements CognitiveMetricsSpecification
 {
     public function __construct(
         private readonly CognitiveReportFactoryInterface $reportFactory,
-        private readonly ConfigService $configService
+        private readonly ConfigService $configService,
+        private readonly CustomExporterConfigValidator $validator = new CustomExporterConfigValidator(),
     ) {
     }
 
     public function isSatisfiedBy(CognitiveMetricsCommandContext $context): bool
     {
-        // Only validate if report options are provided
         if (!$context->hasReportOptions()) {
             return true;
         }
@@ -31,13 +32,10 @@ class CustomExporterValidation implements CognitiveMetricsSpecification
             return true;
         }
 
-        // Check if it's a built-in type (always valid)
-        $builtInTypes = ['json', 'csv', 'html', 'markdown'];
-        if (in_array($reportType, $builtInTypes, true)) {
+        if ($this->isBuiltInReportType($reportType)) {
             return true;
         }
 
-        // For custom exporters, validate they can be loaded
         return $this->validateCustomExporter($reportType);
     }
 
@@ -53,93 +51,59 @@ class CustomExporterValidation implements CognitiveMetricsSpecification
             return 'Report type is required for validation';
         }
 
-        $config = $this->configService->getConfig();
-        $customReporters = $config->customReporters['cognitive'] ?? [];
-
-        if (!isset($customReporters[$reportType])) {
+        $exporterConfig = $this->resolveExporterConfig($reportType);
+        if ($exporterConfig === null) {
             $supportedTypes = implode('`, `', $this->reportFactory->getSupportedTypes());
+
             return "Custom exporter `{$reportType}` not found in configuration. Supported types: `{$supportedTypes}`";
         }
 
-        $exporterConfig = $customReporters[$reportType];
-        if (!is_array($exporterConfig)) {
-            return "Custom exporter `{$reportType}` has invalid configuration.";
-        }
-
-        $class = $exporterConfig['class'] ?? '';
-        $file = $exporterConfig['file'] ?? null;
-        if (!is_string($class)) {
-            return "Custom exporter `{$reportType}` must define a string 'class'.";
-        }
-
-        if ($file !== null && !is_string($file)) {
-            return "Custom exporter `{$reportType}` must define a string or null 'file'.";
-        }
-
-        if ($file !== null && !file_exists($file)) {
-            return "Exporter file not found: {$file}";
-        }
-
-        if ($file === null && !class_exists($class)) {
-            return "Exporter class not found: {$class}";
-        }
-
-        return "Custom exporter `{$reportType}` validation failed";
+        return $this->validator->getConfigurationError($reportType, $exporterConfig);
     }
 
     private function validateCustomExporter(string $reportType): bool
     {
         try {
-            $config = $this->configService->getConfig();
-            $customReporters = $config->customReporters['cognitive'] ?? [];
-
-            if (!isset($customReporters[$reportType])) {
+            $exporterConfig = $this->resolveExporterConfig($reportType);
+            if ($exporterConfig === null) {
                 return false;
             }
 
-            $exporterConfig = $customReporters[$reportType];
-            if (!is_array($exporterConfig)) {
+            $parsed = $this->validator->parseClassAndFile($exporterConfig);
+            if ($parsed === null) {
                 return false;
             }
 
-            $class = $exporterConfig['class'] ?? '';
-            $file = $exporterConfig['file'] ?? null;
-            if (!is_string($class)) {
-                return false;
-            }
-
-            if ($file !== null && !is_string($file)) {
-                return false;
-            }
-
-            // Validate file exists if specified
-            if ($file !== null && !file_exists($file)) {
-                return false;
-            }
-
-            // For file-based exporters, we'll do basic validation
-            // The actual class loading will happen later with proper autoloading
-            if ($file !== null) {
-                // Check if the file is readable
-                try {
-                    $content = file_get_contents($file);
-                    if ($content === false) {
-                        return false;
-                    }
-
-                    // Basic check: does the file contain a class with the expected name?
-                    // We'll look for the class name without the namespace prefix
-                    $className = basename(str_replace('\\', '/', $class));
-                    return strpos($content, $className) !== false;
-                } catch (\Throwable) {
-                    return false;
-                }
-            }
-
-            // If no file specified, class should be autoloadable
-            return class_exists($class);
+            return $this->validator->isLoadable($parsed);
         } catch (\Exception) {
             return false;
         }
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function resolveExporterConfig(string $reportType): ?array
+    {
+        $config = $this->configService->getConfig();
+        $customReporters = $config->customReporters['cognitive'] ?? [];
+
+        if (!isset($customReporters[$reportType])) {
+            return null;
+        }
+
+        $exporterConfig = $customReporters[$reportType];
+
+        if (!is_array($exporterConfig)) {
+            return null;
+        }
+
+        /** @var array<string, mixed> $exporterConfig */
+        return $exporterConfig;
+    }
+
+    private function isBuiltInReportType(string $reportType): bool
+    {
+        return in_array($reportType, ['json', 'csv', 'html', 'markdown'], true);
     }
 }

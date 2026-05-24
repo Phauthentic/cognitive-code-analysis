@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Config;
 
-use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 use Symfony\Component\Config\Definition\Processor;
 use Symfony\Component\Yaml\Yaml;
 
@@ -25,7 +24,7 @@ class ConfigInitializer
     {
         $defaultConfig = Yaml::parseFile($this->bundledConfigPath);
         if (!is_array($defaultConfig)) {
-            throw new CognitiveAnalysisException(
+            throw new ConfigException(
                 sprintf('Bundled configuration file is invalid: %s', $this->bundledConfigPath)
             );
         }
@@ -34,7 +33,10 @@ class ConfigInitializer
             $defaultConfig = array_replace_recursive($defaultConfig, $overrides);
         }
 
-        return $this->processor->processConfiguration($this->configLoader, [$defaultConfig]);
+        /** @var array<string, mixed> $config */
+        $config = $this->processor->processConfiguration($this->configLoader, [$defaultConfig]);
+
+        return $config;
     }
 
     /**
@@ -44,12 +46,12 @@ class ConfigInitializer
     {
         $directory = dirname($path);
         if (!is_dir($directory) && !mkdir($directory, 0755, true) && !is_dir($directory)) {
-            throw new CognitiveAnalysisException("Failed to create directory: {$directory}");
+            throw new ConfigException("Failed to create directory: {$directory}");
         }
 
         $yaml = Yaml::dump($config, 4, 2);
         if (file_put_contents($path, $yaml) === false) {
-            throw new CognitiveAnalysisException("Failed to write config file: {$path}");
+            throw new ConfigException("Failed to write config file: {$path}");
         }
     }
 }

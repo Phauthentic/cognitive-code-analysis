@@ -44,10 +44,13 @@ class ScoreCalculator
 
     private function calculateScore(CognitiveMetrics $metrics): void
     {
-        $score = 0;
+        $score = 0.0;
         foreach ($this->combinedMetrics as $metric) {
             $methodName = 'get' . $metric . 'Weight';
-            $score += $metrics->{$methodName}();
+            $weight = $metrics->{$methodName}();
+            if (is_int($weight) || is_float($weight)) {
+                $score += $weight;
+            }
         }
 
         $metrics->setScore(round($score, 3));
@@ -70,9 +73,14 @@ class ScoreCalculator
             $getMethod = 'get' . $methodSuffix;
             $setMethod = 'set' . $methodSuffix . 'Weight';
 
+            $metricValue = $metrics->{$getMethod}();
+            if (!is_int($metricValue) && !is_float($metricValue)) {
+                $metricValue = 0;
+            }
+
             $metrics->{$setMethod}(
                 $this->calculateLogWeight(
-                    $metrics->{$getMethod}(),
+                    (float) $metricValue,
                     $metricConfigs[$configKey]->threshold,
                     $metricConfigs[$configKey]->scale,
                 )

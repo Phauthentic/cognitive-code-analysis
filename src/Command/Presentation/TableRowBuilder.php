@@ -150,8 +150,11 @@ class TableRowBuilder
         $getMethod = 'get' . $key;
         $getMethodWeight = 'get' . $key . 'Weight';
 
-        $weight = (float)$metrics->{$getMethodWeight}();
-        $row[$key] = $metrics->{$getMethod}() . ' (' . round($weight, 3) . ')';
+        $weightValue = $metrics->{$getMethodWeight}();
+        $weight = is_int($weightValue) || is_float($weightValue) ? (float) $weightValue : 0.0;
+        $countValue = $metrics->{$getMethod}();
+        $count = is_int($countValue) ? (string) $countValue : '0';
+        $row[$key] = $count . ' (' . round($weight, 3) . ')';
 
         return $row;
     }
@@ -168,7 +171,11 @@ class TableRowBuilder
         $this->assertDeltaMethodExists($metrics, $getDeltaMethod);
 
         $delta = $metrics->{$getDeltaMethod}();
-        if ($delta === null || $delta->hasNotChanged()) {
+        if (!$delta instanceof Delta) {
+            return $row;
+        }
+
+        if ($delta->hasNotChanged()) {
             return $row;
         }
 
