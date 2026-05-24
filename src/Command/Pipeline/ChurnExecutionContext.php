@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Command\Pipeline;
 
+use InvalidArgumentException;
+use Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChurnMetricsCollection;
+use Phauthentic\CognitiveCodeAnalysis\Business\CodeCoverage\CoverageReportReaderInterface;
 use Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications\ChurnCommandContext;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -100,12 +103,41 @@ class ChurnExecutionContext
         return array_key_exists($key, $this->data);
     }
 
+    public function getCoverageReader(): ?CoverageReportReaderInterface
+    {
+        $value = $this->data['coverageReader'] ?? null;
+        if ($value === null) {
+            return null;
+        }
+
+        if (!$value instanceof CoverageReportReaderInterface) {
+            throw new InvalidArgumentException('Invalid coverage reader in execution context.');
+        }
+
+        return $value;
+    }
+
+    public function getChurnMetrics(): ?ChurnMetricsCollection
+    {
+        $value = $this->data['churnMetrics'] ?? null;
+        if ($value === null) {
+            return null;
+        }
+
+        if (!$value instanceof ChurnMetricsCollection) {
+            throw new InvalidArgumentException('Invalid churn metrics in execution context.');
+        }
+
+        return $value;
+    }
+
     /**
      * Increment a statistic counter.
      */
     public function incrementStatistic(string $key, int $amount = 1): void
     {
-        $this->statistics[$key] = ($this->statistics[$key] ?? 0) + $amount;
+        $current = $this->statistics[$key] ?? 0;
+        $this->statistics[$key] = (is_int($current) ? $current : 0) + $amount;
     }
 
     /**

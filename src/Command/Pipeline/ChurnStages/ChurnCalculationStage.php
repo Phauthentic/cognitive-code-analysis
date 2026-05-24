@@ -24,7 +24,7 @@ class ChurnCalculationStage implements ChurnPipelineStage
         $commandContext = $context->getCommandContext();
 
         // Get coverage data from previous stage
-        $coverageReader = $context->getData('coverageReader');
+        $coverageReader = $context->getCoverageReader();
 
         // Calculate churn metrics
         $metrics = $this->metricsFacade->calculateChurn(

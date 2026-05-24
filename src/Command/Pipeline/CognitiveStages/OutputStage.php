@@ -22,7 +22,7 @@ class OutputStage extends PipelineStage
 
     public function execute(ExecutionContext $context): OperationResult
     {
-        $sortedMetricsCollection = $context->getData('sortedMetricsCollection');
+        $sortedMetricsCollection = $context->getSortedMetricsCollection();
 
         if ($sortedMetricsCollection === null) {
             return OperationResult::failure('Metrics collection not available for console output.');
@@ -39,7 +39,7 @@ class OutputStage extends PipelineStage
         }
 
         // Display baseline generation message if generated
-        $baselineGenerated = $context->getData('baselineGenerated');
+        $baselineGenerated = $context->getBaselineGeneratedPath();
         if ($baselineGenerated !== null) {
             $context->getOutput()->writeln('<info>Baseline file generated: ' . $baselineGenerated . '</info>');
         }

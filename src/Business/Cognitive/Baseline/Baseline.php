@@ -23,7 +23,17 @@ class Baseline
         $warnings = [];
 
         foreach ($baseline as $class => $data) {
-            foreach ($data['methods'] as $methodName => $methodData) {
+            $methods = $data['methods'] ?? null;
+            if (!is_array($methods)) {
+                continue;
+            }
+
+            foreach ($methods as $methodName => $methodData) {
+                if (!is_string($methodName) || !is_array($methodData)) {
+                    continue;
+                }
+
+                /** @var array<string, mixed> $methodData */
                 $metrics = $metricsCollection->getClassWithMethod($class, $methodName);
                 if (!$metrics) {
                     continue;
@@ -57,6 +67,11 @@ class Baseline
         }
 
         $data = json_decode($baseline, true, 512, JSON_THROW_ON_ERROR);
+        if (!is_array($data)) {
+            throw new CognitiveAnalysisException('Baseline file must contain a JSON object.');
+        }
+
+        /** @var array<string, mixed> $data */
 
         // Validate against JSON schema
         $validator = new BaselineSchemaValidator();
@@ -68,9 +83,11 @@ class Baseline
         }
 
         $result = BaselineFile::fromJson($data);
+        /** @var array<string, array<string, mixed>> $metrics */
+        $metrics = $result['metrics'];
 
         return [
-            'metrics' => $result['metrics'],
+            'metrics' => $metrics,
             'baselineFile' => $result['baselineFile'],
             'warnings' => []
         ];
@@ -182,9 +199,11 @@ class Baseline
             }
 
             $data = json_decode($content, true);
-            if ($data === null) {
+            if (!is_array($data)) {
                 return false;
             }
+
+            /** @var array<string, mixed> $data */
 
             // Use schema validator for comprehensive validation
             $validator = new BaselineSchemaValidator();

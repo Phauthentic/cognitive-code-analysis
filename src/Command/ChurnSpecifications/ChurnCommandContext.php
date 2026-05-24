@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications;
 
+use InvalidArgumentException;
 use Phauthentic\CognitiveCodeAnalysis\Config\ConfigFileResolver;
 use Symfony\Component\Console\Input\InputInterface;
 
@@ -17,7 +18,7 @@ class ChurnCommandContext
 
     public function getConfigFile(): ?string
     {
-        return $this->configFileResolver->resolve($this->input->getOption('config'));
+        return $this->configFileResolver->resolve($this->getOptionalStringOption('config'));
     }
 
     public function hasConfigFile(): bool
@@ -27,12 +28,12 @@ class ChurnCommandContext
 
     public function getCoberturaFile(): ?string
     {
-        return $this->input->getOption('coverage-cobertura');
+        return $this->getOptionalStringOption('coverage-cobertura');
     }
 
     public function getCloverFile(): ?string
     {
-        return $this->input->getOption('coverage-clover');
+        return $this->getOptionalStringOption('coverage-clover');
     }
 
     public function hasCoberturaFile(): bool
@@ -63,12 +64,12 @@ class ChurnCommandContext
 
     public function getReportType(): ?string
     {
-        return $this->input->getOption('report-type');
+        return $this->getOptionalStringOption('report-type');
     }
 
     public function getReportFile(): ?string
     {
-        return $this->input->getOption('report-file');
+        return $this->getOptionalStringOption('report-file');
     }
 
     public function hasReportOptions(): bool
@@ -78,16 +79,40 @@ class ChurnCommandContext
 
     public function getPath(): string
     {
-        return $this->input->getArgument('path');
+        return $this->getRequiredStringArgument('path');
     }
 
     public function getVcsType(): string
     {
-        return $this->input->getOption('vcs') ?? 'git';
+        return $this->getStringOptionWithDefault('vcs', 'git');
     }
 
     public function getSince(): string
     {
-        return $this->input->getOption('since') ?? '2000-01-01';
+        return $this->getStringOptionWithDefault('since', '2000-01-01');
+    }
+
+    private function getOptionalStringOption(string $name): ?string
+    {
+        $value = $this->input->getOption($name);
+
+        return is_string($value) ? $value : null;
+    }
+
+    private function getStringOptionWithDefault(string $name, string $default): string
+    {
+        $value = $this->input->getOption($name);
+
+        return is_string($value) ? $value : $default;
+    }
+
+    private function getRequiredStringArgument(string $name): string
+    {
+        $value = $this->input->getArgument($name);
+        if (!is_string($value)) {
+            throw new InvalidArgumentException(sprintf('Argument "%s" must be a string.', $name));
+        }
+
+        return $value;
     }
 }

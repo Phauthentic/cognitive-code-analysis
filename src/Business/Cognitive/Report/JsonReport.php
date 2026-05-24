@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report;
 
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetrics;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 
 class JsonReport implements ReportGeneratorInterface, StreamableReportInterface
 {
     private ?string $filename = null;
-    /** @var array<mixed> */
+    /** @var array<string, array{methods: array<string, array<string, int|float|string>>}> */
     private array $jsonData = [];
     private bool $isStreaming = false;
 
@@ -25,27 +26,7 @@ class JsonReport implements ReportGeneratorInterface, StreamableReportInterface
 
         foreach ($groupedByClass as $class => $methods) {
             foreach ($methods as $metrics) {
-                $jsonData[$class]['methods'][$metrics->getMethod()] = [
-                    'class' => $metrics->getClass(),
-                    'method' => $metrics->getMethod(),
-                    'lineCount' => $metrics->getLineCount(),
-                    'lineCountWeight' => $metrics->getLineCountWeight(),
-                    'argCount' => $metrics->getArgCount(),
-                    'argCountWeight' => $metrics->getArgCountWeight(),
-                    'returnCount' => $metrics->getReturnCount(),
-                    'returnCountWeight' => $metrics->getReturnCountWeight(),
-                    'variableCount' => $metrics->getVariableCount(),
-                    'variableCountWeight' => $metrics->getVariableCountWeight(),
-                    'propertyCallCount' => $metrics->getPropertyCallCount(),
-                    'propertyCallCountWeight' => $metrics->getPropertyCallCountWeight(),
-                    'ifCount' => $metrics->getIfCount(),
-                    'ifCountWeight' => $metrics->getIfCountWeight(),
-                    'ifNestingLevel' => $metrics->getIfNestingLevel(),
-                    'ifNestingLevelWeight' => $metrics->getIfNestingLevelWeight(),
-                    'elseCount' => $metrics->getElseCount(),
-                    'elseCountWeight' => $metrics->getElseCountWeight(),
-                    'score' => $metrics->getScore()
-                ];
+                $this->addClassMethodMetrics($jsonData, (string) $class, $metrics);
             }
         }
 
@@ -76,29 +57,41 @@ class JsonReport implements ReportGeneratorInterface, StreamableReportInterface
 
         foreach ($groupedByClass as $class => $methods) {
             foreach ($methods as $metrics) {
-                $this->jsonData[$class]['methods'][$metrics->getMethod()] = [
-                    'class' => $metrics->getClass(),
-                    'method' => $metrics->getMethod(),
-                    'lineCount' => $metrics->getLineCount(),
-                    'lineCountWeight' => $metrics->getLineCountWeight(),
-                    'argCount' => $metrics->getArgCount(),
-                    'argCountWeight' => $metrics->getArgCountWeight(),
-                    'returnCount' => $metrics->getReturnCount(),
-                    'returnCountWeight' => $metrics->getReturnCountWeight(),
-                    'variableCount' => $metrics->getVariableCount(),
-                    'variableCountWeight' => $metrics->getVariableCountWeight(),
-                    'propertyCallCount' => $metrics->getPropertyCallCount(),
-                    'propertyCallCountWeight' => $metrics->getPropertyCallCountWeight(),
-                    'ifCount' => $metrics->getIfCount(),
-                    'ifCountWeight' => $metrics->getIfCountWeight(),
-                    'ifNestingLevel' => $metrics->getIfNestingLevel(),
-                    'ifNestingLevelWeight' => $metrics->getIfNestingLevelWeight(),
-                    'elseCount' => $metrics->getElseCount(),
-                    'elseCountWeight' => $metrics->getElseCountWeight(),
-                    'score' => $metrics->getScore()
-                ];
+                $this->addClassMethodMetrics($this->jsonData, (string) $class, $metrics);
             }
         }
+    }
+
+    /**
+     * @param array<string, array{methods: array<string, array<string, int|float|string>>}> $jsonData
+     */
+    private function addClassMethodMetrics(array &$jsonData, string $class, CognitiveMetrics $metrics): void
+    {
+        if (!isset($jsonData[$class])) {
+            $jsonData[$class] = ['methods' => []];
+        }
+
+        $jsonData[$class]['methods'][$metrics->getMethod()] = [
+            'class' => $metrics->getClass(),
+            'method' => $metrics->getMethod(),
+            'lineCount' => $metrics->getLineCount(),
+            'lineCountWeight' => $metrics->getLineCountWeight(),
+            'argCount' => $metrics->getArgCount(),
+            'argCountWeight' => $metrics->getArgCountWeight(),
+            'returnCount' => $metrics->getReturnCount(),
+            'returnCountWeight' => $metrics->getReturnCountWeight(),
+            'variableCount' => $metrics->getVariableCount(),
+            'variableCountWeight' => $metrics->getVariableCountWeight(),
+            'propertyCallCount' => $metrics->getPropertyCallCount(),
+            'propertyCallCountWeight' => $metrics->getPropertyCallCountWeight(),
+            'ifCount' => $metrics->getIfCount(),
+            'ifCountWeight' => $metrics->getIfCountWeight(),
+            'ifNestingLevel' => $metrics->getIfNestingLevel(),
+            'ifNestingLevelWeight' => $metrics->getIfNestingLevelWeight(),
+            'elseCount' => $metrics->getElseCount(),
+            'elseCountWeight' => $metrics->getElseCountWeight(),
+            'score' => $metrics->getScore(),
+        ];
     }
 
     /**

@@ -173,7 +173,7 @@ class ChurnMetricsCollection implements IteratorAggregate, Countable, JsonSerial
     {
         $result = [];
         foreach ($this->metrics as $className => $metric) {
-            $result[$className] = $metric->toArray();
+            $result[(string) $className] = $metric->toArray();
         }
         return $result;
     }

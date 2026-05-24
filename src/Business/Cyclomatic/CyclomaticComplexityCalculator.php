@@ -93,24 +93,43 @@ class CyclomaticComplexityCalculator implements CyclomaticComplexityCalculatorIn
      */
     public function methodSummary(array $methodComplexities, array $methodBreakdowns, array $summary): array
     {
+        $methods = $summary['methods'] ?? [];
+        if (!is_array($methods)) {
+            $methods = [];
+        }
+
+        $highRiskMethods = $summary['high_risk_methods'] ?? [];
+        if (!is_array($highRiskMethods)) {
+            $highRiskMethods = [];
+        }
+
+        $veryHighRiskMethods = $summary['very_high_risk_methods'] ?? [];
+        if (!is_array($veryHighRiskMethods)) {
+            $veryHighRiskMethods = [];
+        }
+
         foreach ($methodComplexities as $methodKey => $complexity) {
             $riskLevel = $this->getRiskLevel($complexity);
-            $summary['methods'][$methodKey] = [
+            $methods[$methodKey] = [
                 'complexity' => $complexity,
                 'risk_level' => $riskLevel,
                 'breakdown' => $methodBreakdowns[$methodKey] ?? [],
             ];
 
             if ($complexity >= 10) {
-                $summary['high_risk_methods'][$methodKey] = $complexity;
+                $highRiskMethods[$methodKey] = $complexity;
             }
 
             if ($complexity < 15) {
                 continue;
             }
 
-            $summary['very_high_risk_methods'][$methodKey] = $complexity;
+            $veryHighRiskMethods[$methodKey] = $complexity;
         }
+
+        $summary['methods'] = $methods;
+        $summary['high_risk_methods'] = $highRiskMethods;
+        $summary['very_high_risk_methods'] = $veryHighRiskMethods;
 
         return $summary;
     }
@@ -124,12 +143,19 @@ class CyclomaticComplexityCalculator implements CyclomaticComplexityCalculatorIn
      */
     public function classSummary(array $classComplexities, array $summary): array
     {
+        $classes = $summary['classes'] ?? [];
+        if (!is_array($classes)) {
+            $classes = [];
+        }
+
         foreach ($classComplexities as $className => $complexity) {
-            $summary['classes'][$className] = [
+            $classes[$className] = [
                 'complexity' => $complexity,
                 'risk_level' => $this->getRiskLevel($complexity),
             ];
         }
+
+        $summary['classes'] = $classes;
 
         return $summary;
     }

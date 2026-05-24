@@ -23,7 +23,7 @@ class SortingStage extends PipelineStage
     public function execute(ExecutionContext $context): OperationResult
     {
         $commandContext = $context->getCommandContext();
-        $metricsCollection = $context->getData('metricsCollection');
+        $metricsCollection = $context->getMetricsCollection();
 
         $sortBy = $commandContext->getSortBy();
         $sortOrder = $commandContext->getSortOrder();
@@ -32,6 +32,10 @@ class SortingStage extends PipelineStage
             // Store unsorted metrics in context
             $context->setData('sortedMetricsCollection', $metricsCollection);
             return OperationResult::success();
+        }
+
+        if ($metricsCollection === null) {
+            return OperationResult::failure('Metrics collection not available for sorting.');
         }
 
         try {

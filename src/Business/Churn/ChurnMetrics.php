@@ -49,16 +49,33 @@ class ChurnMetrics implements JsonSerializable
      */
     public static function fromArray(string $className, array $data): self
     {
+        $file = $data['file'] ?? '';
+        $riskLevel = $data['riskLevel'] ?? null;
+
         return new self(
             className: $className,
-            file: $data['file'] ?? '',
-            score: (float)($data['score'] ?? 0),
-            timesChanged: (int)($data['timesChanged'] ?? 0),
-            churn: (float)($data['churn'] ?? 0),
-            coverage: isset($data['coverage']) ? (float)$data['coverage'] : null,
-            riskChurn: isset($data['riskChurn']) ? (float)$data['riskChurn'] : null,
-            riskLevel: $data['riskLevel'] ?? null
+            file: is_string($file) ? $file : '',
+            score: self::resolveFloatValue($data['score'] ?? null, 0.0),
+            timesChanged: self::resolveIntValue($data['timesChanged'] ?? null, 0),
+            churn: self::resolveFloatValue($data['churn'] ?? null, 0.0),
+            coverage: isset($data['coverage']) ? self::resolveFloatValue($data['coverage'], 0.0) : null,
+            riskChurn: isset($data['riskChurn']) ? self::resolveFloatValue($data['riskChurn'], 0.0) : null,
+            riskLevel: is_string($riskLevel) ? $riskLevel : null
         );
+    }
+
+    private static function resolveIntValue(mixed $value, int $default): int
+    {
+        return is_int($value) ? $value : $default;
+    }
+
+    private static function resolveFloatValue(mixed $value, float $default): float
+    {
+        if (is_int($value) || is_float($value)) {
+            return (float) $value;
+        }
+
+        return $default;
     }
 
     /**

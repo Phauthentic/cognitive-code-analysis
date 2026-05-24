@@ -48,12 +48,24 @@ class CompositeCognitiveMetricsValidationSpecification implements CognitiveMetri
         foreach ($this->specifications as $specification) {
             if (!$specification->isSatisfiedBy($context)) {
                 // Use context-specific error message if available
-                if (method_exists($specification, 'getErrorMessageWithContext')) {
-                    return $specification->getErrorMessageWithContext($context);
-                }
-                return $specification->getErrorMessage();
+                return $this->resolveSpecificationErrorMessage($specification, $context);
             }
         }
         return '';
+    }
+
+    private function resolveSpecificationErrorMessage(
+        CognitiveMetricsSpecification $specification,
+        CognitiveMetricsCommandContext $context
+    ): string {
+        return match (true) {
+            $specification instanceof CustomExporterValidation,
+            $specification instanceof CoverageFileExists,
+            $specification instanceof CoverageFormatSupported,
+            $specification instanceof SortFieldValid,
+            $specification instanceof SortOrderValid =>
+                $specification->getErrorMessageWithContext($context),
+            default => $specification->getErrorMessage(),
+        };
     }
 }

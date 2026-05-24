@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Baseline;
 
+use InvalidArgumentException;
 use JsonSerializable;
 use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
@@ -51,19 +52,29 @@ class BaselineFile implements JsonSerializable
     {
         // Check if this is the new format (has version field)
         if (isset($data['version']) && $data['version'] === self::VERSION) {
+            $createdAt = $data['createdAt'] ?? null;
+            $configHash = $data['configHash'] ?? null;
+            $metrics = $data['metrics'] ?? null;
+
+            if (!is_string($createdAt) || !is_string($configHash) || !is_array($metrics)) {
+                throw new InvalidArgumentException('Invalid baseline file metadata.');
+            }
+
+            /** @var array<string, array<string, mixed>> $metrics */
             $baselineFile = new self(
-                $data['createdAt'],
-                $data['configHash'],
-                $data['metrics']
+                $createdAt,
+                $configHash,
+                $metrics
             );
 
             return [
                 'baselineFile' => $baselineFile,
-                'metrics' => $data['metrics']
+                'metrics' => $metrics
             ];
         }
 
         // Old format - return null for baselineFile, data as metrics
+        /** @var array<string, mixed> $data */
         return [
             'baselineFile' => null,
             'metrics' => $data

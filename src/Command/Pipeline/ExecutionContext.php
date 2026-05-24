@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Command\Pipeline;
 
+use InvalidArgumentException;
+use Phauthentic\CognitiveCodeAnalysis\Business\CodeCoverage\CoverageReportReaderInterface;
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
 use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\CognitiveMetricsCommandContext;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -102,12 +105,62 @@ class ExecutionContext
         return array_key_exists($key, $this->data);
     }
 
+    public function getCoverageReader(): ?CoverageReportReaderInterface
+    {
+        $value = $this->data['coverageReader'] ?? null;
+        if ($value === null) {
+            return null;
+        }
+
+        if (!$value instanceof CoverageReportReaderInterface) {
+            throw new InvalidArgumentException('Invalid coverage reader in execution context.');
+        }
+
+        return $value;
+    }
+
+    public function getMetricsCollection(): ?CognitiveMetricsCollection
+    {
+        $value = $this->data['metricsCollection'] ?? null;
+        if ($value === null) {
+            return null;
+        }
+
+        if (!$value instanceof CognitiveMetricsCollection) {
+            throw new InvalidArgumentException('Invalid metrics collection in execution context.');
+        }
+
+        return $value;
+    }
+
+    public function getSortedMetricsCollection(): ?CognitiveMetricsCollection
+    {
+        $value = $this->data['sortedMetricsCollection'] ?? null;
+        if ($value === null) {
+            return null;
+        }
+
+        if (!$value instanceof CognitiveMetricsCollection) {
+            throw new InvalidArgumentException('Invalid sorted metrics collection in execution context.');
+        }
+
+        return $value;
+    }
+
+    public function getBaselineGeneratedPath(): ?string
+    {
+        $value = $this->data['baselineGenerated'] ?? null;
+
+        return is_string($value) ? $value : null;
+    }
+
     /**
      * Increment a statistic counter.
      */
     public function incrementStatistic(string $key, int $amount = 1): void
     {
-        $this->statistics[$key] = ($this->statistics[$key] ?? 0) + $amount;
+        $current = $this->statistics[$key] ?? 0;
+        $this->statistics[$key] = (is_int($current) ? $current : 0) + $amount;
     }
 
     /**
