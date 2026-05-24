@@ -2,7 +2,7 @@ cognitive:
   excludeFilePatterns:
   excludePatterns:
   scoreThreshold: 0.5
-  showOnlyMethodsExceedingThreshold: false
+  showOnlyMethodsExceedingThreshold: true
   showHalsteadComplexity: false
   showCyclomaticComplexity: false
   showDetailedCognitiveMetrics: true
