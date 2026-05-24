@@ -52,6 +52,7 @@ use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\CognitiveStages\Validatio
 use Phauthentic\CognitiveCodeAnalysis\Command\Presentation\ChurnTextRenderer;
 use Phauthentic\CognitiveCodeAnalysis\Command\Presentation\CognitiveMetricTextRenderer;
 use Phauthentic\CognitiveCodeAnalysis\Command\Presentation\CognitiveMetricTextRendererInterface;
+use Phauthentic\CognitiveCodeAnalysis\Command\Presentation\RuntimeStatusRenderer;
 use Phauthentic\CognitiveCodeAnalysis\Config\ConfigFileResolver;
 use Phauthentic\CognitiveCodeAnalysis\Config\ConfigInitializer;
 use Phauthentic\CognitiveCodeAnalysis\Config\ConfigLoader;
@@ -170,6 +171,9 @@ class Application
             ->setArguments([
                 new Reference(ConfigService::class)
             ])
+            ->setPublic(true);
+
+        $this->containerBuilder->register(RuntimeStatusRenderer::class, RuntimeStatusRenderer::class)
             ->setPublic(true);
     }
 
@@ -314,6 +318,7 @@ class Application
         $this->containerBuilder->register(ConfigurationStage::class, ConfigurationStage::class)
             ->setArguments([
                 new Reference(MetricsFacade::class),
+                new Reference(RuntimeStatusRenderer::class),
             ])
             ->setPublic(true);
 
@@ -388,6 +393,7 @@ class Application
         $this->containerBuilder->register(ChurnConfigurationStage::class, ChurnConfigurationStage::class)
             ->setArguments([
                 new Reference(MetricsFacade::class),
+                new Reference(RuntimeStatusRenderer::class),
             ])
             ->setPublic(true);
 
