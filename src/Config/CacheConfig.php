@@ -25,7 +25,6 @@ class CacheConfig
         return [
             'enabled' => $this->enabled,
             'directory' => $this->directory,
-            ''
         ];
     }
 }
