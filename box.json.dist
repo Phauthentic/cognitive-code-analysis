@@ -9,7 +9,7 @@
         "KevinGH\\Box\\Compactor\\PhpScoper"
     ],
     "files": [
-        "config.yml",
+        "phpcca.yaml",
         "composer.json",
         "readme.md",
         "LICENSE"

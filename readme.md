@@ -37,12 +37,12 @@ composer require --dev phauthentic/cognitive-code-analysis
 Create a project configuration file:
 
 ```bash
-bin/phpcca init                  # interactive setup → creates cca.yaml in current directory
+bin/phpcca init                  # interactive setup → creates phpcca.yaml in current directory
 bin/phpcca init --silent         # non-interactive, all defaults
-bin/phpcca init --path=/path/to/cca.yaml
+bin/phpcca init --path=/path/to/phpcca.yaml
 ```
 
-When `cca.yaml` exists in the current working directory, `analyse` and `churn` load it automatically. Use `--config` to specify a different file.
+When `phpcca.yaml` exists in the current working directory, `analyse` and `churn` load it automatically. Use `--config` to specify a different file.
 
 Cognitive Complexity Analysis
 
@@ -163,6 +163,6 @@ Especially the AST-parser used under the hood to analyse the code might have iss
 
 ## License ⚖️
 
-Copyright Florian Krämer
+Copyright [Florian Krämer](https://florian-kraemer.net/)
 
 Licensed under the [GPL3 license](LICENSE).

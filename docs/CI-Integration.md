@@ -13,7 +13,7 @@ A typical CI integration follows these steps:
 3. Run `bin/phpcca analyse` on those files only
 4. Publish the report (Markdown comment, SARIF upload, or quality gate)
 
-When `cca.yaml` exists in the project root, `analyse` loads it automatically. Use `--config=path/to/config.yaml` to override.
+When `phpcca.yaml` exists in the project root, `analyse` loads it automatically. Use `--config=path/to/config.yaml` to override.
 
 ## Report formats for CI
 
@@ -38,7 +38,7 @@ See [Baseline Analysis](./Baseline-Analysis.md) to compare metrics against a pre
 
 The workflow below runs on pull requests, analyses changed PHP files, posts a Markdown report as a PR comment, and uploads the report as an artifact.
 
-Add `--config=cca.yaml` if your config file is not named `cca.yaml` or not in the working directory.
+Add `--config=phpcca.yaml` if your config file is not named `phpcca.yaml` or not in the working directory.
 
 ```yaml
 name: Code Metrics
@@ -142,7 +142,7 @@ Then upload `results.sarif` using the [GitHub Code Scanning upload action](https
 
 The job below runs on merge requests, analyses changed PHP files, posts a Markdown report as an MR note, and stores the report as an artifact.
 
-Use `--config=cca.yaml` when your config file is not auto-discovered from the project root.
+Use `--config=phpcca.yaml` when your config file is not auto-discovered from the project root.
 
 ```yaml
 Code-Metrics:
@@ -166,7 +166,7 @@ Code-Metrics:
         CHANGED_FILES=$(find src/ -name "*.php" | tr '\n' ' ')
       fi
       if [ -n "$CHANGED_FILES" ]; then
-        bin/phpcca analyse $CHANGED_FILES --report-type=markdown --report-file=cca-report.md --config=cca.yaml
+        bin/phpcca analyse $CHANGED_FILES --report-type=markdown --report-file=cca-report.md --config=phpcca.yaml
         if [ -f "cca-report.md" ] && [ -s "cca-report.md" ]; then
           # Try with CI_JOB_TOKEN first, fallback to CI/CD variables
           if [ -n "$VALIDATOR" ]; then
@@ -237,7 +237,7 @@ GitLab picks up the Code Quality report automatically when configured in your pi
 
 ## Related
 
-- [Configuration](./Configuration.md) — project setup with `bin/phpcca init` and `cca.yaml`
+- [Configuration](./Configuration.md) — project setup with `bin/phpcca init` and `phpcca.yaml`
 - [Baseline Analysis](./Baseline-Analysis.md) — track complexity changes over time
 - [Creating Custom Reporters](./Creating-Custom-Reporters.md) — extend report output for custom CI integrations
 - [Issue #29](https://github.com/Phauthentic/cognitive-code-analysis/issues/29) — original feature discussion for GitHub Actions and branch comparison

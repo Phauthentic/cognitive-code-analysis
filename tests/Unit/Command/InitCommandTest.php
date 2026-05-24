@@ -30,7 +30,7 @@ class InitCommandTest extends TestCase
     #[Test]
     public function silentModeCreatesConfigWithDefaultsAtGivenPath(): void
     {
-        $targetPath = $this->tempDir . '/cca.yaml';
+        $targetPath = $this->tempDir . '/phpcca.yaml';
         $tester = $this->createCommandTester();
 
         $statusCode = $tester->execute([
@@ -61,7 +61,7 @@ class InitCommandTest extends TestCase
             $statusCode = $tester->execute(['--silent' => true]);
 
             $this->assertSame(Command::SUCCESS, $statusCode);
-            $this->assertFileExists($this->tempDir . '/cca.yaml');
+            $this->assertFileExists($this->tempDir . '/phpcca.yaml');
         } finally {
             chdir($originalWorkingDirectory);
         }

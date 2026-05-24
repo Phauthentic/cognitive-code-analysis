@@ -192,7 +192,7 @@ class Application
             ->setArguments([
                 new Reference(Processor::class),
                 new Reference(ConfigLoader::class),
-                __DIR__ . '/../config.yml',
+                __DIR__ . '/../phpcca.yaml',
             ])
             ->setPublic(true);
 

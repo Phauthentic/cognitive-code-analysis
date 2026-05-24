@@ -16,7 +16,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
     name: 'init',
-    description: 'Create a default cca.yaml for cognitive code analysis.'
+    description: 'Create a default phpcca.yaml for cognitive code analysis.'
 )]
 class InitCommand extends Command
 {

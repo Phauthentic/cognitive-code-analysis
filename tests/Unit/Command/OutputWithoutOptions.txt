@@ -1,3 +1,6 @@
+Config: ./tests/Unit/Command/minimal-config.yml
+Cache: disabled
+
 Class: \ClassOne
 File: tests/TestCode/FileWithTwoClasses.php
 ┌─────────────┬───────┬───────────┬─────────┬───────────┬──────────┬───────┬────────────┬───────┬────────────┐

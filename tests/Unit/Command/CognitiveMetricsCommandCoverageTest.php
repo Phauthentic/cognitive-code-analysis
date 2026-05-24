@@ -17,6 +17,17 @@ use Symfony\Component\Console\Tester\CommandTester;
  */
 class CognitiveMetricsCommandCoverageTest extends TestCase
 {
+    private const TEST_CONFIG = __DIR__ . '/minimal-config.yml';
+
+    /**
+     * @param array<string, mixed> $input
+     * @return array<string, mixed>
+     */
+    private function withTestConfig(array $input): array
+    {
+        return ['--config' => self::TEST_CONFIG] + $input;
+    }
+
     #[Test]
     #[DataProvider('coverageFormatProvider')]
     public function testAnalyseWithCoverageFormats(string $option, string $file, string $format): void
@@ -25,10 +36,10 @@ class CognitiveMetricsCommandCoverageTest extends TestCase
         $command = $application->getContainer()->get(CognitiveMetricsCommand::class);
         $tester = new CommandTester($command);
 
-        $tester->execute([
+        $tester->execute($this->withTestConfig([
             'path' => __DIR__ . '/../../TestCode/Paginator.php',
             $option => __DIR__ . '/../../Fixtures/Coverage/' . $file,
-        ]);
+        ]));
 
         $this->assertEquals(
             Command::SUCCESS,
@@ -48,11 +59,11 @@ class CognitiveMetricsCommandCoverageTest extends TestCase
         $command = $application->getContainer()->get(CognitiveMetricsCommand::class);
         $tester = new CommandTester($command);
 
-        $tester->execute([
+        $tester->execute($this->withTestConfig([
             'path' => __DIR__ . '/../../TestCode/Paginator.php',
             '--coverage-clover' => __DIR__ . '/../../Fixtures/Coverage/testcode-clover.xml',
             '--coverage-cobertura' => __DIR__ . '/../../Fixtures/Coverage/testcode-cobertura.xml',
-        ]);
+        ]));
 
         $this->assertEquals(
             Command::FAILURE,
@@ -71,10 +82,10 @@ class CognitiveMetricsCommandCoverageTest extends TestCase
         $command = $application->getContainer()->get(CognitiveMetricsCommand::class);
         $tester = new CommandTester($command);
 
-        $tester->execute([
+        $tester->execute($this->withTestConfig([
             'path' => __DIR__ . '/../../TestCode/Paginator.php',
             '--coverage-clover' => __DIR__ . '/../../Fixtures/Coverage/does-not-exist.xml',
-        ]);
+        ]));
 
         $this->assertEquals(
             Command::FAILURE,
@@ -93,9 +104,9 @@ class CognitiveMetricsCommandCoverageTest extends TestCase
         $command = $application->getContainer()->get(CognitiveMetricsCommand::class);
         $tester = new CommandTester($command);
 
-        $tester->execute([
+        $tester->execute($this->withTestConfig([
             'path' => __DIR__ . '/../../TestCode/Paginator.php',
-        ]);
+        ]));
 
         $this->assertEquals(Command::SUCCESS, $tester->getStatusCode());
         $output = $tester->getDisplay();
@@ -119,10 +130,10 @@ class CognitiveMetricsCommandCoverageTest extends TestCase
         $command = $application->getContainer()->get(CognitiveMetricsCommand::class);
         $tester = new CommandTester($command);
 
-        $tester->execute([
+        $tester->execute($this->withTestConfig([
             'path' => __DIR__ . '/../../TestCode/Paginator.php',
             "--coverage-{$format}" => __DIR__ . '/../../Fixtures/Coverage/' . $file,
-        ]);
+        ]));
 
         $this->assertEquals(Command::SUCCESS, $tester->getStatusCode());
         $output = $tester->getDisplay();
@@ -148,10 +159,10 @@ class CognitiveMetricsCommandCoverageTest extends TestCase
         $command = $application->getContainer()->get(CognitiveMetricsCommand::class);
         $tester = new CommandTester($command);
 
-        $tester->execute([
+        $tester->execute($this->withTestConfig([
             'path' => __DIR__ . '/../../TestCode/Paginator.php,' . __DIR__ . '/../../TestCode/FileWithTwoClasses.php',
             '--coverage-clover' => __DIR__ . '/../../Fixtures/Coverage/testcode-clover.xml',
-        ]);
+        ]));
 
         $this->assertEquals(
             Command::SUCCESS,
