@@ -7,6 +7,9 @@ namespace Phauthentic\CognitiveCodeAnalysis\Command\Presentation;
 use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
 use Symfony\Component\Console\Output\OutputInterface;
 
+/**
+ * Prints config source and cache status at the start of analyse and churn commands.
+ */
 class RuntimeStatusRenderer
 {
     public function render(OutputInterface $output, ?string $configFile, CognitiveConfig $config): void

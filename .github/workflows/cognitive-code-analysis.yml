@@ -1,0 +1,29 @@
+name: Cognitive Code Analysis
+
+on:
+  pull_request:
+    paths:
+      - '**/*.php'
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  analyse:
+    name: Cognitive Code Analysis
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: Phauthentic/cognitive-code-analysis-github-action@v1
+        with:
+          install-mode: phar
+          config: config.yml
+          post-comment: true
+          upload-artifact: true
+          emit-annotations: true
+          upload-sarif: false
+          fail-on-threshold: false

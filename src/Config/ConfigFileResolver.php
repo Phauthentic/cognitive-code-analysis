@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Config;
 
+/**
+ * Resolves the config file path from an explicit --config option or auto-discovery of cca.yaml.
+ */
 class ConfigFileResolver
 {
     public const DEFAULT_FILENAME = 'cca.yaml';
