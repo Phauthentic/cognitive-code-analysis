@@ -89,8 +89,9 @@ jobs:
           CHANGED_FILES=$(git diff --name-only --diff-filter=ACMR $BASE_SHA...$HEAD_SHA | grep '\.php$' | tr '\n' ' ' || echo "")
 
           if [ -n "$CHANGED_FILES" ]; then
+            ANALYSE_PATH=$(echo "$CHANGED_FILES" | tr ' ' ',')
             echo "Analyzing files: $CHANGED_FILES"
-            bin/phpcca analyse $CHANGED_FILES --report-type=markdown --report-file=cca-report.md || true
+            bin/phpcca analyse "$ANALYSE_PATH" --report-type=markdown --report-file=cca-report.md || true
 
             if [ -f "cca-report.md" ] && [ -s "cca-report.md" ]; then
               echo "has_report=true" >> $GITHUB_OUTPUT
@@ -133,7 +134,8 @@ jobs:
 Replace the Markdown report step with:
 
 ```bash
-bin/phpcca analyse $CHANGED_FILES --report-type=sarif --report-file=results.sarif
+ANALYSE_PATH=$(echo "$CHANGED_FILES" | tr ' ' ',')
+bin/phpcca analyse "$ANALYSE_PATH" --report-type=sarif --report-file=results.sarif
 ```
 
 Then upload `results.sarif` using the [GitHub Code Scanning upload action](https://github.com/github/codeql-action).
@@ -166,7 +168,8 @@ Code-Metrics:
         CHANGED_FILES=$(find src/ -name "*.php" | tr '\n' ' ')
       fi
       if [ -n "$CHANGED_FILES" ]; then
-        bin/phpcca analyse $CHANGED_FILES --report-type=markdown --report-file=cca-report.md --config=cca.yaml
+        ANALYSE_PATH=$(echo "$CHANGED_FILES" | tr ' ' ',')
+        bin/phpcca analyse "$ANALYSE_PATH" --report-type=markdown --report-file=cca-report.md --config=cca.yaml
         if [ -f "cca-report.md" ] && [ -s "cca-report.md" ]; then
           # Try with CI_JOB_TOKEN first, fallback to CI/CD variables
           if [ -n "$VALIDATOR" ]; then
@@ -218,7 +221,8 @@ Code-Metrics:
 Replace the Markdown report with:
 
 ```bash
-bin/phpcca analyse $CHANGED_FILES --report-type=gitlab-codequality --report-file=gl-code-quality.json
+ANALYSE_PATH=$(echo "$CHANGED_FILES" | tr ' ' ',')
+bin/phpcca analyse "$ANALYSE_PATH" --report-type=gitlab-codequality --report-file=gl-code-quality.json
 ```
 
 GitLab picks up the Code Quality report automatically when configured in your pipeline.
