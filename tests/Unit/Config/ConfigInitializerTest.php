@@ -59,7 +59,7 @@ class ConfigInitializerTest extends TestCase
     {
         $initializer = $this->createInitializer();
         $config = $initializer->createDefaultConfig();
-        $targetPath = $this->tempDir . '/nested/cca.yaml';
+        $targetPath = $this->tempDir . '/nested/phpcca.yaml';
 
         $initializer->writeConfigFile($targetPath, $config);
 

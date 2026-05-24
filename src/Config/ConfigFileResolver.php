@@ -6,7 +6,7 @@ namespace Phauthentic\CognitiveCodeAnalysis\Config;
 
 class ConfigFileResolver
 {
-    public const DEFAULT_FILENAME = 'cca.yaml';
+    public const DEFAULT_FILENAME = 'phpcca.yaml';
 
     public function resolve(?string $explicitConfigPath): ?string
     {

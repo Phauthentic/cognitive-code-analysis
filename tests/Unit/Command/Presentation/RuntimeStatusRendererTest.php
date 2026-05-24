@@ -50,10 +50,10 @@ class RuntimeStatusRendererTest extends TestCase
         $output = new BufferedOutput();
         $renderer = new RuntimeStatusRenderer();
 
-        $renderer->render($output, $tempDir . '/cca.yaml', $this->createConfig(cacheEnabled: false));
+        $renderer->render($output, $tempDir . '/phpcca.yaml', $this->createConfig(cacheEnabled: false));
 
         $this->assertSame(
-            "Config: ./cca.yaml\nCache: disabled\n\n",
+            "Config: ./phpcca.yaml\nCache: disabled\n\n",
             $output->fetch()
         );
 
