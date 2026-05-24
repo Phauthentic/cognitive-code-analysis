@@ -21,7 +21,7 @@ jobs:
       - uses: Phauthentic/cognitive-code-analysis-github-action@v1
         with:
           install-mode: phar
-          config: config.yml
+          config: phpcca.yaml
           post-comment: true
           upload-artifact: true
           emit-annotations: true

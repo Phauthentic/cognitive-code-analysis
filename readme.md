@@ -163,6 +163,6 @@ Especially the AST-parser used under the hood to analyse the code might have iss
 
 ## License ⚖️
 
-Copyright Florian Krämer
+Copyright [Florian Krämer](https://florian-kraemer.net/)
 
 Licensed under the [GPL3 license](LICENSE).

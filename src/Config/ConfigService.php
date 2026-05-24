@@ -27,7 +27,7 @@ class ConfigService
     private function loadDefaultConfig(): void
     {
         $config = $this->processor->processConfiguration($this->configuration, [
-            Yaml::parseFile(__DIR__ . '/../../config.yml'),
+            Yaml::parseFile(__DIR__ . '/../../phpcca.yaml'),
         ]);
 
         $this->config = (new ConfigFactory())->fromArray($config);
@@ -38,7 +38,7 @@ class ConfigService
      */
     public function loadConfig(string $configFilePath): void
     {
-        $defaultConfig = Yaml::parseFile(__DIR__ . '/../../config.yml');
+        $defaultConfig = Yaml::parseFile(__DIR__ . '/../../phpcca.yaml');
         $providedConfig = Yaml::parseFile($configFilePath);
 
         $config = $this->processor->processConfiguration($this->configuration, [
