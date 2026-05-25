@@ -1,3 +1,6 @@
+Config: ./tests/Unit/Command/../../../tests/Fixtures/cyclomatic-only-config.yml
+Cache: enabled
+
 Class: \ClassOne
 File: tests/TestCode/FileWithTwoClasses.php
 ┌─────────────┬───────┬───────────┬─────────┬───────────┬──────────┬───────┬────────────┬───────┬────────────┬────────────┐

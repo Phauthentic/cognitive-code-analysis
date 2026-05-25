@@ -2,7 +2,7 @@ cognitive:
   excludeFilePatterns:
   excludePatterns:
   scoreThreshold: 0.5
-  showOnlyMethodsExceedingThreshold: false
+  showOnlyMethodsExceedingThreshold: true
   showHalsteadComplexity: false
   showCyclomaticComplexity: false
   showUnderstandability: false
@@ -42,7 +42,7 @@ cognitive:
       scale: 1.0
       enabled: true
   cache:
-    enabled: false
+    enabled: true
     directory: './.phpcca.cache'
   performance:
     batchSize: 100  # Files to process before flushing to report

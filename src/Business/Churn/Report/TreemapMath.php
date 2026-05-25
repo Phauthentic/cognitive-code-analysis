@@ -29,8 +29,8 @@ class TreemapMath
     {
         $items = [];
         foreach ($classes as $class => $data) {
-            $churn = (float)($data['churn'] ?? 0);
-            $score = (float)($data['score'] ?? 0);
+            $churn = $this->resolveFloatValue($data['churn'] ?? null, 0.0);
+            $score = $this->resolveFloatValue($data['score'] ?? null, 0.0);
             if ($churn <= 0) {
                 continue;
             }
@@ -260,5 +260,14 @@ class TreemapMath
         }
 
         return 1;
+    }
+
+    private function resolveFloatValue(mixed $value, float $default): float
+    {
+        if (is_int($value) || is_float($value)) {
+            return (float) $value;
+        }
+
+        return $default;
     }
 }

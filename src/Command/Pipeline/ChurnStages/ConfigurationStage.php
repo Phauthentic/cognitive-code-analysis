@@ -8,6 +8,7 @@ use Exception;
 use Phauthentic\CognitiveCodeAnalysis\Business\MetricsFacade;
 use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\ChurnExecutionContext;
 use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\ChurnPipelineStage;
+use Phauthentic\CognitiveCodeAnalysis\Command\Presentation\RuntimeStatusRenderer;
 use Phauthentic\CognitiveCodeAnalysis\Command\Result\OperationResult;
 
 /**
@@ -16,36 +17,37 @@ use Phauthentic\CognitiveCodeAnalysis\Command\Result\OperationResult;
 class ConfigurationStage implements ChurnPipelineStage
 {
     public function __construct(
-        private readonly MetricsFacade $metricsFacade
+        private readonly MetricsFacade $metricsFacade,
+        private readonly RuntimeStatusRenderer $runtimeStatusRenderer,
     ) {
     }
 
     public function execute(ChurnExecutionContext $context): OperationResult
     {
         $commandContext = $context->getCommandContext();
-
-        if (!$commandContext->hasConfigFile()) {
-            return OperationResult::success();
-        }
-
         $configFile = $commandContext->getConfigFile();
-        if ($configFile === null) {
-            return OperationResult::success();
+
+        if ($configFile !== null) {
+            try {
+                $this->metricsFacade->loadConfig($configFile);
+            } catch (Exception $e) {
+                $context->getOutput()->writeln('<error>Failed to load configuration: ' . $e->getMessage() . '</error>');
+                return OperationResult::failure('Failed to load configuration: ' . $e->getMessage());
+            }
         }
 
-        try {
-            $this->metricsFacade->loadConfig($configFile);
-            return OperationResult::success();
-        } catch (Exception $e) {
-            $context->getOutput()->writeln('<error>Failed to load configuration: ' . $e->getMessage() . '</error>');
-            return OperationResult::failure('Failed to load configuration: ' . $e->getMessage());
-        }
+        $this->runtimeStatusRenderer->render(
+            $context->getOutput(),
+            $configFile,
+            $this->metricsFacade->getConfig()
+        );
+
+        return OperationResult::success();
     }
 
     public function shouldSkip(ChurnExecutionContext $context): bool
     {
-        $commandContext = $context->getCommandContext();
-        return !$commandContext->hasConfigFile();
+        return false;
     }
 
     public function getStageName(): string

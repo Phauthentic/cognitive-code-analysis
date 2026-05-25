@@ -24,7 +24,7 @@ class MetricsCollectionStage extends PipelineStage
         $commandContext = $context->getCommandContext();
 
         // Get coverage data from previous stage
-        $coverageData = $context->getData('coverageReader');
+        $coverageData = $context->getCoverageReader();
 
         // Get metrics
         $metricsCollection = $this->metricsFacade->getCognitiveMetricsFromPaths(

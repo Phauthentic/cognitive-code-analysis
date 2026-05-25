@@ -6,6 +6,10 @@ Cognitive Code Analysis is an approach to understanding and improving code by fo
 
 [Source: Human Cognitive Limitations. Broad, Consistent, Clinical Application of Physiological Principles Will Require Decision Support](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5822395/)
 
+---
+
+A [c# version](https://github.com/floriankraemer/csharp-cognitive-code-analysis) and a [Java version](https://github.com/floriankraemer/cognitive-code-analysis-java) are also available.
+
 ## Features 💎
 
 * Cognitive Complexity Analysis:
@@ -30,10 +34,21 @@ composer require --dev phauthentic/cognitive-code-analysis
 
 ## Running it 🧑‍💻
 
+Create a project configuration file:
+
+```bash
+bin/phpcca init                  # interactive setup → creates phpcca.yaml in current directory
+bin/phpcca init --silent         # non-interactive, all defaults
+bin/phpcca init --path=/path/to/phpcca.yaml
+```
+
+When `phpcca.yaml` exists in the current working directory, `analyse` and `churn` load it automatically. Use `--config` to specify a different file.
+
 Cognitive Complexity Analysis
 
 ```bash
 bin/phpcca analyse <path-to-folder>
+bin/phpcca analyse <path-to-folder> --config=custom.yaml  # explicit config overrides auto-discovery
 ```
 
 Generate a report, supported types are `json`, `csv`, `html`, `markdown`, `checkstyle`, `junit`, `sarif`, `gitlab-codequality`, `github-actions`.
@@ -69,7 +84,8 @@ bin/phpcca churn <path-to-folder>
   * [Churn - Finding Hotspots](./docs/Churn-Finding-Hotspots.md)
   * [Sorting and Filtering](./docs/Sorting-and-Filtering.md)
   * [Configuration](./docs/Configuration.md#configuration)
-    * [Tuning the calculation](./docs/Configuration.md#tuning-the-calculation) 
+    * [Tuning the calculation](./docs/Configuration.md#tuning-the-calculation)
+  * [CI Integration](./docs/CI-Integration.md)
   * [Examples](#examples)
     * [Wordpress WP_Debug_Data](#wordpress-wp_debug_data)
     * [Doctrine Paginator](#doctrine-paginator)
@@ -147,6 +163,6 @@ Especially the AST-parser used under the hood to analyse the code might have iss
 
 ## License ⚖️
 
-Copyright Florian Krämer
+Copyright [Florian Krämer](https://florian-kraemer.net/)
 
 Licensed under the [GPL3 license](LICENSE).

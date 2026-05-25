@@ -26,8 +26,14 @@ class ConfigService
      */
     private function loadDefaultConfig(): void
     {
+        $defaultConfig = Yaml::parseFile(__DIR__ . '/../../phpcca.yaml');
+        if (!is_array($defaultConfig)) {
+            throw new ConfigException('Default configuration file is invalid.');
+        }
+
+        /** @var array<string, mixed> $config */
         $config = $this->processor->processConfiguration($this->configuration, [
-            Yaml::parseFile(__DIR__ . '/../../config.yml'),
+            $defaultConfig,
         ]);
 
         $this->config = (new ConfigFactory())->fromArray($config);
@@ -38,9 +44,13 @@ class ConfigService
      */
     public function loadConfig(string $configFilePath): void
     {
-        $defaultConfig = Yaml::parseFile(__DIR__ . '/../../config.yml');
+        $defaultConfig = Yaml::parseFile(__DIR__ . '/../../phpcca.yaml');
         $providedConfig = Yaml::parseFile($configFilePath);
+        if (!is_array($defaultConfig) || !is_array($providedConfig)) {
+            throw new ConfigException('Configuration file is invalid.');
+        }
 
+        /** @var array<string, mixed> $config */
         $config = $this->processor->processConfiguration($this->configuration, [
             $defaultConfig,
             $providedConfig,

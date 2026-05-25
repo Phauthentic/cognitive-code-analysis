@@ -7,6 +7,7 @@ namespace Phauthentic\CognitiveCodeAnalysis\Command;
 use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\ChurnExecutionContext;
 use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\ChurnPipelineFactory;
 use Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications\ChurnCommandContext;
+use Phauthentic\CognitiveCodeAnalysis\Config\ConfigFileResolver;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -30,7 +31,8 @@ class ChurnCommand extends Command
     public const OPTION_COVERAGE_CLOVER = 'coverage-clover';
 
     public function __construct(
-        readonly private ChurnPipelineFactory $pipelineFactory
+        readonly private ChurnPipelineFactory $pipelineFactory,
+        readonly private ConfigFileResolver $configFileResolver,
     ) {
         parent::__construct();
     }
@@ -106,7 +108,7 @@ class ChurnCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $commandContext = new ChurnCommandContext($input);
+        $commandContext = new ChurnCommandContext($input, $this->configFileResolver);
         $executionContext = new ChurnExecutionContext($commandContext, $output);
 
         // Build pipeline with stages
@@ -153,7 +155,20 @@ class ChurnCommand extends Command
 
         $output->writeln('<info>Statistics:</info>');
         foreach ($statistics as $key => $value) {
-            $output->writeln(sprintf('    %s: %s', $key, $value));
+            $output->writeln(sprintf('    %s: %s', $key, $this->formatStatisticValue($value)));
         }
+    }
+
+    private function formatStatisticValue(mixed $value): string
+    {
+        if (is_bool($value)) {
+            return $value ? 'true' : 'false';
+        }
+
+        if (is_string($value) || is_int($value) || is_float($value) || $value === null) {
+            return (string) $value;
+        }
+
+        return json_encode($value, JSON_THROW_ON_ERROR);
     }
 }

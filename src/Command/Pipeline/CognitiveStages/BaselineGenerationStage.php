@@ -26,7 +26,7 @@ class BaselineGenerationStage extends PipelineStage
     public function execute(ExecutionContext $context): OperationResult
     {
         $commandContext = $context->getCommandContext();
-        $metricsCollection = $context->getData('metricsCollection');
+        $metricsCollection = $context->getMetricsCollection();
 
         if (!$commandContext->hasGenerateBaseline()) {
             return OperationResult::success();

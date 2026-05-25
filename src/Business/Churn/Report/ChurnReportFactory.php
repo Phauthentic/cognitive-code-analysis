@@ -47,9 +47,14 @@ class ChurnReportFactory implements ChurnReportFactoryInterface
             return $builtIn;
         }
 
-        // Check custom exporters
         if (isset($customReporters[$type])) {
-            return $this->createCustomExporter($customReporters[$type]);
+            $exporterConfig = $customReporters[$type];
+            if (!is_array($exporterConfig)) {
+                throw new InvalidArgumentException("Invalid custom exporter configuration for type: {$type}");
+            }
+
+            /** @var array<string, mixed> $exporterConfig */
+            return $this->createCustomExporter($exporterConfig);
         }
 
         throw new InvalidArgumentException("Unsupported exporter type: {$type}");
@@ -65,9 +70,19 @@ class ChurnReportFactory implements ChurnReportFactoryInterface
     {
         $cognitiveConfig = $this->configService->getConfig();
 
-        $this->registry->loadExporter($config['class'], $config['file'] ?? null);
+        $class = $config['class'] ?? null;
+        if (!is_string($class)) {
+            throw new InvalidArgumentException('Custom exporter must define a "class" string.');
+        }
+
+        $file = $config['file'] ?? null;
+        if ($file !== null && !is_string($file)) {
+            throw new InvalidArgumentException('Custom exporter "file" must be a string or null.');
+        }
+
+        $this->registry->loadExporter($class, $file);
         $exporter = $this->registry->instantiate(
-            $config['class'],
+            $class,
             $cognitiveConfig
         );
         $this->registry->validateInterface($exporter, ReportGeneratorInterface::class);

@@ -28,6 +28,7 @@ use Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications\CompositeChurn
 use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsCommand;
 use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\CognitiveMetricsValidationSpecificationFactory;
 use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\CompositeCognitiveMetricsValidationSpecification;
+use Phauthentic\CognitiveCodeAnalysis\Command\InitCommand;
 use Phauthentic\CognitiveCodeAnalysis\Command\EventHandler\ParserErrorHandler;
 use Phauthentic\CognitiveCodeAnalysis\Command\EventHandler\ProgressBarHandler;
 use Phauthentic\CognitiveCodeAnalysis\Command\EventHandler\VerboseHandler;
@@ -51,6 +52,9 @@ use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\CognitiveStages\Validatio
 use Phauthentic\CognitiveCodeAnalysis\Command\Presentation\ChurnTextRenderer;
 use Phauthentic\CognitiveCodeAnalysis\Command\Presentation\CognitiveMetricTextRenderer;
 use Phauthentic\CognitiveCodeAnalysis\Command\Presentation\CognitiveMetricTextRendererInterface;
+use Phauthentic\CognitiveCodeAnalysis\Command\Presentation\RuntimeStatusRenderer;
+use Phauthentic\CognitiveCodeAnalysis\Config\ConfigFileResolver;
+use Phauthentic\CognitiveCodeAnalysis\Config\ConfigInitializer;
 use Phauthentic\CognitiveCodeAnalysis\Config\ConfigLoader;
 use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
 use PhpParser\NodeTraverser;
@@ -168,6 +172,9 @@ class Application
                 new Reference(ConfigService::class)
             ])
             ->setPublic(true);
+
+        $this->containerBuilder->register(RuntimeStatusRenderer::class, RuntimeStatusRenderer::class)
+            ->setPublic(true);
     }
 
     private function registerUtilityServices(): void
@@ -176,6 +183,17 @@ class Application
             ->setPublic(true);
 
         $this->containerBuilder->register(ConfigLoader::class, ConfigLoader::class)
+            ->setPublic(true);
+
+        $this->containerBuilder->register(ConfigFileResolver::class, ConfigFileResolver::class)
+            ->setPublic(true);
+
+        $this->containerBuilder->register(ConfigInitializer::class, ConfigInitializer::class)
+            ->setArguments([
+                new Reference(Processor::class),
+                new Reference(ConfigLoader::class),
+                __DIR__ . '/../phpcca.yaml',
+            ])
             ->setPublic(true);
 
         $this->containerBuilder->register(ParserFactory::class, ParserFactory::class)
@@ -240,12 +258,12 @@ class Application
     private function configureEventBus(): void
     {
         $progressbar = new ProgressBarHandler(
-            $this->get(OutputInterface::class)
+            $this->resolveOutputInterface()
         );
 
         $verbose = new VerboseHandler(
-            $this->get(InputInterface::class),
-            $this->get(OutputInterface::class)
+            $this->resolveInputInterface(),
+            $this->resolveOutputInterface()
         );
 
         $handlersLocator = $this->setUpEventHandlersLocator($progressbar, $verbose);
@@ -300,6 +318,7 @@ class Application
         $this->containerBuilder->register(ConfigurationStage::class, ConfigurationStage::class)
             ->setArguments([
                 new Reference(MetricsFacade::class),
+                new Reference(RuntimeStatusRenderer::class),
             ])
             ->setPublic(true);
 
@@ -374,6 +393,7 @@ class Application
         $this->containerBuilder->register(ChurnConfigurationStage::class, ChurnConfigurationStage::class)
             ->setArguments([
                 new Reference(MetricsFacade::class),
+                new Reference(RuntimeStatusRenderer::class),
             ])
             ->setPublic(true);
 
@@ -416,12 +436,21 @@ class Application
         $this->containerBuilder->register(CognitiveMetricsCommand::class, CognitiveMetricsCommand::class)
             ->setArguments([
                 new Reference(CommandPipelineFactory::class),
+                new Reference(ConfigFileResolver::class),
             ])
             ->setPublic(true);
 
         $this->containerBuilder->register(ChurnCommand::class, ChurnCommand::class)
             ->setArguments([
                 new Reference(ChurnPipelineFactory::class),
+                new Reference(ConfigFileResolver::class),
+            ])
+            ->setPublic(true);
+
+        $this->containerBuilder->register(InitCommand::class, InitCommand::class)
+            ->setArguments([
+                new Reference(ConfigInitializer::class),
+                new Reference(ConfigFileResolver::class),
             ])
             ->setPublic(true);
     }
@@ -435,7 +464,8 @@ class Application
             ])
             ->setPublic(true)
             ->addMethodCall('add', [new Reference(CognitiveMetricsCommand::class)])
-            ->addMethodCall('add', [new Reference(ChurnCommand::class)]);
+            ->addMethodCall('add', [new Reference(ChurnCommand::class)])
+            ->addMethodCall('add', [new Reference(InitCommand::class)]);
     }
 
     public function run(): void
@@ -472,8 +502,28 @@ class Application
                 $verbose
             ],
             ParserFailed::class => [
-                new ParserErrorHandler($this->get(OutputInterface::class))
+                new ParserErrorHandler($this->resolveOutputInterface())
             ],
         ]);
+    }
+
+    private function resolveInputInterface(): InputInterface
+    {
+        $input = $this->get(InputInterface::class);
+        if (!$input instanceof InputInterface) {
+            throw new CognitiveAnalysisException('Console input is not configured.');
+        }
+
+        return $input;
+    }
+
+    private function resolveOutputInterface(): OutputInterface
+    {
+        $output = $this->get(OutputInterface::class);
+        if (!$output instanceof OutputInterface) {
+            throw new CognitiveAnalysisException('Console output is not configured.');
+        }
+
+        return $output;
     }
 }

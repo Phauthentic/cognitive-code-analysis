@@ -143,8 +143,28 @@ class CognitiveMetricsSorter
             return strcasecmp($alpha, $beta);
         }
 
-        // Handle mixed types by converting to string
-        return strcasecmp((string) $alpha, (string) $beta);
+        return strcasecmp($this->valueToSortString($alpha), $this->valueToSortString($beta));
+    }
+
+    private function valueToSortString(mixed $value): string
+    {
+        if (is_string($value)) {
+            return $value;
+        }
+
+        if (is_int($value) || is_float($value)) {
+            return (string) $value;
+        }
+
+        if (is_bool($value)) {
+            return $value ? '1' : '0';
+        }
+
+        if ($value === null) {
+            return '';
+        }
+
+        throw new InvalidArgumentException('Unsupported sort value type.');
     }
 
     /**

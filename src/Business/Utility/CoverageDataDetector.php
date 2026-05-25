@@ -18,6 +18,10 @@ trait CoverageDataDetector
     protected function hasCoverageData(array $classes): bool
     {
         foreach ($classes as $data) {
+            if (!is_array($data)) {
+                continue;
+            }
+
             if (array_key_exists('coverage', $data) && $data['coverage'] !== null) {
                 return true;
             }

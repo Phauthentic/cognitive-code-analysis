@@ -8,6 +8,7 @@ use Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications\ChurnCommandCo
 use Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications\CompositeChurnSpecification;
 use Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications\CoverageFileExists;
 use Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications\CoverageFormatExclusivity;
+use Phauthentic\CognitiveCodeAnalysis\Config\ConfigFileResolver;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputArgument;
@@ -16,6 +17,18 @@ use Symfony\Component\Console\Input\InputOption;
 
 class ChurnSpecificationPatternTest extends TestCase
 {
+    private ConfigFileResolver $configFileResolver;
+
+    protected function setUp(): void
+    {
+        $this->configFileResolver = new ConfigFileResolver();
+    }
+
+    private function createContext(ArrayInput $input): ChurnCommandContext
+    {
+        return new ChurnCommandContext($input, $this->configFileResolver);
+    }
+
     private function createInput(array $parameters): ArrayInput
     {
         $definition = new InputDefinition([
@@ -40,7 +53,7 @@ class ChurnSpecificationPatternTest extends TestCase
             'path' => '/test',
             '--coverage-cobertura' => 'coverage.xml'
         ]);
-        $context1 = new ChurnCommandContext($input1);
+        $context1 = $this->createContext($input1);
         $this->assertTrue($spec->isSatisfiedBy($context1));
 
         // Test valid case - only clover
@@ -48,7 +61,7 @@ class ChurnSpecificationPatternTest extends TestCase
             'path' => '/test',
             '--coverage-clover' => 'coverage.xml'
         ]);
-        $context2 = new ChurnCommandContext($input2);
+        $context2 = $this->createContext($input2);
         $this->assertTrue($spec->isSatisfiedBy($context2));
 
         // Test invalid case - both formats
@@ -57,7 +70,7 @@ class ChurnSpecificationPatternTest extends TestCase
             '--coverage-cobertura' => 'cobertura.xml',
             '--coverage-clover' => 'clover.xml'
         ]);
-        $context3 = new ChurnCommandContext($input3);
+        $context3 = $this->createContext($input3);
         $this->assertFalse($spec->isSatisfiedBy($context3));
         $this->assertEquals('Only one coverage format can be specified at a time.', $spec->getErrorMessage());
     }
@@ -68,7 +81,7 @@ class ChurnSpecificationPatternTest extends TestCase
 
         // Test valid case - no coverage file
         $input1 = $this->createInput(['path' => '/test']);
-        $context1 = new ChurnCommandContext($input1);
+        $context1 = $this->createContext($input1);
         $this->assertTrue($spec->isSatisfiedBy($context1));
 
         // Test invalid case - non-existent file
@@ -76,7 +89,7 @@ class ChurnSpecificationPatternTest extends TestCase
             'path' => '/test',
             '--coverage-cobertura' => '/non/existent/file.xml'
         ]);
-        $context2 = new ChurnCommandContext($input2);
+        $context2 = $this->createContext($input2);
         $this->assertFalse($spec->isSatisfiedBy($context2));
         $this->assertStringContainsString('Coverage file not found', $spec->getErrorMessage());
     }
@@ -90,7 +103,7 @@ class ChurnSpecificationPatternTest extends TestCase
 
         // Test valid case
         $input1 = $this->createInput(['path' => '/test']);
-        $context1 = new ChurnCommandContext($input1);
+        $context1 = $this->createContext($input1);
         $this->assertTrue($spec->isSatisfiedBy($context1));
 
         // Test invalid case - both coverage formats
@@ -99,7 +112,7 @@ class ChurnSpecificationPatternTest extends TestCase
             '--coverage-cobertura' => 'cobertura.xml',
             '--coverage-clover' => 'clover.xml'
         ]);
-        $context2 = new ChurnCommandContext($input2);
+        $context2 = $this->createContext($input2);
         $this->assertFalse($spec->isSatisfiedBy($context2));
 
         $failedSpec = $spec->getFirstFailedSpecification($context2);

@@ -57,7 +57,8 @@ class BaselineSchemaValidator
 
         // Validate version
         if ($data['version'] !== '2.0') {
-            $errors[] = "Invalid version: {$data['version']}. Expected: 2.0";
+            $version = is_string($data['version']) ? $data['version'] : gettype($data['version']);
+            $errors[] = "Invalid version: {$version}. Expected: 2.0";
         }
 
         // Validate createdAt format
@@ -70,10 +71,13 @@ class BaselineSchemaValidator
             $errors[] = "Invalid configHash. Must be a non-empty string";
         }
 
-         $errors = array_merge($errors, $this->validateMetrics($data['metrics']));
         // Validate metrics structure
         if (!is_array($data['metrics'])) {
             $errors[] = "Invalid metrics. Must be an object";
+        } else {
+            /** @var array<string, mixed> $metrics */
+            $metrics = $data['metrics'];
+            $errors = array_merge($errors, $this->validateMetrics($metrics));
         }
 
         // Check for additional properties

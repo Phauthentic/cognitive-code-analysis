@@ -130,7 +130,12 @@ class ConfigLoader implements ConfigurationInterface
                             ->end()
                             ->beforeNormalization()
                                 ->ifArray()
-                                ->then(function ($mapping) {
+                                ->then(function (mixed $mapping): array {
+                                    if (!is_array($mapping)) {
+                                        return $this->getCognitiveMetricDefaults();
+                                    }
+
+                                    /** @var array<string, array<string, bool|float|int>> $mapping */
                                     return $mapping + $this->getCognitiveMetricDefaults();
                                 })
                             ->end()

@@ -150,6 +150,6 @@ class CognitiveMetricsCollection implements IteratorAggregate, Countable, JsonSe
      */
     public function jsonSerialize(): array
     {
-        return $this->metrics;
+        return array_values($this->metrics);
     }
 }

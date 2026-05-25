@@ -220,6 +220,10 @@ class CloverReader extends AbstractXmlCoverageReader
         $coveredStatements = 0;
         $inMethod = false;
 
+        if (!is_iterable($allLines)) {
+            return ['statements' => 0, 'covered' => 0];
+        }
+
         foreach ($allLines as $line) {
             if (!$line instanceof DOMElement) {
                 continue;

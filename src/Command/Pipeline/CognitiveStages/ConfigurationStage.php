@@ -8,6 +8,7 @@ use Exception;
 use Phauthentic\CognitiveCodeAnalysis\Business\MetricsFacade;
 use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\ExecutionContext;
 use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\PipelineStage;
+use Phauthentic\CognitiveCodeAnalysis\Command\Presentation\RuntimeStatusRenderer;
 use Phauthentic\CognitiveCodeAnalysis\Command\Result\OperationResult;
 
 /**
@@ -17,35 +18,36 @@ use Phauthentic\CognitiveCodeAnalysis\Command\Result\OperationResult;
 class ConfigurationStage extends PipelineStage
 {
     public function __construct(
-        private readonly MetricsFacade $metricsFacade
+        private readonly MetricsFacade $metricsFacade,
+        private readonly RuntimeStatusRenderer $runtimeStatusRenderer,
     ) {
     }
 
     public function execute(ExecutionContext $context): OperationResult
     {
         $commandContext = $context->getCommandContext();
-
-        if (!$commandContext->hasConfigFile()) {
-            return OperationResult::success();
-        }
-
         $configFile = $commandContext->getConfigFile();
-        if ($configFile === null) {
-            return OperationResult::success();
+
+        if ($configFile !== null) {
+            try {
+                $this->metricsFacade->loadConfig($configFile);
+            } catch (Exception $e) {
+                return OperationResult::failure('Failed to load configuration: ' . $e->getMessage());
+            }
         }
 
-        try {
-            $this->metricsFacade->loadConfig($configFile);
-            return OperationResult::success();
-        } catch (Exception $e) {
-            return OperationResult::failure('Failed to load configuration: ' . $e->getMessage());
-        }
+        $this->runtimeStatusRenderer->render(
+            $context->getOutput(),
+            $configFile,
+            $this->metricsFacade->getConfig()
+        );
+
+        return OperationResult::success();
     }
 
     public function shouldSkip(ExecutionContext $context): bool
     {
-        $commandContext = $context->getCommandContext();
-        return !$commandContext->hasConfigFile();
+        return false;
     }
 
     public function getStageName(): string

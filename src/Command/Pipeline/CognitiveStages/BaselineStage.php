@@ -26,7 +26,7 @@ class BaselineStage extends PipelineStage
     public function execute(ExecutionContext $context): OperationResult
     {
         $commandContext = $context->getCommandContext();
-        $metricsCollection = $context->getData('metricsCollection');
+        $metricsCollection = $context->getMetricsCollection();
 
         if ($metricsCollection === null) {
             return OperationResult::failure('Metrics collection not available for baseline.');
