@@ -5,6 +5,7 @@ cognitive:
   showOnlyMethodsExceedingThreshold: true
   showHalsteadComplexity: false
   showCyclomaticComplexity: false
+  showUnderstandability: false
   showDetailedCognitiveMetrics: true
   groupByClass: true
   metrics:

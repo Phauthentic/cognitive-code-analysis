@@ -6,6 +6,7 @@ namespace Phauthentic\CognitiveCodeAnalysis\Business\Cognitive;
 
 use Phauthentic\CognitiveCodeAnalysis\Business\Halstead\HalsteadMetrics;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cyclomatic\CyclomaticMetrics;
+use Phauthentic\CognitiveCodeAnalysis\Business\Understandability\UnderstandabilityMetrics;
 use InvalidArgumentException;
 use JsonSerializable;
 
@@ -69,6 +70,7 @@ class CognitiveMetrics implements JsonSerializable
 
     private ?HalsteadMetrics $halstead = null;
     private ?CyclomaticMetrics $cyclomatic = null;
+    private ?UnderstandabilityMetrics $understandability = null;
     private ?float $coverage = null;
 
     /**
@@ -105,25 +107,29 @@ class CognitiveMetrics implements JsonSerializable
             ]);
         }
 
-        if (!isset($metrics['cyclomatic_complexity'])) {
-            // Handle baseline format with individual cyclomatic fields
-            if (isset($metrics['cyclomaticComplexity']) && !isset($metrics['cyclomatic_complexity'])) {
-                $riskLevel = $metrics['cyclomaticRiskLevel'] ?? 'unknown';
-                $this->cyclomatic = new CyclomaticMetrics([
-                    'complexity' => $this->resolveIntValue($metrics['cyclomaticComplexity'], 1),
-                    'riskLevel' => is_string($riskLevel) ? $riskLevel : 'unknown',
-                ]);
-            }
-            return;
+        if (isset($metrics['cyclomatic_complexity']) && is_array($metrics['cyclomatic_complexity'])) {
+            /** @var array<string, mixed> $cyclomaticData */
+            $cyclomaticData = $metrics['cyclomatic_complexity'];
+            $this->cyclomatic = new CyclomaticMetrics($cyclomaticData);
+        } elseif (isset($metrics['cyclomaticComplexity'])) {
+            $riskLevel = $metrics['cyclomaticRiskLevel'] ?? 'unknown';
+            $this->cyclomatic = new CyclomaticMetrics([
+                'complexity' => $this->resolveIntValue($metrics['cyclomaticComplexity'], 1),
+                'riskLevel' => is_string($riskLevel) ? $riskLevel : 'unknown',
+            ]);
         }
 
-        if (!is_array($metrics['cyclomatic_complexity'])) {
-            return;
+        if (isset($metrics['understandability']) && is_array($metrics['understandability'])) {
+            /** @var array<string, mixed> $understandabilityData */
+            $understandabilityData = $metrics['understandability'];
+            $this->understandability = new UnderstandabilityMetrics($understandabilityData);
+        } elseif (isset($metrics['understandabilityComplexity'])) {
+            $riskLevel = $metrics['understandabilityRiskLevel'] ?? 'unknown';
+            $this->understandability = new UnderstandabilityMetrics([
+                'complexity' => $this->resolveIntValue($metrics['understandabilityComplexity'], 0),
+                'riskLevel' => is_string($riskLevel) ? $riskLevel : 'unknown',
+            ]);
         }
-
-        /** @var array<string, mixed> $cyclomaticData */
-        $cyclomaticData = $metrics['cyclomatic_complexity'];
-        $this->cyclomatic = new CyclomaticMetrics($cyclomaticData);
     }
 
     /**
@@ -535,6 +541,11 @@ class CognitiveMetrics implements JsonSerializable
     public function getCyclomatic(): ?CyclomaticMetrics
     {
         return $this->cyclomatic;
+    }
+
+    public function getUnderstandability(): ?UnderstandabilityMetrics
+    {
+        return $this->understandability;
     }
 
     private function resolveStringValue(mixed $value): string

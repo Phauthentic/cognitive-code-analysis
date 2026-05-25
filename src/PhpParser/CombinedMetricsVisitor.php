@@ -6,6 +6,7 @@ namespace Phauthentic\CognitiveCodeAnalysis\PhpParser;
 
 use Phauthentic\CognitiveCodeAnalysis\Business\Cyclomatic\CyclomaticComplexityCalculator;
 use Phauthentic\CognitiveCodeAnalysis\Business\Halstead\HalsteadMetricsCalculator;
+use Phauthentic\CognitiveCodeAnalysis\Business\Understandability\UnderstandabilityCalculator;
 use PhpParser\Node;
 use PhpParser\NodeVisitor;
 
@@ -22,6 +23,8 @@ class CombinedMetricsVisitor implements NodeVisitor
     private HalsteadMetricsVisitor $halsteadVisitor;
     private HalsteadMetricsCalculator $halsteadCalculator;
     private CyclomaticComplexityCalculator $cyclomaticCalculator;
+    private UnderstandabilityVisitor $understandabilityVisitor;
+    private UnderstandabilityCalculator $understandabilityCalculator;
 
     public function __construct()
     {
@@ -29,8 +32,12 @@ class CombinedMetricsVisitor implements NodeVisitor
         $this->cognitiveVisitor = new CognitiveMetricsVisitor();
         $this->cyclomaticCalculator = new CyclomaticComplexityCalculator();
         $this->cyclomaticVisitor = new CyclomaticComplexityVisitor($this->cyclomaticCalculator);
+        $this->cyclomaticVisitor->setAnnotationVisitor($this->annotationVisitor);
         $this->halsteadCalculator = new HalsteadMetricsCalculator();
         $this->halsteadVisitor = new HalsteadMetricsVisitor($this->halsteadCalculator);
+        $this->understandabilityCalculator = new UnderstandabilityCalculator();
+        $this->understandabilityVisitor = new UnderstandabilityVisitor($this->understandabilityCalculator);
+        $this->understandabilityVisitor->setAnnotationVisitor($this->annotationVisitor);
     }
 
     /**
@@ -51,13 +58,15 @@ class CombinedMetricsVisitor implements NodeVisitor
         $result2 = $this->cognitiveVisitor->enterNode($node);
         $result3 = $this->cyclomaticVisitor->enterNode($node);
         $result4 = $this->halsteadVisitor->enterNode($node);
+        $result5 = $this->understandabilityVisitor->enterNode($node);
 
         // If any visitor wants to skip children, respect that
         if (
             $result1 === NodeVisitor::DONT_TRAVERSE_CHILDREN ||
             $result2 === NodeVisitor::DONT_TRAVERSE_CHILDREN ||
             $result3 === NodeVisitor::DONT_TRAVERSE_CHILDREN ||
-            $result4 === NodeVisitor::DONT_TRAVERSE_CHILDREN
+            $result4 === NodeVisitor::DONT_TRAVERSE_CHILDREN ||
+            $result5 === NodeVisitor::DONT_TRAVERSE_CHILDREN
         ) {
             return NodeVisitor::DONT_TRAVERSE_CHILDREN;
         }
@@ -72,6 +81,7 @@ class CombinedMetricsVisitor implements NodeVisitor
         $this->cognitiveVisitor->leaveNode($node);
         $this->cyclomaticVisitor->leaveNode($node);
         $this->halsteadVisitor->leaveNode($node);
+        $this->understandabilityVisitor->leaveNode($node);
 
         return null;
     }
@@ -93,6 +103,7 @@ class CombinedMetricsVisitor implements NodeVisitor
         $this->cognitiveVisitor->resetValues();
         $this->cyclomaticVisitor->resetAll();
         $this->halsteadVisitor->resetMetrics();
+        $this->understandabilityVisitor->resetAll();
     }
 
     /**
@@ -104,6 +115,7 @@ class CombinedMetricsVisitor implements NodeVisitor
         $this->cognitiveVisitor->resetAll();
         $this->cyclomaticVisitor->resetAll();
         $this->halsteadVisitor->resetAll();
+        $this->understandabilityVisitor->resetAll();
     }
 
     /**
@@ -130,6 +142,18 @@ class CombinedMetricsVisitor implements NodeVisitor
     {
         $metrics = $this->halsteadVisitor->getMetrics();
         return $metrics['methods'] ?? [];
+    }
+
+    /**
+     * Get method understandability (Sonar cognitive complexity) from the understandability visitor.
+     */
+    /**
+     * @return array<string, mixed>
+     */
+    public function getMethodUnderstandability(): array
+    {
+        $summary = $this->understandabilityVisitor->getComplexitySummary();
+        return $summary['methods'] ?? [];
     }
 
     /**

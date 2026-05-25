@@ -78,12 +78,15 @@ class Parser
         $cyclomaticMetrics = $this->combinedVisitor->getMethodComplexity();
         /** @var array<string, mixed> $halsteadMetrics */
         $halsteadMetrics = $this->combinedVisitor->getHalsteadMethodMetrics();
+        /** @var array<string, mixed> $understandabilityMetrics */
+        $understandabilityMetrics = $this->combinedVisitor->getMethodUnderstandability();
 
         // Now reset the combined visitor
         $this->combinedVisitor->resetAll();
 
         $methodMetrics = $this->mergeCyclomaticMetrics($methodMetrics, $cyclomaticMetrics);
         $methodMetrics = $this->mergeHalsteadMetrics($methodMetrics, $halsteadMetrics);
+        $methodMetrics = $this->mergeUnderstandabilityMetrics($methodMetrics, $understandabilityMetrics);
 
         /** @var array<string, array<string, mixed>> $methodMetrics */
         return $methodMetrics;
@@ -128,6 +131,32 @@ class Parser
             }
 
             $methodMetric['halstead'] = $metrics;
+            $methodMetrics[$method] = $methodMetric;
+        }
+
+        return $methodMetrics;
+    }
+
+    /**
+     * @param array<string, mixed> $methodMetrics
+     * @param array<string, mixed> $understandabilityMetrics
+     * @return array<string, mixed>
+     */
+    private function mergeUnderstandabilityMetrics(array $methodMetrics, array $understandabilityMetrics): array
+    {
+        foreach ($understandabilityMetrics as $method => $complexityData) {
+            $methodMetric = $methodMetrics[$method] ?? null;
+            if (!is_array($methodMetric) || !is_array($complexityData)) {
+                continue;
+            }
+
+            $complexity = $complexityData['complexity'] ?? $complexityData;
+            $riskLevel = $complexityData['risk_level'] ?? 'unknown';
+            $methodMetric['understandability'] = [
+                'complexity' => $complexity,
+                'risk_level' => is_string($riskLevel) ? $riskLevel : 'unknown',
+                'breakdown' => $complexityData['breakdown'] ?? [],
+            ];
             $methodMetrics[$method] = $methodMetric;
         }
 

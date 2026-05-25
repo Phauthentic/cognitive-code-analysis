@@ -37,6 +37,7 @@ class TableHeaderBuilder
 
         $fields = $this->addHalsteadHeaders($fields);
         $fields = $this->addCyclomaticHeaders($fields);
+        $fields = $this->addUnderstandabilityHeaders($fields);
         $fields = $this->addCoverageHeader($fields);
 
         return $fields;
@@ -75,6 +76,7 @@ class TableHeaderBuilder
 
         $fields = $this->addHalsteadHeaders($fields);
         $fields = $this->addCyclomaticHeaders($fields);
+        $fields = $this->addUnderstandabilityHeaders($fields);
 
         if ($this->hasCoverage) {
             $fields[] = "Coverage";
@@ -110,6 +112,19 @@ class TableHeaderBuilder
     {
         if ($this->config->showCyclomaticComplexity) {
             $fields[] = "Cyclomatic\nComplexity";
+        }
+
+        return $fields;
+    }
+
+    /**
+     * @param array<int, string> $fields
+     * @return array<int, string>
+     */
+    private function addUnderstandabilityHeaders(array $fields): array
+    {
+        if ($this->config->showUnderstandability) {
+            $fields[] = "Understandability";
         }
 
         return $fields;

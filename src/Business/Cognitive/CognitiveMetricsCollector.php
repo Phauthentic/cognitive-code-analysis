@@ -24,6 +24,11 @@ use Throwable;
 class CognitiveMetricsCollector
 {
     /**
+     * Bump when cached analysis_result shape changes so stale entries are ignored.
+     */
+    private const CACHE_VERSION = '1.1';
+
+    /**
      * @var array<string, mixed>
      */
     private array $ignoredItems = [];
@@ -322,7 +327,7 @@ class CognitiveMetricsCollector
         string $configHash
     ): void {
         $cacheItem->set([
-            'version' => '1.0',
+            'version' => self::CACHE_VERSION,
             'file_path' => $file->getRealPath(),
             'file_mtime' => $file->getMTime(),
             'config_hash' => $configHash,
@@ -360,6 +365,14 @@ class CognitiveMetricsCollector
 
         $cachedData = $cacheItem->get();
         if (!is_array($cachedData)) {
+            return ['metrics' => null, 'cacheItem' => $cacheItem];
+        }
+
+        if (($cachedData['version'] ?? null) !== self::CACHE_VERSION) {
+            return ['metrics' => null, 'cacheItem' => $cacheItem];
+        }
+
+        if (($cachedData['config_hash'] ?? null) !== $configHash) {
             return ['metrics' => null, 'cacheItem' => $cacheItem];
         }
 

@@ -6,6 +6,7 @@ namespace Phauthentic\CognitiveCodeAnalysis\Command\Presentation;
 
 use Phauthentic\CognitiveCodeAnalysis\Business\Halstead\HalsteadMetrics;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cyclomatic\CyclomaticMetrics;
+use Phauthentic\CognitiveCodeAnalysis\Business\Understandability\UnderstandabilityMetrics;
 use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
 
 /**
@@ -82,11 +83,36 @@ class MetricFormatter
         return $complexity . ' (' . $riskColored . ')';
     }
 
+    public function formatUnderstandability(?UnderstandabilityMetrics $understandability): string
+    {
+        if (!$understandability) {
+            return '-';
+        }
+
+        $complexity = $understandability->complexity;
+        $risk = $understandability->riskLevel;
+        if ($risk === '' || $risk === 'unknown') {
+            return (string)$complexity;
+        }
+
+        return $complexity . ' (' . $this->colorUnderstandabilityRisk($risk) . ')';
+    }
+
     private function colorCyclomaticRisk(string $risk): string
+    {
+        return $this->colorRisk($risk);
+    }
+
+    private function colorUnderstandabilityRisk(string $risk): string
+    {
+        return $this->colorRisk($risk);
+    }
+
+    private function colorRisk(string $risk): string
     {
         return match (strtolower($risk)) {
             'medium' => '<comment>' . $risk . '</comment>',
-            'high' => '<error>' . $risk . '</error>',
+            'high', 'very_high' => '<error>' . $risk . '</error>',
             default => $risk,
         };
     }

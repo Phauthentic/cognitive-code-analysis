@@ -19,6 +19,7 @@ class TestCognitiveConfig extends CognitiveConfig
         float $scoreThreshold = 0.5,
         bool $showHalsteadComplexity = false,
         bool $showCyclomaticComplexity = false,
+        bool $showUnderstandability = false,
         bool $groupByClass = false,
         bool $showDetailedCognitiveMetrics = true,
         array $customReporters = []
@@ -31,6 +32,7 @@ class TestCognitiveConfig extends CognitiveConfig
             scoreThreshold: $scoreThreshold,
             showHalsteadComplexity: $showHalsteadComplexity,
             showCyclomaticComplexity: $showCyclomaticComplexity,
+            showUnderstandability: $showUnderstandability,
             groupByClass: $groupByClass,
             showDetailedCognitiveMetrics: $showDetailedCognitiveMetrics,
             customReporters: $customReporters

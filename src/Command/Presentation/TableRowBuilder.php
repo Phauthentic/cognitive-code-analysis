@@ -8,6 +8,7 @@ use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetrics;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Delta;
 use Phauthentic\CognitiveCodeAnalysis\Business\Halstead\HalsteadMetrics;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cyclomatic\CyclomaticMetrics;
+use Phauthentic\CognitiveCodeAnalysis\Business\Understandability\UnderstandabilityMetrics;
 use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 
@@ -134,6 +135,19 @@ class TableRowBuilder
     {
         if ($this->config->showCyclomaticComplexity) {
             $fields['cyclomaticComplexity'] = $this->formatter->formatCyclomaticComplexity($cyclomatic);
+        }
+
+        return $fields;
+    }
+
+    /**
+     * @param array<string, mixed> $fields
+     * @return array<string, mixed>
+     */
+    private function addUnderstandabilityFields(array $fields, ?UnderstandabilityMetrics $understandability): array
+    {
+        if ($this->config->showUnderstandability) {
+            $fields['understandability'] = $this->formatter->formatUnderstandability($understandability);
         }
 
         return $fields;
@@ -267,6 +281,7 @@ class TableRowBuilder
 
         $fields = $this->addHalsteadFields($fields, $metrics->getHalstead());
         $fields = $this->addCyclomaticFields($fields, $metrics->getCyclomatic());
+        $fields = $this->addUnderstandabilityFields($fields, $metrics->getUnderstandability());
 
         return $fields;
     }
