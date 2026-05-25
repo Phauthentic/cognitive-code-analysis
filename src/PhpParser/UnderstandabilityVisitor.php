@@ -145,9 +145,11 @@ class UnderstandabilityVisitor extends NodeVisitorAbstract
         $fqcn = $this->currentNamespace . '\\' . $node->name->toString();
         $this->currentClassName = $this->normalizeFqcn($fqcn);
 
-        if ($this->annotationVisitor !== null && $this->annotationVisitor->isClassIgnored($this->currentClassName)) {
-            $this->currentClassName = '';
+        if ($this->annotationVisitor === null || !$this->annotationVisitor->isClassIgnored($this->currentClassName)) {
+            return;
         }
+
+        $this->currentClassName = '';
     }
 
     private function normalizeFqcn(string $fqcn): string
@@ -313,9 +315,11 @@ class UnderstandabilityVisitor extends NodeVisitorAbstract
 
     private function decreaseNesting(): void
     {
-        if ($this->nestingLevel > 0) {
-            $this->nestingLevel--;
+        if ($this->nestingLevel <= 0) {
+            return;
         }
+
+        $this->nestingLevel--;
     }
 
     private function countJumpStatement(Node $node): void
@@ -329,9 +333,11 @@ class UnderstandabilityVisitor extends NodeVisitorAbstract
             return;
         }
 
-        if ($node->num !== null) {
-            $this->addFundamental();
+        if ($node->num === null) {
+            return;
         }
+
+        $this->addFundamental();
     }
 
     private function countLogicalOperator(Node $node): void
@@ -387,9 +393,11 @@ class UnderstandabilityVisitor extends NodeVisitorAbstract
             return;
         }
 
-        if ($this->isSelfStaticCall($node->class)) {
-            $this->hasRecursion = true;
+        if (!$this->isSelfStaticCall($node->class)) {
+            return;
         }
+
+        $this->hasRecursion = true;
     }
 
     private function resolveMethodName(Node\Expr|string|Node\Identifier $name): ?string
@@ -419,15 +427,19 @@ class UnderstandabilityVisitor extends NodeVisitorAbstract
 
     private function checkNamespaceLeave(Node $node): void
     {
-        if ($node instanceof Stmt\Namespace_) {
-            $this->currentNamespace = '';
+        if (!($node instanceof Stmt\Namespace_)) {
+            return;
         }
+
+        $this->currentNamespace = '';
     }
 
     private function checkClassLeave(Node $node): void
     {
-        if ($node instanceof Stmt\Class_ || $node instanceof Stmt\Trait_) {
-            $this->currentClassName = '';
+        if (!($node instanceof Stmt\Class_) && !($node instanceof Stmt\Trait_)) {
+            return;
         }
+
+        $this->currentClassName = '';
     }
 }

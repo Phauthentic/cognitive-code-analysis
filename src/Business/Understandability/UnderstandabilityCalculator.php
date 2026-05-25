@@ -58,9 +58,11 @@ class UnderstandabilityCalculator implements UnderstandabilityCalculatorInterfac
                 $summary['high_risk_methods'][$methodKey] = $complexity;
             }
 
-            if ($complexity >= 15) {
-                $summary['very_high_risk_methods'][$methodKey] = $complexity;
+            if ($complexity < 15) {
+                continue;
             }
+
+            $summary['very_high_risk_methods'][$methodKey] = $complexity;
         }
 
         return $summary;
