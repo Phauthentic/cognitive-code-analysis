@@ -78,6 +78,7 @@ class Parser
         $cyclomaticMetrics = $this->combinedVisitor->getMethodComplexity();
         /** @var array<string, mixed> $halsteadMetrics */
         $halsteadMetrics = $this->combinedVisitor->getHalsteadMethodMetrics();
+        /** @var array<string, mixed> $understandabilityMetrics */
         $understandabilityMetrics = $this->combinedVisitor->getMethodUnderstandability();
 
         // Now reset the combined visitor

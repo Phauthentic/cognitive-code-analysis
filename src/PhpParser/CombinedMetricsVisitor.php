@@ -147,6 +147,9 @@ class CombinedMetricsVisitor implements NodeVisitor
     /**
      * Get method understandability (Sonar cognitive complexity) from the understandability visitor.
      */
+    /**
+     * @return array<string, mixed>
+     */
     public function getMethodUnderstandability(): array
     {
         $summary = $this->understandabilityVisitor->getComplexitySummary();

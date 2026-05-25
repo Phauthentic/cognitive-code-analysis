@@ -15,6 +15,8 @@ use PhpParser\NodeVisitorAbstract;
  *
  * @see https://www.sonarsource.com/resources/cognitive-complexity/
  * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
+ * @SuppressWarnings(PHPMD.TooManyFields)
+ * @SuppressWarnings(PHPMD.TooManyMethods)
  */
 class UnderstandabilityVisitor extends NodeVisitorAbstract
 {
