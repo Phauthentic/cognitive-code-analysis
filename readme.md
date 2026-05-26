@@ -107,6 +107,21 @@ These pages and papers provide more information on cognitive limitations and rea
   * [Halstead Complexity](https://en.wikipedia.org/wiki/Halstead_complexity_measures)
 * **Cyclomatic Complexity**
   * [Cyclomatic Complexity](https://en.wikipedia.org/wiki/Cyclomatic_complexity)
+* **Sonars Understandability / Cognitive Complexity**
+  * [{Cognitive Complexity} a new way of measuring understandability](https://www.sonarsource.com/docs/CognitiveComplexity.pdf)
+
+## Calculated Metrics
+
+The tool computes complementary complexity metrics at class and method level. Optional metrics are enabled in [`phpcca.yaml`](./docs/Configuration.md#configuration).
+
+| Category | Metric | Description |
+|----------|--------|-------------|
+| [Cognitive Complexity](./docs/Cognitive-Complexity-Analysis.md) | **Score** | Weighted sum of structural inputs (lines, arguments, variables, branching, etc.); each input contributes logarithmically above a configurable threshold |
+| [Understandability](./docs/Understandability.md) | **Score** | Sonar-style control-flow complexity, separate from the weighted cognitive score; risk bands: 0–5 low, 6–10 medium, 11–15 high, 16+ very high |
+| [Cyclomatic Complexity](./docs/Cyclomatic-Complexity-Analysis.md) | **Score** | Number of linearly independent paths: base 1 plus decision points and logical operators; risk bands: 1–5 low, 6–10 medium, 11–15 high, 16+ very high |
+| [Halstead](./docs/Halstead-Analysis.md) | Volume | Implementation size derived from operators and operands (`N × log₂(n)`) |
+| Halstead | Difficulty | Effort required to understand the code (`(n₁ / 2) × (N₂ / n₂)`) |
+| Halstead | Effort | Mental effort to develop or maintain the code (`D × V`) |
 
 ## Examples 📖
 
