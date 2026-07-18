@@ -78,7 +78,6 @@ class ConfigLoader implements ConfigurationInterface
         $treeBuilder = new TreeBuilder('config');
         $rootNode = $treeBuilder->getRootNode();
 
-        /* @phpstan-ignore-next-line */
         $rootNode
             ->children()
                 ->arrayNode('cognitive')

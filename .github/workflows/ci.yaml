@@ -10,13 +10,25 @@ on:
 
 jobs:
   testsuite:
-    name: Unittests
+    name: Unittests (PHP ${{ matrix.php-version }}, Symfony ${{ matrix.symfony-version }})
     runs-on: ubuntu-24.04
 
     strategy:
       fail-fast: false
       matrix:
-        php-version: ['8.2', '8.3', '8.4', '8.5']
+        include:
+          - php-version: '8.2'
+            symfony-version: '6.*'
+            composer-flags: '--prefer-lowest --prefer-stable'
+          - php-version: '8.2'
+            symfony-version: '7.*'
+            composer-flags: ''
+          - php-version: '8.4'
+            symfony-version: '8.*'
+            composer-flags: ''
+          - php-version: '8.5'
+            symfony-version: '8.*'
+            composer-flags: ''
 
     steps:
     - uses: actions/checkout@v4
@@ -33,11 +45,14 @@ jobs:
 
     - name: Composer install
       run: |
-        if [[ ${{ matrix.prefer-lowest == 'prefer-lowest' }} ]]; then
-          composer update --prefer-lowest --prefer-stable
-        else
-          composer install
-        fi
+        composer config minimum-stability stable
+        composer require --no-update \
+          symfony/console:${{ matrix.symfony-version }} \
+          symfony/config:${{ matrix.symfony-version }} \
+          symfony/yaml:${{ matrix.symfony-version }} \
+          symfony/dependency-injection:${{ matrix.symfony-version }} \
+          symfony/messenger:${{ matrix.symfony-version }}
+        composer update --with-all-dependencies ${{ matrix.composer-flags }}
 
     - name: Run PHPUnit
       run: |
@@ -62,13 +77,13 @@ jobs:
     - name: Setup PHP
       uses: shivammathur/setup-php@v2
       with:
-        php-version: ${{ matrix.php-version }}
+        php-version: '8.4'
         extensions: json, fileinfo
         coverage: pcov
         tools: pecl
 
     - name: Composer install
-      run: composer update --prefer-lowest --prefer-stable
+      run: composer install
 
     - name: Run phpcs
       run: bin/phpcs --version && bin/phpcs --report=source --standard=phpcs.xml
