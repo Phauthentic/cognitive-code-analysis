@@ -73,6 +73,11 @@ Note that this requires a version control system (VCS) to be set up, such as Git
 bin/phpcca churn <path-to-folder>
 ```
 
+### Editor Integration
+
+The [Cognitive Code Analysis VS Code extension](https://github.com/Phauthentic/cognitive-code-analysis-settings-vscode) shows methods above your configured threshold as diagnostics while you type.
+It uses the `phpcca` installed in your project's `vendor/bin` and respects your `phpcca.yaml`.
+
 ## Documentation 📚
 
 * [Cognitive Complexity Analysis](./docs/Cognitive-Complexity-Analysis.md#cognitive-complexity-analysis)
