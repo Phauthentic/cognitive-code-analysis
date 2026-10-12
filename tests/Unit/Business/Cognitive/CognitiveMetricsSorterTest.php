@@ -200,29 +200,23 @@ class CognitiveMetricsSorterTest extends TestCase
         // Use reflection to set private properties for testing
         $reflection = new \ReflectionClass($metrics1);
         $halsteadProperty = $reflection->getProperty('halstead');
-        $halsteadProperty->setAccessible(true);
         $halsteadProperty->setValue($metrics1, $halstead1);
 
         $cyclomaticProperty = $reflection->getProperty('cyclomatic');
-        $cyclomaticProperty->setAccessible(true);
         $cyclomaticProperty->setValue($metrics1, $cyclomatic1);
 
         $reflection = new \ReflectionClass($metrics2);
         $halsteadProperty = $reflection->getProperty('halstead');
-        $halsteadProperty->setAccessible(true);
         $halsteadProperty->setValue($metrics2, $halstead2);
 
         $cyclomaticProperty = $reflection->getProperty('cyclomatic');
-        $cyclomaticProperty->setAccessible(true);
         $cyclomaticProperty->setValue($metrics2, $cyclomatic2);
 
         $reflection = new \ReflectionClass($metrics3);
         $halsteadProperty = $reflection->getProperty('halstead');
-        $halsteadProperty->setAccessible(true);
         $halsteadProperty->setValue($metrics3, $halstead3);
 
         $cyclomaticProperty = $reflection->getProperty('cyclomatic');
-        $cyclomaticProperty->setAccessible(true);
         $cyclomaticProperty->setValue($metrics3, $cyclomatic3);
 
         $collection->add($metrics1);

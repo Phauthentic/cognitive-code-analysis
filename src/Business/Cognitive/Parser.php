@@ -297,7 +297,6 @@ class Parser
             $reflection = new ReflectionClass($className);
             if ($reflection->hasProperty($propertyName)) {
                 $property = $reflection->getProperty($propertyName);
-                $property->setAccessible(true);
                 $property->setValue(null, []);
             }
         } catch (\ReflectionException $e) {
