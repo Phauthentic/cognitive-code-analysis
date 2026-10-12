@@ -46,6 +46,8 @@ jobs:
     - name: Composer install
       run: |
         composer config minimum-stability stable
+        # PHPMD (via pdepend) does not support Symfony 8 yet; it only runs in the code-analysis job
+        composer remove --dev --no-update phpmd/phpmd
         composer require --no-update \
           symfony/console:${{ matrix.symfony-version }} \
           symfony/config:${{ matrix.symfony-version }} \
