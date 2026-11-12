@@ -34,6 +34,7 @@
         "ext-dom": "*",
         "roave/security-advisories": "dev-latest",
         "phpunit/phpunit": "^11.3",
+        "justinrainbow/json-schema": "^6.0",
         "infection/infection": "^0.31.9 || ^0.35",
         "phpmd/phpmd": "^2.15",
         "phpstan/phpstan": "^2.1",
