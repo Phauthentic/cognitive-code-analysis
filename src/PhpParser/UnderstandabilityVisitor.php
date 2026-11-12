@@ -221,8 +221,8 @@ class UnderstandabilityVisitor extends NodeVisitorAbstract
     {
         match (true) {
             $node instanceof Stmt\If_ => $this->addStructuralAndIncreaseNesting(),
-            $node instanceof Stmt\ElseIf_ => $this->addHybridAndIncreaseNesting(),
-            $node instanceof Stmt\Else_ => $this->addHybridAndIncreaseNesting(),
+            $node instanceof Stmt\ElseIf_,
+            $node instanceof Stmt\Else_ => $this->addHybrid(),
             $node instanceof Expr\Ternary => $this->addStructuralAndIncreaseNesting(),
             $node instanceof Stmt\Switch_ => $this->enterSwitch(),
             $node instanceof Expr\Match_ => $this->enterMatch(),
@@ -244,8 +244,6 @@ class UnderstandabilityVisitor extends NodeVisitorAbstract
     {
         match (true) {
             $node instanceof Stmt\If_,
-            $node instanceof Stmt\ElseIf_,
-            $node instanceof Stmt\Else_,
             $node instanceof Expr\Ternary,
             $node instanceof Stmt\For_,
             $node instanceof Stmt\Foreach_,
@@ -300,11 +298,15 @@ class UnderstandabilityVisitor extends NodeVisitorAbstract
         $this->nestingLevel++;
     }
 
-    private function addHybridAndIncreaseNesting(): void
+    /**
+     * `elseif` and `else` are children of `If_` in the AST, so their bodies already sit at the
+     * nesting level the `if` opened. They must not open another level (Sonar spec: an `else`
+     * body is nested exactly as deep as its `if` body).
+     */
+    private function addHybrid(): void
     {
         $this->score += 1;
         $this->hybridCount++;
-        $this->nestingLevel++;
     }
 
     private function addFundamental(): void
@@ -333,7 +335,8 @@ class UnderstandabilityVisitor extends NodeVisitorAbstract
             return;
         }
 
-        if ($node->num === null) {
+        // Only jumps to an outer loop (`break 2;`) break the flow like a labelled jump; `break 1;` is a plain break.
+        if (!$node->num instanceof Node\Scalar\Int_ || $node->num->value <= 1) {
             return;
         }
 

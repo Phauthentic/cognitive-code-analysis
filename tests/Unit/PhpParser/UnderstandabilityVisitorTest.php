@@ -207,6 +207,83 @@ class UnderstandabilityVisitorTest extends TestCase
         $this->assertSame(1, $switchScore);
     }
 
+    /**
+     * Sonar spec: if +1, else +1, nested if +2 (nesting 1). The else body is not nested deeper than the if body.
+     */
+    public function testIfNestedInElseIsNestedOneLevel(): void
+    {
+        $code = <<<'CODE'
+        <?php
+        namespace MyNamespace;
+        class MyClass {
+            public function run($a, $b) {
+                if ($a) {
+                    return 1;
+                } else {
+                    if ($b) {
+                        return 2;
+                    }
+                }
+                return 3;
+            }
+        }
+        CODE;
+
+        $this->assertSame(4, $this->analyzeMethod($code));
+    }
+
+    /**
+     * Sonar spec: if +1, elseif +1, nested if +2 (nesting 1).
+     */
+    public function testIfNestedInElseIfIsNestedOneLevel(): void
+    {
+        $code = <<<'CODE'
+        <?php
+        namespace MyNamespace;
+        class MyClass {
+            public function run($a, $b, $c) {
+                if ($a) {
+                    return 1;
+                } elseif ($b) {
+                    if ($c) {
+                        return 2;
+                    }
+                }
+                return 3;
+            }
+        }
+        CODE;
+
+        $this->assertSame(4, $this->analyzeMethod($code));
+    }
+
+    /**
+     * `break 1;` is a plain break and must not count; `break 2;` jumps to an outer loop and adds +1.
+     * Score without jumps: outer foreach +1, inner foreach +2, if +3 = 6.
+     */
+    public function testOnlyMultiLevelBreakIsCounted(): void
+    {
+        $template = <<<'CODE'
+        <?php
+        namespace MyNamespace;
+        class MyClass {
+            public function run(array $rows) {
+                foreach ($rows as $row) {
+                    foreach ($row as $cell) {
+                        if ($cell) {
+                            %s
+                        }
+                    }
+                }
+            }
+        }
+        CODE;
+
+        $this->assertSame(6, $this->analyzeMethod(sprintf($template, 'break;')));
+        $this->assertSame(6, $this->analyzeMethod(sprintf($template, 'break 1;')));
+        $this->assertSame(7, $this->analyzeMethod(sprintf($template, 'break 2;')));
+    }
+
     public function testDirectRecursionAddsFundamentalIncrement(): void
     {
         $code = <<<'CODE'

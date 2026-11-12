@@ -13,7 +13,7 @@ A [c# version](https://github.com/floriankraemer/csharp-cognitive-code-analysis)
 ## Features 💎
 
 * Cognitive Complexity Analysis:
-  * Calculates a cognitive complexity score for each class and method
+  * Calculates a cognitive complexity score for each method
   * Provides detailed cognitive complexity metrics
   * Generate reports in various formats (JSON, CSV, HTML, Markdown, Checkstyle XML, JUnit XML, SARIF, GitLab Code Quality, GitHub Actions)
   * Baseline comparison to track complexity changes over time
@@ -23,7 +23,7 @@ A [c# version](https://github.com/floriankraemer/csharp-cognitive-code-analysis)
   * Also provides Halstead Complexity Metrics (must be enabled in config)
   * Also provides Cyclomatic Complexity Metrics (must be enabled in config) 
 * Cognitive Complexity Churn Analysis to identify hotspots in the codebase
-  * Generate reports in various formats (JSON, CSV, HTML)
+  * Generate reports in various formats (JSON, CSV, HTML, Markdown, SVG Treemap)
   * Custom report generators
 
 ## Installation ⚙️
@@ -117,7 +117,7 @@ These pages and papers provide more information on cognitive limitations and rea
 
 ## Calculated Metrics
 
-The tool computes complementary complexity metrics at class and method level. Optional metrics are enabled in [`phpcca.yaml`](./docs/Configuration.md#configuration).
+The tool computes complementary complexity metrics for each method. Optional metrics are enabled in [`phpcca.yaml`](./docs/Configuration.md#configuration).
 
 | Category | Metric | Description |
 |----------|--------|-------------|

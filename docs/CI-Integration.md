@@ -11,6 +11,7 @@ A typical CI integration follows these steps:
 1. Check out the repository with full git history (`fetch-depth: 0`)
 2. Determine which PHP files changed compared to the target branch
 3. Run `bin/phpcca analyse` on those files only
+   The path argument takes a single value, so pass several files as one comma-separated list (`a.php,b.php`), not as separate arguments.
 4. Publish the report (Markdown comment, SARIF upload, or quality gate)
 
 When `phpcca.yaml` exists in the project root, `analyse` loads it automatically. Use `--config=path/to/config.yaml` to override.
@@ -86,11 +87,11 @@ jobs:
           BASE_SHA="${{ github.event.pull_request.base.sha }}"
           HEAD_SHA="${{ github.sha }}"
 
-          CHANGED_FILES=$(git diff --name-only --diff-filter=ACMR $BASE_SHA...$HEAD_SHA | grep '\.php$' | tr '\n' ' ' || echo "")
+          CHANGED_FILES=$(git diff --name-only --diff-filter=ACMR $BASE_SHA...$HEAD_SHA | grep '\.php$' | paste -sd, - || echo "")
 
           if [ -n "$CHANGED_FILES" ]; then
             echo "Analyzing files: $CHANGED_FILES"
-            bin/phpcca analyse $CHANGED_FILES --report-type=markdown --report-file=cca-report.md || true
+            bin/phpcca analyse "$CHANGED_FILES" --report-type=markdown --report-file=cca-report.md || true
 
             if [ -f "cca-report.md" ] && [ -s "cca-report.md" ]; then
               echo "has_report=true" >> $GITHUB_OUTPUT
@@ -133,7 +134,7 @@ jobs:
 Replace the Markdown report step with:
 
 ```bash
-bin/phpcca analyse $CHANGED_FILES --report-type=sarif --report-file=results.sarif
+bin/phpcca analyse "$CHANGED_FILES" --report-type=sarif --report-file=results.sarif
 ```
 
 Then upload `results.sarif` using the [GitHub Code Scanning upload action](https://github.com/github/codeql-action).
@@ -161,12 +162,12 @@ Code-Metrics:
     - composer install --prefer-dist --no-ansi --no-interaction --no-progress --no-scripts
     - |
       if [ "$CI_PIPELINE_SOURCE" = "merge_request_event" ] && [ -n "$CI_MERGE_REQUEST_DIFF_BASE_SHA" ]; then
-        CHANGED_FILES=$(git diff --name-only --diff-filter=ACMR $CI_MERGE_REQUEST_DIFF_BASE_SHA...$CI_COMMIT_SHA | grep '\.php$' | tr '\n' ' ')
+        CHANGED_FILES=$(git diff --name-only --diff-filter=ACMR $CI_MERGE_REQUEST_DIFF_BASE_SHA...$CI_COMMIT_SHA | grep '\.php$' | paste -sd, -)
       else
-        CHANGED_FILES=$(find src/ -name "*.php" | tr '\n' ' ')
+        CHANGED_FILES=$(find src/ -name "*.php" | paste -sd, -)
       fi
       if [ -n "$CHANGED_FILES" ]; then
-        bin/phpcca analyse $CHANGED_FILES --report-type=markdown --report-file=cca-report.md --config=phpcca.yaml
+        bin/phpcca analyse "$CHANGED_FILES" --report-type=markdown --report-file=cca-report.md --config=phpcca.yaml
         if [ -f "cca-report.md" ] && [ -s "cca-report.md" ]; then
           # Try with CI_JOB_TOKEN first, fallback to CI/CD variables
           if [ -n "$VALIDATOR" ]; then
@@ -218,7 +219,7 @@ Code-Metrics:
 Replace the Markdown report with:
 
 ```bash
-bin/phpcca analyse $CHANGED_FILES --report-type=gitlab-codequality --report-file=gl-code-quality.json
+bin/phpcca analyse "$CHANGED_FILES" --report-type=gitlab-codequality --report-file=gl-code-quality.json
 ```
 
 GitLab picks up the Code Quality report automatically when configured in your pipeline.

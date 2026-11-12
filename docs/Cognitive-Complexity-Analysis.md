@@ -20,9 +20,20 @@ Easy to read and understand code has a huge impact on the business. It can reduc
 
 A score is calculated that increases logarithmically as the input value exceeds a specified threshold. The result is 0 when the value is less than or equal to the threshold. When the value is greater than the threshold, the weight is calculated using a logarithmic function that controls the rate of increase.
 
-Given a value of 75 that is greater than the threshold of 50, the function calculates the logarithmic weight as log(1 + (75 - 50) / 10, M_E) which results in approximately 2.302585.
+For each metric, the weight is:
 
-This calculation is done for each metric and the results are summed to get the final cognitive complexity score for a method.
+```
+weight = 0                                       if value <= threshold
+weight = ln(1 + (value - threshold) / scale)     if value >  threshold
+```
+
+`ln` is the natural logarithm.
+`threshold` and `scale` are configured per metric, see [Tuning the calculation](./Configuration.md#tuning-the-calculation).
+
+Given a value of 75, a threshold of 50, and a scale of 10, the weight is ln(1 + (75 - 50) / 10) = ln(3.5), which is approximately 1.252763.
+
+The weights of all metrics are summed to get the final cognitive complexity score for a method.
+The score is rounded to three decimal places.
 
 ## Result Interpretation
 
@@ -49,11 +60,11 @@ There are cases in which the code simply ends up with a lot of things that might
   - **Purpose**: Multiple return points can make a method harder to follow and maintain. This metric helps identify methods that may benefit from being refactored for clarity.
 
 - **Variable Count**: 
-  - **Description**: The number of variables used within the method, including both local variables and parameters.
+  - **Description**: The number of distinct variable names used within the method body, excluding the method's parameters. `$this` counts as a variable.
   - **Purpose**: A high variable count can indicate a method that is doing too much or is overly complex. Monitoring this metric helps to ensure methods remain simple and focused.
 
 - **Property Call Count**: 
-  - **Description**: The number of times a property of a class is accessed within the method.
+  - **Description**: The number of distinct property names accessed with `->` within the method. Repeated access to the same property name counts once. Static (`::$property`) and nullsafe (`?->`) property access is not counted.
   - **Purpose**: Frequent property accesses may indicate a method that is highly coupled to the internal state of the object, which can make the code harder to test and maintain.
 
 - **If Nesting Level**: 
@@ -61,7 +72,7 @@ There are cases in which the code simply ends up with a lot of things that might
   - **Purpose**: Deeply nested `if` statements can be difficult to follow and may indicate a need for refactoring into smaller, more manageable pieces.
 
 - **Else Count**: 
-  - **Description**: The total number of `else` statements within the method.
+  - **Description**: The total number of `else` and `elseif` branches within the method.
   - **Purpose**: Helps measure the complexity of branching logic. A high else count might indicate complex or tightly coupled conditional logic.
 
 - **If Count**: 

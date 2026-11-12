@@ -58,7 +58,7 @@ cognitive:
     metrics:
       lineCount:
         threshold: 60
-        scale: 2.0
+        scale: 25.0
         enabled: true
       argCount:
         threshold: 4
@@ -69,11 +69,11 @@ cognitive:
         scale: 5.0
         enabled: true
       variableCount:
-        threshold: 2
+        threshold: 4
         scale: 5.0
         enabled: true
       propertyCallCount:
-        threshold: 2
+        threshold: 4
         scale: 15.0
         enabled: true
       ifCount:
@@ -90,11 +90,31 @@ cognitive:
         enabled: true
 ```
 
+Each metric's weight is `ln(1 + (value - threshold) / scale)` when the value is above the threshold, and `0` otherwise.
+A larger `scale` makes the weight grow more slowly.
+See [How is Cognitive Complexity calculated?](./Cognitive-Complexity-Analysis.md#how-is-cognitive-complexity-calculated).
+
+You only need to list the metrics and fields you want to change.
+For example, `lineCount: { threshold: 80 }` keeps the default `scale` and `enabled` values of `lineCount`.
+
 ### Disabling a metric
 
 Setting `enabled: false` on a metric gives it a weight of `0`, so it does not count toward the combined cognitive complexity score.
 The raw value of a disabled metric is still collected and reported; only its weight is zeroed.
 `enabled` defaults to `true`.
+
+## Score threshold
+
+```yaml
+cognitive:
+  scoreThreshold: 0.5
+  showOnlyMethodsExceedingThreshold: true
+```
+
+- **`scoreThreshold`** (default `0.5`): Methods with a cognitive score greater than this value are highlighted in the console output.
+  The `checkstyle`, `junit`, and `gitlab-codequality` reports only contain methods above this value.
+- **`showOnlyMethodsExceedingThreshold`** (default `true`): When `true`, the `markdown` report only contains methods with a score greater than `scoreThreshold`.
+  The console output and the other reports are not filtered by this option.
 
 ## Showing additional metrics
 
@@ -106,7 +126,13 @@ This can be useful to get a better understanding of the complexity of your code.
 cognitive:
   showHalsteadComplexity: false
   showCyclomaticComplexity: false
+  showUnderstandability: false
+  showDetailedCognitiveMetrics: true
 ```
+
+- **`showUnderstandability`** (default `false`): Shows the [Understandability](./Understandability.md) score.
+- **`showDetailedCognitiveMetrics`** (default `true`): Shows the individual metric columns (line count, arguments, returns, and so on).
+  When `false`, only the combined cognitive score is shown.
 
 ## Grouping Results by Class
 

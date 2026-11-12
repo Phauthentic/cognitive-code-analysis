@@ -115,7 +115,7 @@ class InitCommand extends Command
                 'scoreThreshold' => $this->askScoreThreshold($style),
                 'showOnlyMethodsExceedingThreshold' => $this->askBooleanSetting(
                     $style,
-                    'When enabled, only methods whose cognitive score exceeds the threshold are shown in output. '
+                    'When enabled, only methods whose cognitive score exceeds the threshold are included in the Markdown report. '
                     . 'Useful to focus on the most complex methods.',
                     'Show only methods exceeding the threshold?',
                     self::DEFAULT_SHOW_ONLY_METHODS_EXCEEDING_THRESHOLD,

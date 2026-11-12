@@ -215,7 +215,8 @@ class HalsteadMetricsVisitor extends NodeVisitorAbstract
 
     private function isOperand(Node $node): bool
     {
-        return $node instanceof Node\Expr\Variable
+        // Variable variables ($$name) have an expression as name; the inner variable is visited on its own.
+        return ($node instanceof Node\Expr\Variable && is_string($node->name))
             || $node instanceof Node\Scalar\String_
             || $node instanceof Node\Scalar\LNumber
             || $node instanceof Node\Scalar\DNumber;
