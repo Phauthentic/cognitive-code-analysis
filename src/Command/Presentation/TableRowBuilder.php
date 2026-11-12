@@ -35,25 +35,7 @@ class TableRowBuilder
      */
     public function buildRow(CognitiveMetrics $metrics): array
     {
-        $row = $this->metricsToArray($metrics);
-        $keys = $this->getKeys();
-
-        foreach ($keys as $key) {
-            $row = $this->addWeightedValue($key, $metrics, $row);
-            $row = $this->addDelta($key, $metrics, $row);
-        }
-
-        if ($this->hasCoverage) {
-            $row = $this->addCoverageValue($metrics, $row);
-        }
-
-        // Add deltas for Halstead metrics
-        $row = $this->addHalsteadDeltas($metrics, $row);
-
-        // Add deltas for Cyclomatic metrics
-        $row = $this->addCyclomaticDeltas($metrics, $row);
-
-        return $row;
+        return $this->completeRow($this->metricsToArray($metrics), $metrics);
     }
 
     /**
@@ -64,10 +46,18 @@ class TableRowBuilder
      */
     public function buildRowWithClassInfo(CognitiveMetrics $metrics): array
     {
-        $row = $this->metricsToArrayWithClassInfo($metrics);
-        $keys = $this->getKeys();
+        return $this->completeRow($this->metricsToArrayWithClassInfo($metrics), $metrics);
+    }
 
-        foreach ($keys as $key) {
+    /**
+     * Add weighted values, coverage and all deltas; shared so both row layouts stay in sync
+     *
+     * @param array<string, mixed> $row
+     * @return array<string, mixed>
+     */
+    private function completeRow(array $row, CognitiveMetrics $metrics): array
+    {
+        foreach ($this->getKeys() as $key) {
             $row = $this->addWeightedValue($key, $metrics, $row);
             $row = $this->addDelta($key, $metrics, $row);
         }
@@ -76,7 +66,9 @@ class TableRowBuilder
             $row = $this->addCoverageValue($metrics, $row);
         }
 
-        return $row;
+        $row = $this->addHalsteadDeltas($metrics, $row);
+
+        return $this->addCyclomaticDeltas($metrics, $row);
     }
 
     /**
