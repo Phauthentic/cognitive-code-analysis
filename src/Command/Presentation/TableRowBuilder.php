@@ -204,7 +204,7 @@ class TableRowBuilder
         return $this->appendToRowCell(
             $row,
             $key,
-            PHP_EOL . '<info>Δ -' . $delta->getValue() . '</info>'
+            PHP_EOL . '<info>Δ -' . round(abs($delta->getValue()), 3) . '</info>'
         );
     }
 
