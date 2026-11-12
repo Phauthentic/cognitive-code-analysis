@@ -82,7 +82,8 @@ class ChurnCalculator
                 ];
             }
 
-            $classData[$className]['timesChanged'] = $metric->getTimesChanged();
+            // All methods of a class share one file, hence one change count; max keeps this order-independent.
+            $classData[$className]['timesChanged'] = max($classData[$className]['timesChanged'], $metric->getTimesChanged());
             $classData[$className]['score'] += $metric->getScore();
         }
 

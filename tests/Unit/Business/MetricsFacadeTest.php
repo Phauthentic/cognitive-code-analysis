@@ -7,6 +7,8 @@ namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Business;
 use Phauthentic\CognitiveCodeAnalysis\Application;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChangeCounter\ChangeCounterFactory;
+use Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChangeCounter\ChangeCounterInterface;
 use Phauthentic\CognitiveCodeAnalysis\Business\MetricsFacade;
 use Symfony\Component\Yaml\Exception\ParseException;
 
@@ -65,5 +67,35 @@ class MetricsFacadeTest extends TestCase
         $this->expectException(ParseException::class);
 
         $this->metricsFacade->loadConfig('./does-not-exist.yml');
+    }
+
+    #[Test]
+    public function testCalculateChurnCountsChangesOncePerFile(): void
+    {
+        $counter = $this->createMock(ChangeCounterInterface::class);
+        $factory = $this->createMock(ChangeCounterFactory::class);
+        $factory->method('create')->willReturn($counter);
+
+        $app = new Application();
+        $facade = new MetricsFacade(
+            $app->get(\Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollector::class),
+            $app->get(\Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\ScoreCalculator::class),
+            $app->get(\Phauthentic\CognitiveCodeAnalysis\Config\ConfigService::class),
+            $app->get(\Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChurnCalculator::class),
+            $factory,
+            $app->get(\Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report\ChurnReportFactoryInterface::class),
+            $app->get(\Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report\CognitiveReportFactoryInterface::class),
+        );
+
+        $files = [];
+        foreach ($facade->getCognitiveMetrics($this->testCodePath) as $metric) {
+            $files[$metric->getFilename()] = true;
+        }
+
+        $counter->expects($this->exactly(count($files)))
+            ->method('getNumberOfChangesForFile')
+            ->willReturn(3);
+
+        $facade->calculateChurn($this->testCodePath);
     }
 }

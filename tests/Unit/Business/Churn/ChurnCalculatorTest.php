@@ -185,4 +185,27 @@ class ChurnCalculatorTest extends TestCase
         $this->assertEquals(0.0, $classAMetric->getCoverage());
         $this->assertEquals(10.0, $classAMetric->getRiskChurn()); // 5 * 2.0 * (1 - 0.0)
     }
+
+    public function testGroupByClassesTimesChangedIsOrderIndependent(): void
+    {
+        $make = function (int $changes): CognitiveMetrics {
+            $m = $this->createMock(CognitiveMetrics::class);
+            $m->method('getClass')->willReturn('ClassA');
+            $m->method('getTimesChanged')->willReturn($changes);
+            $m->method('getScore')->willReturn(1.0);
+            $m->method('getFileName')->willReturn('ClassA.php');
+
+            return $m;
+        };
+
+        $results = [];
+        foreach ([[7, 0], [0, 7]] as $order) {
+            $collection = $this->createMock(CognitiveMetricsCollection::class);
+            $collection->method('getIterator')->willReturn(new \ArrayIterator([$make($order[0]), $make($order[1])]));
+            $grouped = (new ChurnCalculator())->groupByClasses($collection);
+            $results[] = $grouped->getByClassName('ClassA')->getTimesChanged();
+        }
+
+        $this->assertSame([7, 7], $results);
+    }
 }
