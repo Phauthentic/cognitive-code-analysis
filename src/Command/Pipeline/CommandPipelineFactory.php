@@ -38,8 +38,9 @@ class CommandPipelineFactory
     public function createPipeline(): CommandPipeline
     {
         return new CommandPipeline([
-            $this->validationStage,
+            // Configuration runs first so validation sees reporters defined in a --config file.
             $this->configurationStage,
+            $this->validationStage,
             $this->coverageStage,
             $this->metricsCollectionStage,
             $this->baselineStage,

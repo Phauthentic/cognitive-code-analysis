@@ -1,0 +1,10 @@
+cognitive:
+  customReporters:
+    cognitive:
+      broken:
+        class: 'Tests\Fixtures\CustomReporters\MissingReporter'
+        file: 'tests/Fixtures/CustomReporters/CustomTextReporter.php'
+    churn:
+      broken:
+        class: 'Phauthentic\CognitiveCodeAnalysis\Tests\Fixtures\CustomReporters\MissingReporter'
+        file: 'tests/Fixtures/CustomReporters/CustomChurnTextReporter.php'

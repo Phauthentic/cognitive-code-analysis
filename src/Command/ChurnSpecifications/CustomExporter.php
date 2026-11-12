@@ -4,18 +4,17 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Command\ChurnSpecifications;
 
-use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report\ChurnReportFactoryInterface;
 use Phauthentic\CognitiveCodeAnalysis\Business\Reporter\CustomExporterConfigValidator;
 use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
 
 /**
  * Validation specification for custom exporters.
- * Ensures custom exporters are loadable before starting analysis.
+ * Ensures a configured custom exporter is loadable before starting analysis.
+ * Report types without a custom exporter configuration are left to report generation.
  */
 class CustomExporter implements ChurnCommandSpecification
 {
     public function __construct(
-        private readonly ChurnReportFactoryInterface $reportFactory,
         private readonly ConfigService $configService,
         private readonly CustomExporterConfigValidator $validator = new CustomExporterConfigValidator(),
     ) {
@@ -32,11 +31,12 @@ class CustomExporter implements ChurnCommandSpecification
             return true;
         }
 
-        if ($this->isBuiltInReportType($reportType)) {
+        $exporterConfig = $this->resolveExporterConfig($reportType);
+        if ($exporterConfig === null) {
             return true;
         }
 
-        return $this->validateCustomExporter($reportType);
+        return $this->isLoadable($exporterConfig);
     }
 
     public function getErrorMessage(): string
@@ -53,22 +53,18 @@ class CustomExporter implements ChurnCommandSpecification
 
         $exporterConfig = $this->resolveExporterConfig($reportType);
         if ($exporterConfig === null) {
-            $supportedTypes = implode('`, `', $this->reportFactory->getSupportedTypes());
-
-            return "Custom exporter `{$reportType}` not found in configuration. Supported types: `{$supportedTypes}`";
+            return $this->getErrorMessage();
         }
 
         return $this->validator->getConfigurationError($reportType, $exporterConfig);
     }
 
-    private function validateCustomExporter(string $reportType): bool
+    /**
+     * @param array<string, mixed> $exporterConfig
+     */
+    private function isLoadable(array $exporterConfig): bool
     {
         try {
-            $exporterConfig = $this->resolveExporterConfig($reportType);
-            if ($exporterConfig === null) {
-                return false;
-            }
-
             $parsed = $this->validator->parseClassAndFile($exporterConfig);
             if ($parsed === null) {
                 return false;
@@ -100,10 +96,5 @@ class CustomExporter implements ChurnCommandSpecification
 
         /** @var array<string, mixed> $exporterConfig */
         return $exporterConfig;
-    }
-
-    private function isBuiltInReportType(string $reportType): bool
-    {
-        return in_array($reportType, ['json', 'csv', 'html', 'markdown', 'svg-treemap', 'svg'], true);
     }
 }

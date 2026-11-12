@@ -4,18 +4,17 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications;
 
-use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report\CognitiveReportFactoryInterface;
 use Phauthentic\CognitiveCodeAnalysis\Business\Reporter\CustomExporterConfigValidator;
 use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
 
 /**
  * Validation specification for custom exporters in cognitive metrics command.
- * Ensures custom exporters are loadable before starting analysis.
+ * Ensures a configured custom exporter is loadable before starting analysis.
+ * Report types without a custom exporter configuration are left to report generation.
  */
 class CustomExporterValidation implements CognitiveMetricsSpecification
 {
     public function __construct(
-        private readonly CognitiveReportFactoryInterface $reportFactory,
         private readonly ConfigService $configService,
         private readonly CustomExporterConfigValidator $validator = new CustomExporterConfigValidator(),
     ) {
@@ -32,11 +31,12 @@ class CustomExporterValidation implements CognitiveMetricsSpecification
             return true;
         }
 
-        if ($this->isBuiltInReportType($reportType)) {
+        $exporterConfig = $this->resolveExporterConfig($reportType);
+        if ($exporterConfig === null) {
             return true;
         }
 
-        return $this->validateCustomExporter($reportType);
+        return $this->isLoadable($exporterConfig);
     }
 
     public function getErrorMessage(): string
@@ -53,22 +53,18 @@ class CustomExporterValidation implements CognitiveMetricsSpecification
 
         $exporterConfig = $this->resolveExporterConfig($reportType);
         if ($exporterConfig === null) {
-            $supportedTypes = implode('`, `', $this->reportFactory->getSupportedTypes());
-
-            return "Custom exporter `{$reportType}` not found in configuration. Supported types: `{$supportedTypes}`";
+            return $this->getErrorMessage();
         }
 
         return $this->validator->getConfigurationError($reportType, $exporterConfig);
     }
 
-    private function validateCustomExporter(string $reportType): bool
+    /**
+     * @param array<string, mixed> $exporterConfig
+     */
+    private function isLoadable(array $exporterConfig): bool
     {
         try {
-            $exporterConfig = $this->resolveExporterConfig($reportType);
-            if ($exporterConfig === null) {
-                return false;
-            }
-
             $parsed = $this->validator->parseClassAndFile($exporterConfig);
             if ($parsed === null) {
                 return false;
@@ -100,10 +96,5 @@ class CustomExporterValidation implements CognitiveMetricsSpecification
 
         /** @var array<string, mixed> $exporterConfig */
         return $exporterConfig;
-    }
-
-    private function isBuiltInReportType(string $reportType): bool
-    {
-        return in_array($reportType, ['json', 'csv', 'html', 'markdown'], true);
     }
 }

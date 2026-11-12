@@ -31,7 +31,12 @@ final class CustomExporterConfigValidator
     public function isLoadable(array $parsed): bool
     {
         if ($parsed['file'] !== null) {
-            return $this->isLoadableFromFile($parsed['class'], $parsed['file']);
+            if (!file_exists($parsed['file'])) {
+                return false;
+            }
+
+            // Same loading strategy as ReporterRegistry::loadExporter().
+            require_once $parsed['file'];
         }
 
         return class_exists($parsed['class']);
@@ -51,7 +56,7 @@ final class CustomExporterConfigValidator
             return "Exporter file not found: {$parsed['file']}";
         }
 
-        if ($parsed['file'] === null && !class_exists($parsed['class'])) {
+        if (!$this->isLoadable($parsed)) {
             return "Exporter class not found: {$parsed['class']}";
         }
 
@@ -72,25 +77,5 @@ final class CustomExporterConfigValidator
         }
 
         return "Custom exporter `{$reportType}` has invalid configuration.";
-    }
-
-    private function isLoadableFromFile(string $class, string $file): bool
-    {
-        if (!file_exists($file)) {
-            return false;
-        }
-
-        try {
-            $content = file_get_contents($file);
-            if ($content === false) {
-                return false;
-            }
-
-            $className = basename(str_replace('\\', '/', $class));
-
-            return str_contains($content, $className);
-        } catch (\Throwable) {
-            return false;
-        }
     }
 }

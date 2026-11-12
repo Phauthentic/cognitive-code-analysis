@@ -386,4 +386,30 @@ class CognitiveMetricsCommandTest extends TestCase
         // Note: Error messages are written to stderr, which CommandTester doesn't capture by default
         // The important thing is that the command fails with the correct status code
     }
+
+    #[Test]
+    public function testAnalyseFailsValidationForUnloadableCustomReporter(): void
+    {
+        $application = new Application();
+        $command = $application->getContainer()->get(CognitiveMetricsCommand::class);
+        $tester = new CommandTester($command);
+
+        $tempOutputFile = tempnam(sys_get_temp_dir(), 'broken_custom_report_') . '.txt';
+        unlink($tempOutputFile);
+
+        $tester->execute([
+            'path' => __DIR__ . '/../../../tests/TestCode',
+            '--config' => __DIR__ . '/../../../tests/Fixtures/custom-reporter-missing-class-config.yml',
+            '--report-type' => 'broken',
+            '--report-file' => $tempOutputFile,
+        ]);
+
+        $this->assertEquals(Command::FAILURE, $tester->getStatusCode());
+        $this->assertSame(
+            1,
+            substr_count($tester->getDisplay(), 'Exporter class not found:'),
+            'The custom exporter must be rejected exactly once during validation'
+        );
+        $this->assertFileDoesNotExist($tempOutputFile);
+    }
 }

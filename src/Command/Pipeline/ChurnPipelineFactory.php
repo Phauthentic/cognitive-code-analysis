@@ -32,8 +32,9 @@ class ChurnPipelineFactory
     public function createPipeline(): ChurnPipeline
     {
         return new ChurnPipeline([
-            $this->validationStage,
+            // Configuration runs first so validation sees reporters defined in a --config file.
             $this->configurationStage,
+            $this->validationStage,
             $this->coverageStage,
             $this->churnCalculationStage,
             $this->reportGenerationStage,
