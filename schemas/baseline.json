@@ -35,7 +35,7 @@
       "$comment": "Legacy format (direct metrics structure)",
       "type": "object",
       "patternProperties": {
-        "^[A-Za-z_][A-Za-z0-9_\\\\]*$": {
+        "^\\\\?[A-Za-z_\\x80-\\xff][A-Za-z0-9_\\x80-\\xff\\\\]*$": {
           "$ref": "#/$defs/classMetrics"
         }
       },
@@ -47,7 +47,7 @@
     "metrics": {
       "type": "object",
       "patternProperties": {
-        "^[A-Za-z_][A-Za-z0-9_\\\\]*$": {
+        "^\\\\?[A-Za-z_\\x80-\\xff][A-Za-z0-9_\\x80-\\xff\\\\]*$": {
           "$ref": "#/$defs/classMetrics"
         }
       },
@@ -61,7 +61,7 @@
         "methods": {
           "type": "object",
           "patternProperties": {
-            "^[A-Za-z_][A-Za-z0-9_]*$": {
+            "^[A-Za-z_\\x80-\\xff][A-Za-z0-9_\\x80-\\xff]*$": {
               "$ref": "#/$defs/methodMetrics"
             }
           },
@@ -197,6 +197,26 @@
           "type": "number",
           "minimum": 0,
           "description": "Total cognitive complexity score for the method"
+        },
+        "halsteadVolume": {
+          "type": ["number", "null"],
+          "description": "Halstead volume, null when Halstead metrics were not collected"
+        },
+        "halsteadDifficulty": {
+          "type": ["number", "null"],
+          "description": "Halstead difficulty, null when Halstead metrics were not collected"
+        },
+        "halsteadEffort": {
+          "type": ["number", "null"],
+          "description": "Halstead effort, null when Halstead metrics were not collected"
+        },
+        "cyclomaticComplexity": {
+          "type": ["integer", "null"],
+          "description": "Cyclomatic complexity, null when cyclomatic metrics were not collected"
+        },
+        "cyclomaticRiskLevel": {
+          "type": ["string", "null"],
+          "description": "Cyclomatic risk level, null when cyclomatic metrics were not collected"
         }
       },
       "additionalProperties": false
