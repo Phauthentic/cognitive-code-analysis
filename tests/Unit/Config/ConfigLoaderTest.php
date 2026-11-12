@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Config;
 
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Yaml\Yaml;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\Definition\Processor;
 use Phauthentic\CognitiveCodeAnalysis\Config\ConfigLoader;
@@ -77,5 +78,43 @@ class ConfigLoaderTest extends TestCase
         ];
 
         $processor->process($configTree, [$config]);
+    }
+
+    public function testPartialMetricsBlockFallsBackToBundledThresholds(): void
+    {
+        $config = $this->process(['cognitive' => ['metrics' => ['lineCount' => ['threshold' => 10]]]]);
+
+        $this->assertEquals(10, $config['cognitive']['metrics']['lineCount']['threshold']);
+        $this->assertEquals(4, $config['cognitive']['metrics']['variableCount']['threshold']);
+        $this->assertEquals(4, $config['cognitive']['metrics']['propertyCallCount']['threshold']);
+    }
+
+    public function testCodeDefaultsMatchBundledConfig(): void
+    {
+        $bundled = Yaml::parseFile(__DIR__ . '/../../../phpcca.yaml')['cognitive'];
+        // Blocks are only populated when present, so pass them empty to expose their leaf defaults.
+        $defaults = $this->process(['cognitive' => ['cache' => [], 'performance' => []]])['cognitive'];
+
+        $this->assertEquals(
+            (new ConfigLoader())->getCognitiveMetricDefaults(),
+            $bundled['metrics']
+        );
+
+        // Keys with no value in the bundled file are null there, empty by default in code.
+        $bundled['excludePatterns'] ??= [];
+        $bundled['excludeFilePatterns'] ??= [];
+        unset($bundled['metrics']);
+        foreach ($bundled as $key => $value) {
+            $this->assertEquals($value, $defaults[$key], "Default for '$key' differs from phpcca.yaml");
+        }
+    }
+
+    /**
+     * @param array<string, mixed> $config
+     * @return array<string, mixed>
+     */
+    private function process(array $config): array
+    {
+        return (new Processor())->process((new ConfigLoader())->getConfigTreeBuilder()->buildTree(), [$config]);
     }
 }

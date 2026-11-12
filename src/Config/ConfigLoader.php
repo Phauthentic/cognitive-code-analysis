@@ -43,12 +43,12 @@ class ConfigLoader implements ConfigurationInterface
                 self::ENABLED => true
             ],
             MetricNames::VARIABLE_COUNT->value => [
-                self::THRESHOLD => 2,
+                self::THRESHOLD => 4,
                 self::SCALE => 5.0,
                 self::ENABLED => true
             ],
             MetricNames::PROPERTY_CALL_COUNT->value => [
-                self::THRESHOLD => 2,
+                self::THRESHOLD => 4,
                 self::SCALE => 15.0,
                 self::ENABLED => true
             ],
@@ -96,7 +96,7 @@ class ConfigLoader implements ConfigurationInterface
                             ->defaultValue(0.5)
                         ->end()
                         ->booleanNode('showOnlyMethodsExceedingThreshold')
-                            ->defaultValue(false)
+                            ->defaultValue(true)
                         ->end()
                         ->booleanNode('showHalsteadComplexity')
                             ->defaultValue(false)
