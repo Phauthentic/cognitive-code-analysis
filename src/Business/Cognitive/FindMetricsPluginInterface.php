@@ -7,7 +7,9 @@ namespace Phauthentic\CognitiveCodeAnalysis\Business\Cognitive;
 use SplFileInfo;
 
 /**
- * CognitiveMetricsCollector class that collects cognitive metrics from source files
+ * @deprecated Nothing calls these hooks since the collector switched to events. Will be removed in 2.0.
+ *             The collector dispatches the SourceFilesFound and FileProcessed events instead.
+ * @see https://github.com/Phauthentic/cognitive-code-analysis/issues/93
  */
 interface FindMetricsPluginInterface
 {
