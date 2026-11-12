@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Business\Cognitive;
 
+use Generator;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Events\FileProcessed;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Events\ParserFailed;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Events\SourceFilesFound;
@@ -26,7 +27,7 @@ class CognitiveMetricsCollector
     /**
      * Bump when cached analysis_result shape changes so stale entries are ignored.
      */
-    private const CACHE_VERSION = '1.1';
+    private const CACHE_VERSION = '1.2';
 
     /**
      * @var array<string, mixed>
@@ -65,16 +66,7 @@ class CognitiveMetricsCollector
      */
     public function collectFromPaths(array $paths, CognitiveConfig $config): CognitiveMetricsCollection
     {
-        $allFiles = [];
-
-        foreach ($paths as $path) {
-            $files = $this->findSourceFiles($path, $config->excludeFilePatterns);
-            $allFiles = array_merge($allFiles, iterator_to_array($files));
-        }
-
-        $this->messageBus->dispatch(new SourceFilesFound(array_values($allFiles)));
-
-        return $this->findMetrics($allFiles);
+        return $this->findMetrics($this->findAllSourceFiles($paths, $config));
     }
 
     /**
@@ -97,16 +89,30 @@ class CognitiveMetricsCollector
         callable $batchCallback,
         int $batchSize = 100
     ): CognitiveMetricsCollection {
-        $allFiles = [];
+        return $this->findMetricsInBatches($this->findAllSourceFiles($paths, $config), $batchCallback, $batchSize);
+    }
 
-        foreach ($paths as $path) {
-            $files = $this->findSourceFiles($path, $config->excludeFilePatterns);
-            $allFiles = array_merge($allFiles, iterator_to_array($files));
+    /**
+     * Find the source files of all paths and announce them with a SourceFilesFound event.
+     *
+     * @param array<string> $paths
+     * @return Generator<SplFileInfo>
+     * @throws CognitiveAnalysisException
+     */
+    private function findAllSourceFiles(array $paths, CognitiveConfig $config): Generator
+    {
+        $files = iterator_to_array($this->findSourceFiles($paths, $config->excludeFilePatterns), false);
+
+        $this->messageBus->dispatch(new SourceFilesFound($files));
+
+        // An SplFileInfo object takes about 8 KB of memory, so keep only the path names
+        // during the analysis and create one object per file when it is processed.
+        $pathnames = array_map(static fn (SplFileInfo $file): string => $file->getPathname(), $files);
+        unset($files);
+
+        foreach ($pathnames as $pathname) {
+            yield new SplFileInfo($pathname);
         }
-
-        $this->messageBus->dispatch(new SourceFilesFound(array_values($allFiles)));
-
-        return $this->findMetricsInBatches($allFiles, $batchCallback, $batchSize);
     }
 
     /**
@@ -286,15 +292,15 @@ class CognitiveMetricsCollector
     /**
      * Find source files using DirectoryScanner
      *
-     * @param string $path Path to the directory or file to scan
+     * @param array<string> $paths Paths to the directories or files to scan
      * @param array<string> $exclude List of regx to exclude
      * @return iterable<mixed, SplFileInfo> An iterable of SplFileInfo objects
      * @throws CognitiveAnalysisException
      */
-    private function findSourceFiles(string $path, array $exclude = []): iterable
+    private function findSourceFiles(array $paths, array $exclude = []): iterable
     {
         return $this->directoryScanner->scan(
-            [$path],
+            $paths,
             array_merge(['^(?!.*\.php$).+'], $exclude)
         );
     }

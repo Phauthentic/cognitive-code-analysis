@@ -26,9 +26,13 @@ class CombinedMetricsVisitor implements NodeVisitor
     private UnderstandabilityVisitor $understandabilityVisitor;
     private UnderstandabilityCalculator $understandabilityCalculator;
 
-    public function __construct()
+    /**
+     * @param AnnotationVisitor|null $annotationVisitor Pass a visitor to read the ignored items of the last
+     *                                                  traversed file from it after the traversal.
+     */
+    public function __construct(?AnnotationVisitor $annotationVisitor = null)
     {
-        $this->annotationVisitor = new AnnotationVisitor();
+        $this->annotationVisitor = $annotationVisitor ?? new AnnotationVisitor();
         $this->cognitiveVisitor = new CognitiveMetricsVisitor();
         $this->cyclomaticCalculator = new CyclomaticComplexityCalculator();
         $this->cyclomaticVisitor = new CyclomaticComplexityVisitor($this->cyclomaticCalculator);
@@ -96,13 +100,16 @@ class CombinedMetricsVisitor implements NodeVisitor
 
     /**
      * Reset all visitors to their initial state.
+     *
+     * This runs before each file, so it must also drop the method metrics of the previous file.
+     * Otherwise every result would include the methods of all files parsed before it.
      */
     public function resetAll(): void
     {
         $this->annotationVisitor->reset();
-        $this->cognitiveVisitor->resetValues();
+        $this->cognitiveVisitor->resetAll();
         $this->cyclomaticVisitor->resetAll();
-        $this->halsteadVisitor->resetMetrics();
+        $this->halsteadVisitor->resetAll();
         $this->understandabilityVisitor->resetAll();
     }
 

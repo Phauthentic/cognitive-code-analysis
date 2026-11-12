@@ -16,23 +16,62 @@ class JsonReport implements ReportGeneratorInterface, StreamableReportInterface
     private bool $isStreaming = false;
 
     /**
+     * Writes the report class by class, so neither the whole report array nor the whole JSON string
+     * is held in memory. The output is the same as json_encode() of the whole array with JSON_PRETTY_PRINT.
+     *
      * @throws \JsonException|\Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException
      */
     public function export(CognitiveMetricsCollection $metricsCollection, string $filename): void
     {
-        $jsonData = [];
-
-        $groupedByClass = $metricsCollection->groupBy('class');
-
-        foreach ($groupedByClass as $class => $methods) {
-            foreach ($methods as $metrics) {
-                $this->addClassMethodMetrics($jsonData, (string) $class, $metrics);
-            }
+        $handle = fopen($filename, 'wb');
+        if ($handle === false) {
+            throw new CognitiveAnalysisException("Unable to write to file: $filename");
         }
 
-        $jsonData = json_encode($jsonData, JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR);
+        try {
+            $this->writeClasses($handle, $metricsCollection, $filename);
+        } catch (\Throwable $exception) {
+            // Do not leave a partial report behind
+            fclose($handle);
+            unlink($filename);
+            throw $exception;
+        }
 
-        if (file_put_contents($filename, $jsonData) === false) {
+        fclose($handle);
+    }
+
+    /**
+     * @param resource $handle
+     * @throws \JsonException|CognitiveAnalysisException
+     */
+    private function writeClasses($handle, CognitiveMetricsCollection $metricsCollection, string $filename): void
+    {
+        $separator = "{\n";
+
+        foreach ($metricsCollection->groupBy('class') as $class => $methods) {
+            $classData = [];
+            foreach ($methods as $metrics) {
+                $this->addClassMethodMetrics($classData, (string) $class, $metrics);
+            }
+
+            $encodedClass = json_encode($classData[(string) $class], JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR);
+            $this->write($handle, $separator . '    '
+                . json_encode((string) $class, JSON_THROW_ON_ERROR) . ': '
+                . str_replace("\n", "\n    ", $encodedClass), $filename);
+            $separator = ",\n";
+        }
+
+        // json_encode() writes an empty array as a list
+        $this->write($handle, $separator === "{\n" ? '[]' : "\n}", $filename);
+    }
+
+    /**
+     * @param resource $handle
+     * @throws CognitiveAnalysisException
+     */
+    private function write($handle, string $data, string $filename): void
+    {
+        if (fwrite($handle, $data) === false) {
             throw new CognitiveAnalysisException("Unable to write to file: $filename");
         }
     }

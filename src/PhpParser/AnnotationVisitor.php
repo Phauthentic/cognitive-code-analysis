@@ -98,11 +98,19 @@ class AnnotationVisitor extends NodeVisitorAbstract
             return;
         }
 
-        if (!$this->hasIgnoreAnnotation($node)) {
+        $isIgnored = $this->hasIgnoreAnnotation($node);
+        if ($isIgnored) {
+            $this->ignoredClasses[$this->currentClassName] = $this->currentClassName;
+        }
+
+        // Other visitors skip the children of ignored and anonymous classes, so record their ignored methods now.
+        if (!$isIgnored && $node->name !== null) {
             return;
         }
 
-        $this->ignoredClasses[$this->currentClassName] = $this->currentClassName;
+        foreach ($node->getMethods() as $method) {
+            $this->processMethodNode($method);
+        }
     }
 
     /**

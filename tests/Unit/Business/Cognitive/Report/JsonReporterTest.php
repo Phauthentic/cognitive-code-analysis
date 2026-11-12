@@ -116,7 +116,67 @@ class JsonReporterTest extends TestCase
 
         $this->assertSame($expected, $decodedData);
 
+        // The report is written class by class, so check it matches json_encode() of the whole array byte by byte.
+        $this->assertSame(
+            json_encode($decodedData, JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR),
+            file_get_contents($filename)
+        );
+
         // Clean up the temporary file.
+        unlink($filename);
+    }
+
+    #[Test]
+    public function testExportRemovesThePartialFileWhenEncodingFails(): void
+    {
+        $filename = tempnam(sys_get_temp_dir(), 'json_exporter_test_') . '.json';
+
+        $metricsCollection = new CognitiveMetricsCollection();
+        $metricsCollection->add(new CognitiveMetrics([
+            'class' => 'ValidClass',
+            'method' => 'valid',
+            'file' => 'ValidClass.php',
+            'lineCount' => 1,
+            'argCount' => 0,
+            'returnCount' => 0,
+            'variableCount' => 0,
+            'propertyCallCount' => 0,
+            'ifCount' => 0,
+            'ifNestingLevel' => 0,
+            'elseCount' => 0,
+        ]));
+        $metricsCollection->add(new CognitiveMetrics([
+            'class' => "Invalid\xB1Class",
+            'method' => 'invalid',
+            'file' => 'InvalidClass.php',
+            'lineCount' => 1,
+            'argCount' => 0,
+            'returnCount' => 0,
+            'variableCount' => 0,
+            'propertyCallCount' => 0,
+            'ifCount' => 0,
+            'ifNestingLevel' => 0,
+            'elseCount' => 0,
+        ]));
+
+        try {
+            (new JsonReport())->export($metricsCollection, $filename);
+            $this->fail('Expected a JsonException');
+        } catch (\JsonException) {
+        }
+
+        $this->assertFileDoesNotExist($filename);
+    }
+
+    #[Test]
+    public function testExportOfEmptyCollectionWritesAnEmptyJsonArray(): void
+    {
+        $filename = tempnam(sys_get_temp_dir(), 'json_exporter_test_') . '.json';
+
+        (new JsonReport())->export(new CognitiveMetricsCollection(), $filename);
+
+        $this->assertSame('[]', file_get_contents($filename));
+
         unlink($filename);
     }
 }
