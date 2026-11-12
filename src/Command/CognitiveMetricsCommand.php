@@ -10,6 +10,7 @@ use Phauthentic\CognitiveCodeAnalysis\Command\CognitiveMetricsSpecifications\Cog
 use Phauthentic\CognitiveCodeAnalysis\Config\ConfigFileResolver;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
+use Phauthentic\CognitiveCodeAnalysis\Command\EventHandler\VerboseHandler;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputInterface;
@@ -101,7 +102,7 @@ class CognitiveMetricsCommand extends Command
             )
             ->addOption(
                 name: self::OPTION_DEBUG,
-                mode: InputArgument::OPTIONAL,
+                mode: InputOption::VALUE_OPTIONAL,
                 description: 'Enables debug output',
                 default: false
             )
@@ -137,7 +138,7 @@ class CognitiveMetricsCommand extends Command
         $result = $pipeline->execute($executionContext);
 
         // Output execution summary if debug mode
-        if ($input->getOption(self::OPTION_DEBUG)) {
+        if (VerboseHandler::isDebugRequested($input)) {
             $this->outputExecutionSummary($executionContext, $output);
         }
 
