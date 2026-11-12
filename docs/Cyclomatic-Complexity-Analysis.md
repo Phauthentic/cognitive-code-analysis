@@ -24,7 +24,7 @@ The calculator counts the following complexity factors:
 - `if` statements
 - `elseif` statements
 - `switch` statements
-- `case` statements
+- `case` statements (`default:` is reported separately as `default` and not counted, as it is the fall-through path)
 - `while` loops
 - `do-while` loops
 - `for` loops
@@ -34,10 +34,8 @@ The calculator counts the following complexity factors:
 - `catch` blocks
 
 ### Logical Operators
-- `&&` (logical AND)
-- `||` (logical OR)
-- `and` (logical AND)
-- `or` (logical OR)
+- `&&` and `and` (logical AND, both reported as `logical_and`)
+- `||` and `or` (logical OR, both reported as `logical_or`)
 - `xor` (logical XOR)
 - Ternary operators (`? :`)
 

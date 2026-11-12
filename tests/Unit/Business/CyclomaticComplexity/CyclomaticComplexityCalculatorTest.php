@@ -42,6 +42,11 @@ class CyclomaticComplexityCalculatorTest extends TestCase
         $this->assertEquals(12, $result, 'Complexity should be base + sum of counts');
     }
 
+    public function testDefaultIsNotAddedToComplexity(): void
+    {
+        $this->assertSame(3, $this->calculator->calculateComplexity(['switch' => 1, 'case' => 1, 'default' => 1]));
+    }
+
     public function testCalculateComplexityWithZeroCounts(): void
     {
         $decisionPointCounts = [

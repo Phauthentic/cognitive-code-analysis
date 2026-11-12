@@ -17,9 +17,9 @@ class CyclomaticComplexityCalculator implements CyclomaticComplexityCalculatorIn
         $baseComplexity = 1; // Base complexity for any method
         $totalComplexity = $baseComplexity;
 
-        // Add complexity for each decision point type (excluding 'else' which doesn't add complexity)
+        // Add complexity for each decision point type (excluding 'else' and 'default', which don't add complexity)
         foreach ($decisionPointCounts as $type => $count) {
-            if ($type === 'else') {
+            if ($type === 'else' || $type === 'default') {
                 continue;
             }
 

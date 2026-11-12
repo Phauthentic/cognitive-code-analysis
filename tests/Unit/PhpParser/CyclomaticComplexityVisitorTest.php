@@ -8,6 +8,7 @@ use Phauthentic\CognitiveCodeAnalysis\Business\Cyclomatic\CyclomaticComplexityCa
 use Phauthentic\CognitiveCodeAnalysis\PhpParser\CyclomaticComplexityVisitor;
 use PhpParser\NodeTraverser;
 use PhpParser\ParserFactory;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 class CyclomaticComplexityVisitorTest extends TestCase
@@ -51,5 +52,48 @@ class CyclomaticComplexityVisitorTest extends TestCase
         $this->assertEquals(5, $methodComplexity[$methodKey]);
         // The class complexity should be at least the sum of its methods (here, just one method)
         $this->assertEquals(6, $classComplexity[$classKey]);
+    }
+
+    /**
+     * @return array<string, array{string, int}>
+     */
+    public static function fixtureMethodProvider(): array
+    {
+        return [
+            'and symbol' => ['both', 3],
+            'and keyword' => ['keyword', 3],
+            'or symbol' => ['orSymbol', 3],
+            'or keyword' => ['orKeyword', 3],
+            // 1 base + 1 switch + 2 case, default is not counted
+            'switch default' => ['withDefault', 4],
+        ];
+    }
+
+    #[DataProvider('fixtureMethodProvider')]
+    public function testFixtureMethodComplexity(string $method, int $expected): void
+    {
+        $visitor = $this->visitFixture();
+
+        $this->assertSame($expected, $visitor->getMethodComplexity()['\\Cyclomatic\\Cyc::' . $method]);
+    }
+
+    public function testDefaultArmIsReportedButNotCounted(): void
+    {
+        $breakdown = $this->visitFixture()->getMethodComplexityBreakdown()['\\Cyclomatic\\Cyc::withDefault'];
+
+        $this->assertSame(1, $breakdown['default']);
+        $this->assertSame(2, $breakdown['case']);
+    }
+
+    private function visitFixture(): CyclomaticComplexityVisitor
+    {
+        $ast = (new ParserFactory())->createForHostVersion()
+            ->parse((string)file_get_contents(__DIR__ . '/../../Fixtures/Cyclomatic/Cyc.php'));
+        $visitor = new CyclomaticComplexityVisitor(new CyclomaticComplexityCalculator());
+        $traverser = new NodeTraverser();
+        $traverser->addVisitor($visitor);
+        $traverser->traverse($ast);
+
+        return $visitor;
     }
 }
