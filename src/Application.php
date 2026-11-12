@@ -120,7 +120,10 @@ class Application
 
         $this->containerBuilder->register(CacheItemPoolInterface::class, FileCache::class)
             ->setArguments([
-                './.phpcca.cache' // Default cache directory, can be overridden by config
+                './.phpcca.cache' // Fallback, the configured cache.directory is resolved on first use
+            ])
+            ->addMethodCall('setDirectoryResolver', [
+                fn (): string => $this->resolveCacheDirectory(),
             ])
             ->setPublic(true);
 
@@ -476,6 +479,14 @@ class Application
             $this->containerBuilder->get(InputInterface::class),
             $this->containerBuilder->get(OutputInterface::class)
         );
+    }
+
+    private function resolveCacheDirectory(): string
+    {
+        /** @var ConfigService $configService */
+        $configService = $this->containerBuilder->get(ConfigService::class);
+
+        return $configService->getConfig()->cache->directory ?? './.phpcca.cache';
     }
 
     public function get(string $identifier): mixed
