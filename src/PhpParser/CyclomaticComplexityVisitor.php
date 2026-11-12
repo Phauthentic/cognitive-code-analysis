@@ -214,14 +214,14 @@ class CyclomaticComplexityVisitor extends NodeVisitorAbstract
             $node instanceof Node\Stmt\ElseIf_ => $this->countElseIfStatement(),
             $node instanceof Node\Stmt\Else_ => $this->countElseStatement(),
             $node instanceof Node\Stmt\Switch_ => $this->countSwitchStatement(),
-            $node instanceof Node\Stmt\Case_ => $this->countCaseStatement(),
+            $node instanceof Node\Stmt\Case_ => $this->countCaseStatement($node),
             $node instanceof Node\Stmt\While_ => $this->countWhileStatement(),
             $node instanceof Node\Stmt\Do_ => $this->countDoWhileStatement(),
             $node instanceof Node\Stmt\For_ => $this->countForStatement(),
             $node instanceof Node\Stmt\Foreach_ => $this->countForeachStatement(),
             $node instanceof Node\Stmt\Catch_ => $this->countCatchStatement(),
-            $node instanceof Node\Expr\BinaryOp\LogicalAnd => $this->countLogicalAnd(),
-            $node instanceof Node\Expr\BinaryOp\LogicalOr => $this->countLogicalOr(),
+            $node instanceof Node\Expr\BinaryOp\BooleanAnd || $node instanceof Node\Expr\BinaryOp\LogicalAnd => $this->countLogicalAnd(),
+            $node instanceof Node\Expr\BinaryOp\BooleanOr || $node instanceof Node\Expr\BinaryOp\LogicalOr => $this->countLogicalOr(),
             $node instanceof Node\Expr\BinaryOp\LogicalXor => $this->countLogicalXor(),
             $node instanceof Node\Expr\Ternary => $this->countTernary(),
             default => null,
@@ -252,8 +252,14 @@ class CyclomaticComplexityVisitor extends NodeVisitorAbstract
         $this->currentMethodComplexity++;
     }
 
-    private function countCaseStatement(): void
+    private function countCaseStatement(Node\Stmt\Case_ $node): void
     {
+        if ($node->cond === null) {
+            // default: is the fall-through path, not an extra decision point
+            $this->defaultCount++;
+            return;
+        }
+
         $this->caseCount++;
         $this->currentMethodComplexity++;
     }
