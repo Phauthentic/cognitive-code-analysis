@@ -37,6 +37,7 @@ class CognitiveMetricsCommand extends Command
     public const OPTION_SORT_ORDER = 'sort-order';
     public const OPTION_COVERAGE_COBERTURA = 'coverage-cobertura';
     public const OPTION_COVERAGE_CLOVER = 'coverage-clover';
+    public const OPTION_CLEAR_CACHE = 'clear-cache';
     private const ARGUMENT_PATH = 'path';
 
     public function __construct(
@@ -63,6 +64,11 @@ class CognitiveMetricsCommand extends Command
                 shortcut: 'c',
                 mode: InputArgument::OPTIONAL,
                 description: 'Path to a configuration file',
+            )
+            ->addOption(
+                name: self::OPTION_CLEAR_CACHE,
+                mode: InputOption::VALUE_NONE,
+                description: 'Delete all cached analysis results before the analysis starts.',
             )
             ->addOption(
                 name: self::OPTION_BASELINE,

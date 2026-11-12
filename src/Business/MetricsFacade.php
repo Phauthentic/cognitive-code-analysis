@@ -188,8 +188,13 @@ class MetricsFacade
         $metric->setCoverage($coverageDetails->getLineRate());
     }
 
-    public function clearCache(): void
+    /**
+     * Deletes all cached analysis results from the configured cache directory.
+     *
+     * @return bool False when the cache could not be cleared completely
+     */
+    public function clearCache(): bool
     {
-        $this->cognitiveMetricsCollector->clearCache();
+        return $this->cognitiveMetricsCollector->clearCache();
     }
 }

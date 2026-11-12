@@ -11,6 +11,7 @@ bin/phpcca churn <path-to-folder> [options]
 **Options:**
 - `<path-to-folder>`: **Required.** Path to the PHP file or directory to analyze.
 - `--config, -c`: Path to a configuration file (optional).
+- `--clear-cache`: Deletes all cached analysis results before the analysis starts, see [Result cache](./Configuration.md#result-cache).
 - `--vcs`: Version control system to use for change detection (default: `git`).
 - `--since, -s`: Start date for counting changes (default: `2000-01-01`).
 - `--report-type, -r`: Type of report to generate (`json`, `csv`, `html`, `markdown`, `svg-treemap`).

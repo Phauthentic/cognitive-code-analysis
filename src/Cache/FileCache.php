@@ -96,14 +96,16 @@ class FileCache implements CacheItemPoolInterface
         return file_exists($filePath) && $this->loadCacheData($filePath) !== null;
     }
 
+    /**
+     * Deletes all cache entries, see CacheDirectoryCleaner for what is removed.
+     *
+     * @return bool False when at least one cache file could not be deleted
+     */
     public function clear(): bool
     {
-        try {
-            $this->removeDirectory($this->getCacheDirectory());
-            return true;
-        } catch (CacheException $e) {
-            return false;
-        }
+        $this->deferred = [];
+
+        return (new CacheDirectoryCleaner())->clear($this->getCacheDirectory());
     }
 
     /**
@@ -260,29 +262,5 @@ class FileCache implements CacheItemPoolInterface
         }
 
         return $data;
-    }
-
-    private function removeDirectory(string $dir): void
-    {
-        if (!is_dir($dir)) {
-            return;
-        }
-
-        $scanResult = scandir($dir);
-        if ($scanResult === false) {
-            return;
-        }
-
-        $files = array_diff($scanResult, ['.', '..']);
-        foreach ($files as $file) {
-            $path = $dir . '/' . $file;
-            if (is_dir($path)) {
-                $this->removeDirectory($path);
-                continue;
-            }
-            unlink($path);
-        }
-
-        rmdir($dir);
     }
 }

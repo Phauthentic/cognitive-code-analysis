@@ -18,7 +18,7 @@ A [c# version](https://github.com/floriankraemer/csharp-cognitive-code-analysis)
   * Generate reports in various formats (JSON, CSV, HTML, Markdown, Checkstyle XML, JUnit XML, SARIF, GitLab Code Quality, GitHub Actions)
   * Baseline comparison to track complexity changes over time
   * Configurable thresholds and weights for complexity analysis
-  * Optional result cache for faster subsequent runs (must be enabled in config)
+  * Result cache for faster subsequent runs (enabled by default, clear it with `--clear-cache`)
   * Custom report generators
   * Also provides Halstead Complexity Metrics (must be enabled in config)
   * Also provides Cyclomatic Complexity Metrics (must be enabled in config) 
@@ -49,6 +49,7 @@ Cognitive Complexity Analysis
 ```bash
 bin/phpcca analyse <path-to-folder>
 bin/phpcca analyse <path-to-folder> --config=custom.yaml  # explicit config overrides auto-discovery
+bin/phpcca analyse <path-to-folder> --clear-cache         # delete cached results and analyse every file again
 ```
 
 Generate a report, supported types are `json`, `csv`, `html`, `markdown`, `checkstyle`, `junit`, `sarif`, `gitlab-codequality`, `github-actions`.
@@ -90,6 +91,7 @@ It uses the `phpcca` installed in your project's `vendor/bin` and respects your 
   * [Sorting and Filtering](./docs/Sorting-and-Filtering.md)
   * [Configuration](./docs/Configuration.md#configuration)
     * [Tuning the calculation](./docs/Configuration.md#tuning-the-calculation)
+    * [Result cache](./docs/Configuration.md#result-cache)
   * [CI Integration](./docs/CI-Integration.md)
   * [Examples](#examples)
     * [Wordpress WP_Debug_Data](#wordpress-wp_debug_data)
