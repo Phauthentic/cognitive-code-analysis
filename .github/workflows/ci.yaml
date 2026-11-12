@@ -31,7 +31,7 @@ jobs:
             composer-flags: ''
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
       with:
         fetch-depth: 1
 
@@ -65,14 +65,18 @@ jobs:
         fi
     - name: Code Coverage Report
       if: success() && matrix.php-version == '8.4'
-      uses: codecov/codecov-action@v4
+      uses: codecov/codecov-action@v7
+      with:
+        files: coverage.xml
+        disable_search: true
+        token: ${{ secrets.CODECOV_TOKEN }}
 
   code-analysis:
     name: Coding Standard & Static Analysis
     runs-on: ubuntu-24.04
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
       with:
         fetch-depth: 1
 

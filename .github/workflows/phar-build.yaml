@@ -8,11 +8,11 @@ on:
 jobs:
   build-phar:
     name: Build PHAR
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
 
     - name: Setup PHP
       uses: shivammathur/setup-php@v2
@@ -37,7 +37,7 @@ jobs:
       run: composer build-phar
 
     - name: Upload PHAR artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: phpcca.phar
         path: phpcca.phar
@@ -45,11 +45,11 @@ jobs:
   release:
     name: Create Release
     needs: build-phar
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
     - name: Download PHAR artifact
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: phpcca.phar
 
