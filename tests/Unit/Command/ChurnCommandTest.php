@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Command;
 
 use Phauthentic\CognitiveCodeAnalysis\Application;
-use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 use Phauthentic\CognitiveCodeAnalysis\Command\ChurnCommand;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
@@ -16,18 +15,40 @@ use Symfony\Component\Console\Tester\CommandTester;
 class ChurnCommandTest extends TestCase
 {
     #[Test]
-    public function testAnalyseNonExistentPath(): void
+    public function testChurnNonExistentPathFailsWithMessage(): void
     {
-        $this->expectException(CognitiveAnalysisException::class);
-        $this->expectExceptionMessage('Path does not exist: does-not-exist');
-
         $application = new Application();
         $command = $application->getContainer()->get(ChurnCommand::class);
         $tester = new CommandTester($command);
 
-        $tester->execute([
+        $exitCode = $tester->execute([
             'path' => 'does-not-exist',
         ]);
+
+        $this->assertSame(Command::FAILURE, $exitCode);
+        $this->assertStringContainsString('Churn calculation failed: Path does not exist: does-not-exist', $tester->getDisplay());
+    }
+
+    #[Test]
+    public function testChurnOutsideGitRepositoryFailsWithMessage(): void
+    {
+        $dir = sys_get_temp_dir() . '/phpcca-churn-' . uniqid();
+        mkdir($dir);
+        file_put_contents($dir . '/A.php', '<?php class A { public function f(int $a) { if ($a) { return 1; } return 2; } }');
+
+        try {
+            $application = new Application();
+            $command = $application->getContainer()->get(ChurnCommand::class);
+            $tester = new CommandTester($command);
+
+            $exitCode = $tester->execute(['path' => $dir]);
+        } finally {
+            unlink($dir . '/A.php');
+            rmdir($dir);
+        }
+
+        $this->assertSame(Command::FAILURE, $exitCode);
+        $this->assertStringContainsString('Churn calculation failed:', $tester->getDisplay());
     }
 
     #[Test]

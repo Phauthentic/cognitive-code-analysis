@@ -13,18 +13,28 @@ class GitChangeCounter implements ChangeCounterInterface
      */
     public function getNumberOfChangesForFile(string $filename, string $since): int
     {
-        $command = sprintf(
-            'git -C %s rev-list --since=%s --no-merges --count HEAD -- %s',
-            escapeshellarg(dirname($filename)),
-            escapeshellarg($since),
-            escapeshellarg(basename($filename))
-        );
+        $command = [
+            'git', '-C', dirname($filename),
+            'rev-list', '--since=' . $since, '--no-merges', '--count', 'HEAD', '--', basename($filename),
+        ];
 
-        $output = [];
-        $resultCode = 0;
-        exec($command, $output, $resultCode);
+        // The array form runs the process without a shell. That is portable and keeps stderr separate.
+        $pipes = [];
+        $process = proc_open($command, [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
+        if (!is_resource($process)) {
+            throw new CognitiveAnalysisException('Failed to execute git command for file: ' . $filename);
+        }
 
-        $this->assertValidExitCode($resultCode, $output, $filename);
+        /** @var array<int, resource> $pipes */
+        $stdout = trim((string)stream_get_contents($pipes[1]));
+        $stderr = trim((string)stream_get_contents($pipes[2]));
+        fclose($pipes[1]);
+        fclose($pipes[2]);
+        $resultCode = proc_close($process);
+
+        $output = $stdout === '' ? [] : explode("\n", $stdout);
+
+        $this->assertValidExitCode($resultCode, $output, $filename, $stderr);
 
         return (int)$output[0];
     }
@@ -33,14 +43,20 @@ class GitChangeCounter implements ChangeCounterInterface
      * @param int $resultCode
      * @param array<int, string> $output
      * @param string $filename
+     * @param string $errorOutput Optional stderr text of the process.
      * @return void
      * @throws CognitiveAnalysisException
      */
-    public function assertValidExitCode(int $resultCode, array $output, string $filename): void
-    {
+    public function assertValidExitCode(
+        int $resultCode,
+        array $output,
+        string $filename,
+        string $errorOutput = ''
+    ): void {
         if ($resultCode !== 0 || empty($output)) {
             throw new CognitiveAnalysisException(
                 'Failed to execute git command or no changes found for file: ' . $filename
+                . ($errorOutput !== '' ? ' (' . $errorOutput . ')' : '')
             );
         }
     }
