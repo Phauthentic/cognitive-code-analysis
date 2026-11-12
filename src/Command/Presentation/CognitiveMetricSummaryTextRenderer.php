@@ -10,6 +10,11 @@ use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Output\OutputInterface;
 
+/**
+ * @deprecated Not registered in the container and not used by any command. Will be removed in 2.0.
+ *             The console output is rendered by CognitiveMetricTextRenderer.
+ * @see https://github.com/Phauthentic/cognitive-code-analysis/issues/92
+ */
 class CognitiveMetricSummaryTextRenderer implements CognitiveMetricTextRendererInterface
 {
     public function __construct(
