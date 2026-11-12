@@ -155,7 +155,13 @@ class ConfigLoader implements ConfigurationInterface
                                 ->end()
                             ->end()
                         ->end()
+                        // Never had an effect, see https://github.com/Phauthentic/cognitive-code-analysis/issues/91
                         ->arrayNode('performance')
+                            ->setDeprecated(
+                                'phauthentic/cognitive-code-analysis',
+                                '1.12',
+                                'The "%node%" option at "%path%" has no effect and will be removed in 2.0.'
+                            )
                             ->children()
                                 ->integerNode('batchSize')
                                     ->defaultValue(100)

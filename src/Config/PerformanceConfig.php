@@ -6,6 +6,9 @@ namespace Phauthentic\CognitiveCodeAnalysis\Config;
 
 /**
  * Configuration for performance-related settings.
+ *
+ * @deprecated `performance.batchSize` never had an effect. Will be removed in 2.0.
+ * @see https://github.com/Phauthentic/cognitive-code-analysis/issues/91
  */
 class PerformanceConfig
 {

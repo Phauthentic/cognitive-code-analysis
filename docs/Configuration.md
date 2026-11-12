@@ -196,3 +196,9 @@ cognitive:
 
 This option only exists to keep the CSV column positions backwards compatible for consumers that read columns by index.
 It will be removed in the next major version, when the If Count columns move to their logical position before `If Nesting Level`.
+
+## Deprecated options
+
+- **`performance.batchSize`**: Never had an effect, because the analysis does not process or write reports in batches.
+  The option is still accepted, but it triggers a deprecation notice and will be removed in 2.0.
+  Remove the `performance` block from your configuration file.

@@ -8,7 +8,10 @@ use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollect
 
 /**
  * Interface for report generators that support streaming/batch processing.
- * Allows writing metrics in batches to reduce memory usage for large datasets.
+ *
+ * @deprecated No pipeline stage writes reports in batches, and the analysis keeps all metrics in memory anyway,
+ *             so streaming never reduced memory usage. Will be removed in 2.0. Use ReportGeneratorInterface::export().
+ * @see https://github.com/Phauthentic/cognitive-code-analysis/issues/91
  */
 interface StreamableReportInterface
 {
