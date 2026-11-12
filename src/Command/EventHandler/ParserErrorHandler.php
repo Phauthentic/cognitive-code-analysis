@@ -31,7 +31,7 @@ class ParserErrorHandler
         );
         $this->output->writeln(
             sprintf(
-                '<info>Please create an issue on Github and provide the code that could not pe parsed.</info> %s',
+                '<info>Please create an issue on Github and provide the code that could not be parsed.</info> %s',
                 $event->throwable->getTraceAsString()
             )
         );
