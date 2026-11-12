@@ -61,7 +61,25 @@ class VerboseHandler
 
     public function isDebugEnabled(): bool
     {
-        return $this->input->hasOption(CognitiveMetricsCommand::OPTION_DEBUG)
-            && $this->input->getOption(CognitiveMetricsCommand::OPTION_DEBUG) === true;
+        return self::isDebugRequested($this->input);
+    }
+
+    /**
+     * The --debug option is VALUE_OPTIONAL with default false: absent => false,
+     * bare "--debug" => null, "--debug=<value>" => string. Explicit falsy values turn it off.
+     */
+    public static function isDebugRequested(InputInterface $input): bool
+    {
+        if (!$input->hasOption(CognitiveMetricsCommand::OPTION_DEBUG)) {
+            return false;
+        }
+
+        $value = $input->getOption(CognitiveMetricsCommand::OPTION_DEBUG);
+
+        if (is_string($value)) {
+            return !in_array(strtolower($value), ['', '0', 'false', 'off', 'no'], true);
+        }
+
+        return $value !== false;
     }
 }
