@@ -134,6 +134,42 @@ cognitive:
 - **`showDetailedCognitiveMetrics`** (default `true`): Shows the individual metric columns (line count, arguments, returns, and so on).
   When `false`, only the combined cognitive score is shown.
 
+## Result cache
+
+The analysis result of each file is cached, so later runs only analyse files that changed.
+The cache is enabled by default.
+
+```yaml
+cognitive:
+  cache:
+    enabled: true
+    directory: './.phpcca.cache'
+```
+
+- **`enabled`** (default `true`): Set to `false` to analyse every file on every run.
+- **`directory`** (default `./.phpcca.cache`): Where cache files are stored, relative to the directory you run `bin/phpcca` from.
+  Add it to your `.gitignore`.
+
+A cached result is used only when the file path, the file modification time, and the configuration are unchanged.
+Results for older file versions or configurations are not deleted automatically, so the directory grows over time.
+
+### Clearing the cache
+
+Use `--clear-cache` with `analyse` or `churn` to delete all cached results before the analysis starts:
+
+```bash
+bin/phpcca analyse src --clear-cache
+bin/phpcca churn src --clear-cache
+```
+
+The command then analyses every file again and fills the cache with fresh results.
+The console shows `Cache: enabled (cleared)`.
+The cache directory of the loaded configuration is cleared, so combine `--clear-cache` with `--config` when you use a custom configuration file.
+
+Only files that the cache itself wrote are deleted, and directories are removed only when they are empty afterwards.
+If `directory` points to a directory with other files, those files are kept.
+If a cache file cannot be deleted, the command fails with `Failed to clear the cache directory`.
+
 ## Grouping Results by Class
 
 You can control how the analysis results are displayed by setting the `groupByClass` option.

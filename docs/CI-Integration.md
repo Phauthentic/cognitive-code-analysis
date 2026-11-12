@@ -228,7 +228,7 @@ GitLab picks up the Code Quality report automatically when configured in your pi
 
 - **Analyse only changed files** in PR/MR pipelines to keep feedback fast and relevant.
 - **Use baselines** to show deltas between runs; see [Baseline Analysis](./Baseline-Analysis.md).
-- **Disable cache in CI** if you want a fresh analysis every run:
+- **Disable cache in CI** if you want a fresh analysis every run, or pass `--clear-cache` when you restore a cache directory between runs and want to start over:
   ```yaml
   cognitive:
     cache:

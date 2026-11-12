@@ -12,7 +12,7 @@ use Phauthentic\CognitiveCodeAnalysis\Command\Presentation\RuntimeStatusRenderer
 use Phauthentic\CognitiveCodeAnalysis\Command\Result\OperationResult;
 
 /**
- * Pipeline stage for loading configuration files for churn analysis.
+ * Pipeline stage for loading configuration files and clearing the cache for churn analysis.
  */
 class ConfigurationStage implements ChurnPipelineStage
 {
@@ -31,16 +31,21 @@ class ConfigurationStage implements ChurnPipelineStage
             try {
                 $this->metricsFacade->loadConfig($configFile);
             } catch (Exception $e) {
-                $context->getOutput()->writeln('<error>Failed to load configuration: ' . $e->getMessage() . '</error>');
                 return OperationResult::failure('Failed to load configuration: ' . $e->getMessage());
             }
         }
 
-        $this->runtimeStatusRenderer->render(
-            $context->getOutput(),
-            $configFile,
-            $this->metricsFacade->getConfig()
-        );
+        // Runs after the configuration is loaded, so the configured cache directory is the one cleared.
+        $clearCache = $commandContext->getClearCache();
+        if ($clearCache && !$this->metricsFacade->clearCache()) {
+            return OperationResult::failure(sprintf(
+                'Failed to clear the cache directory `%s`.',
+                $this->metricsFacade->getConfig()->cache->directory ?? './.phpcca.cache'
+            ));
+        }
+
+        $render = $clearCache ? $this->runtimeStatusRenderer->renderWithClearedCache(...) : $this->runtimeStatusRenderer->render(...);
+        $render($context->getOutput(), $configFile, $this->metricsFacade->getConfig());
 
         return OperationResult::success();
     }

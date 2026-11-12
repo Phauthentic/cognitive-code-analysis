@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Command;
 
 use Phauthentic\CognitiveCodeAnalysis\Application;
+use Phauthentic\CognitiveCodeAnalysis\Cache\FileCache;
 use Phauthentic\CognitiveCodeAnalysis\Command\ChurnCommand;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
@@ -253,5 +254,33 @@ class ChurnCommandTest extends TestCase
             'The custom exporter must be rejected exactly once during validation'
         );
         $this->assertFileDoesNotExist($tempOutputFile);
+    }
+    #[Test]
+    public function testClearCacheOptionDeletesCachedResultsBeforeAnalysis(): void
+    {
+        $cacheDirectory = sys_get_temp_dir() . '/phpcca-clear-cache-' . uniqid();
+        $staleEntry = $cacheDirectory . '/ff/' . str_repeat('f', 32) . '.cache';
+        mkdir(dirname($staleEntry), 0777, true);
+        file_put_contents($staleEntry, '{}');
+
+        $configFile = $cacheDirectory . '-config.yml';
+        file_put_contents($configFile, "cognitive:\n  cache:\n    enabled: true\n    directory: '$cacheDirectory'\n");
+
+        $application = new Application();
+        $command = $application->getContainer()->get(ChurnCommand::class);
+        $tester = new CommandTester($command);
+
+        $tester->execute([
+            'path' => __DIR__ . '/../../../tests/TestCode',
+            '--config' => $configFile,
+            '--clear-cache' => true,
+        ]);
+
+        unlink($configFile);
+        (new FileCache($cacheDirectory))->clear();
+
+        $this->assertEquals(Command::SUCCESS, $tester->getStatusCode(), $tester->getDisplay());
+        $this->assertStringContainsString('Cache: enabled (cleared)', $tester->getDisplay());
+        $this->assertFileDoesNotExist($staleEntry);
     }
 }

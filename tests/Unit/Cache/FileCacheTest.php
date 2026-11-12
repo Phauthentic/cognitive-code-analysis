@@ -276,6 +276,44 @@ class FileCacheTest extends TestCase
         $this->assertDirectoryExists($this->testCacheDir);
     }
 
+    public function testClearRemovesTheEmptyCacheDirectory(): void
+    {
+        $this->cache->save(new CacheItem('key1', 'value1', true));
+
+        $this->assertTrue($this->cache->clear());
+
+        $this->assertDirectoryDoesNotExist($this->testCacheDir);
+    }
+
+    public function testClearOnlyDeletesFilesWrittenByTheCache(): void
+    {
+        $this->cache->save(new CacheItem('key1', 'value1', true));
+        $cacheSubDirectory = $this->testCacheDir . '/' . substr(md5('key1'), 0, 2);
+
+        // Simulates a misconfigured cache.directory that points at a project directory.
+        mkdir($this->testCacheDir . '/src');
+        file_put_contents($this->testCacheDir . '/src/Foo.php', '<?php');
+        file_put_contents($this->testCacheDir . '/README.md', 'keep');
+        file_put_contents($cacheSubDirectory . '/notes.txt', 'keep');
+
+        $this->assertTrue($this->cache->clear());
+
+        $this->assertFalse($this->cache->hasItem('key1'));
+        $this->assertFileExists($this->testCacheDir . '/src/Foo.php');
+        $this->assertFileExists($this->testCacheDir . '/README.md');
+        $this->assertFileExists($cacheSubDirectory . '/notes.txt');
+    }
+
+    public function testClearDiscardsDeferredItems(): void
+    {
+        $this->cache->saveDeferred(new CacheItem('key1', 'value1', true));
+
+        $this->assertTrue($this->cache->clear());
+        $this->assertTrue($this->cache->commit());
+
+        $this->assertFalse($this->cache->hasItem('key1'));
+    }
+
     public function testCacheFileStructure(): void
     {
         $key = 'test-structure';

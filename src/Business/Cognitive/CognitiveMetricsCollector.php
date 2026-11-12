@@ -339,9 +339,12 @@ class CognitiveMetricsCollector
         $this->cachePool->save($cacheItem);
     }
 
-    public function clearCache(): void
+    /**
+     * @return bool False when the cache could not be cleared completely
+     */
+    public function clearCache(): bool
     {
-        $this->cachePool->clear();
+        return $this->cachePool->clear();
     }
 
     /**

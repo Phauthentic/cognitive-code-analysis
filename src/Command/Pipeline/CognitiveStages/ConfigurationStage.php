@@ -36,11 +36,17 @@ class ConfigurationStage extends PipelineStage
             }
         }
 
-        $this->runtimeStatusRenderer->render(
-            $context->getOutput(),
-            $configFile,
-            $this->metricsFacade->getConfig()
-        );
+        // Runs after the configuration is loaded, so the configured cache directory is the one cleared.
+        $clearCache = $commandContext->getClearCache();
+        if ($clearCache && !$this->metricsFacade->clearCache()) {
+            return OperationResult::failure(sprintf(
+                'Failed to clear the cache directory `%s`.',
+                $this->metricsFacade->getConfig()->cache->directory ?? './.phpcca.cache'
+            ));
+        }
+
+        $render = $clearCache ? $this->runtimeStatusRenderer->renderWithClearedCache(...) : $this->runtimeStatusRenderer->render(...);
+        $render($context->getOutput(), $configFile, $this->metricsFacade->getConfig());
 
         return OperationResult::success();
     }

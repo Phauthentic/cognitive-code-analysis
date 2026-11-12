@@ -41,6 +41,20 @@ class RuntimeStatusRendererTest extends TestCase
     }
 
     #[Test]
+    public function renderMarksClearedCache(): void
+    {
+        $output = new BufferedOutput();
+        $renderer = new RuntimeStatusRenderer();
+
+        $renderer->renderWithClearedCache($output, null, $this->createConfig(cacheEnabled: true));
+
+        $this->assertSame(
+            "Config: built-in\nCache: enabled (cleared)\n\n",
+            $output->fetch()
+        );
+    }
+
+    #[Test]
     public function renderShowsConfigPathAndDisabledCache(): void
     {
         $tempDir = sys_get_temp_dir() . '/runtime-status-' . uniqid('', true);

@@ -11,8 +11,18 @@ class RuntimeStatusRenderer
 {
     public function render(OutputInterface $output, ?string $configFile, CognitiveConfig $config): void
     {
+        $this->write($output, $configFile, $this->formatCacheStatus($config));
+    }
+
+    public function renderWithClearedCache(OutputInterface $output, ?string $configFile, CognitiveConfig $config): void
+    {
+        $this->write($output, $configFile, $this->formatCacheStatus($config) . ' (cleared)');
+    }
+
+    private function write(OutputInterface $output, ?string $configFile, string $cacheStatus): void
+    {
         $output->writeln('Config: ' . $this->formatConfigSource($configFile));
-        $output->writeln('Cache: ' . $this->formatCacheStatus($config));
+        $output->writeln('Cache: ' . $cacheStatus);
         $output->writeln('');
     }
 

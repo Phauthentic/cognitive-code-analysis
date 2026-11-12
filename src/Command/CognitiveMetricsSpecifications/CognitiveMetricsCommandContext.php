@@ -21,6 +21,11 @@ class CognitiveMetricsCommandContext
         return $this->configFileResolver->resolve($this->getOptionalStringOption('config'));
     }
 
+    public function getClearCache(): bool
+    {
+        return (bool) $this->input->getOption('clear-cache');
+    }
+
     public function hasConfigFile(): bool
     {
         return $this->getConfigFile() !== null;

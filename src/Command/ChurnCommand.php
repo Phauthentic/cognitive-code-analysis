@@ -31,6 +31,7 @@ class ChurnCommand extends Command
     public const OPTION_REPORT_FILE = 'report-file';
     public const OPTION_COVERAGE_COBERTURA = 'coverage-cobertura';
     public const OPTION_COVERAGE_CLOVER = 'coverage-clover';
+    public const OPTION_CLEAR_CACHE = 'clear-cache';
 
     public function __construct(
         readonly private ChurnPipelineFactory $pipelineFactory,
@@ -56,6 +57,11 @@ class ChurnCommand extends Command
                 shortcut: 'c',
                 mode: InputArgument::OPTIONAL,
                 description: 'Path to a configuration file',
+            )
+            ->addOption(
+                name: self::OPTION_CLEAR_CACHE,
+                mode: InputOption::VALUE_NONE,
+                description: 'Delete all cached analysis results before the analysis starts.',
             )
             ->addOption(
                 name: self::OPTION_SINCE,
