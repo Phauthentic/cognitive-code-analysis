@@ -11,6 +11,7 @@ help:
 	@echo "  - self-test:          Run cognitive analyses self-test"
 	@echo "  - self-test-halstead: Run cognitive analyses self-test"
 	@echo "  - build-phar:         Build phar"
+	@echo "  - benchmark-memory:   Measure time and peak memory of analyse (BENCHMARK_PATH=vendor)"
 
 run-tests:
 	@echo "Running tests"
@@ -43,3 +44,10 @@ self-test:
 build-phar:
 	@echo "Building phar"
 	docker compose run php composer build-phar
+
+BENCHMARK_PATH ?= vendor
+BENCHMARK_CONFIG ?= benchmarks/phpcca-no-cache.yaml
+
+benchmark-memory:
+	@echo "Measuring time and peak memory of analyse on $(BENCHMARK_PATH)"
+	docker compose run --rm -T -e XDEBUG_MODE=off php php -d memory_limit=-1 benchmarks/analyse-memory.php $(BENCHMARK_PATH) --config=$(BENCHMARK_CONFIG) --report-type=json --report-file=tmp/benchmark-report.json

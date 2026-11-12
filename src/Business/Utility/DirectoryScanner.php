@@ -84,46 +84,37 @@ class DirectoryScanner
             RecursiveIteratorIterator::LEAVES_ONLY
         );
 
-        $files = $this->getFilesFromIterator($iterator, $exclude);
-        $this->sortFilesByPathname($files);
+        // Keep only the path names: an SplFileInfo object takes about 8 KB of memory,
+        // so holding one per file for a large code base would cost tens of megabytes.
+        $pathnames = $this->getPathnamesFromIterator($iterator, $exclude);
 
-        // Yield sorted files
-        foreach ($files as $fileInfo) {
-            yield $fileInfo;
+        // Sort to ensure a consistent order across platforms
+        sort($pathnames, SORT_STRING);
+
+        foreach ($pathnames as $pathname) {
+            yield new SplFileInfo($pathname);
         }
     }
 
     /**
-     * Sort files by their pathname to ensure consistent order across platforms.
-     *
-     * @param array<SplFileInfo> $files Array of SplFileInfo objects to sort
-     */
-    private function sortFilesByPathname(array &$files): void
-    {
-        usort($files, function (SplFileInfo $alpha, SplFileInfo $beta) {
-            return strcmp($alpha->getPathname(), $beta->getPathname());
-        });
-    }
-
-    /**
-     * Collect files from an iterator, applying exclusion filters.
+     * Collect the path names of the files from an iterator, applying exclusion filters.
      *
      * @param \Iterator<SplFileInfo> $iterator Iterator to collect files from
      * @param array<string> $exclude Array of regex patterns to exclude files
-     * @return array<SplFileInfo> Array of SplFileInfo objects
+     * @return array<string> Path names of the files
      */
-    private function getFilesFromIterator(\Iterator $iterator, array $exclude): array
+    private function getPathnamesFromIterator(\Iterator $iterator, array $exclude): array
     {
-        $files = [];
+        $pathnames = [];
         foreach ($iterator as $fileInfo) {
             if (!$fileInfo->isFile() || $this->isExcluded($fileInfo, $exclude)) {
                 continue;
             }
 
-            $files[] = $fileInfo;
+            $pathnames[] = $fileInfo->getPathname();
         }
 
-        return $files;
+        return $pathnames;
     }
 
     /**

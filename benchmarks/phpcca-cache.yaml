@@ -1,0 +1,4 @@
+cognitive:
+  cache:
+    enabled: true
+    directory: './tmp/benchmark-cache'

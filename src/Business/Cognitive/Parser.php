@@ -54,8 +54,9 @@ class Parser
         $this->halsteadMetricsVisitor->setAnnotationVisitor($this->annotationVisitor);
         $this->traverser->addVisitor($this->halsteadMetricsVisitor);
 
-        // Create the combined visitor for performance optimization
-        $this->combinedVisitor = new CombinedMetricsVisitor();
+        // The combined visitor collects all metrics and the ignored items in a single traversal.
+        // It shares the annotation visitor, so getIgnored() reports the items of the last parsed file.
+        $this->combinedVisitor = new CombinedMetricsVisitor($this->annotationVisitor);
         $this->combinedVisitor->setAnnotationVisitor();
     }
 
@@ -65,13 +66,13 @@ class Parser
      */
     public function parse(string $code): array
     {
-        // First, scan for annotations to collect ignored items
-        $this->scanForAnnotations($code);
+        // Reset here as well, so a parse error does not leave the ignored items of the previous file.
+        $this->annotationVisitor->reset();
 
-        // Then parse for metrics using the combined visitor for better performance
+        // Parse once and collect all metrics and ignored items in a single traversal.
+        // The combined visitor resets itself before each traversal.
         $this->traverseAbstractSyntaxTreeWithCombinedVisitor($code);
 
-        // Get all metrics before resetting
         /** @var array<string, mixed> $methodMetrics */
         $methodMetrics = $this->combinedVisitor->getMethodMetrics();
         /** @var array<string, mixed> $cyclomaticMetrics */
@@ -80,9 +81,6 @@ class Parser
         $halsteadMetrics = $this->combinedVisitor->getHalsteadMethodMetrics();
         /** @var array<string, mixed> $understandabilityMetrics */
         $understandabilityMetrics = $this->combinedVisitor->getMethodUnderstandability();
-
-        // Now reset the combined visitor
-        $this->combinedVisitor->resetAll();
 
         $methodMetrics = $this->mergeCyclomaticMetrics($methodMetrics, $cyclomaticMetrics);
         $methodMetrics = $this->mergeHalsteadMetrics($methodMetrics, $halsteadMetrics);
@@ -189,30 +187,6 @@ class Parser
             'complexity' => $complexity,
             'risk_level' => $riskLevel,
         ];
-    }
-
-    /**
-     * Scan the code for annotations to collect ignored items.
-     */
-    private function scanForAnnotations(string $code): void
-    {
-        // Reset the annotation visitor state before scanning
-        $this->annotationVisitor->reset();
-
-        try {
-            $ast = $this->parser->parse($code);
-        } catch (Error $e) {
-            throw new CognitiveAnalysisException("Parse error: {$e->getMessage()}", 0, $e);
-        }
-
-        if ($ast === null) {
-            throw new CognitiveAnalysisException("Could not parse the code.");
-        }
-
-        // Create a temporary traverser just for annotations
-        $annotationTraverser = new NodeTraverser();
-        $annotationTraverser->addVisitor($this->annotationVisitor);
-        $annotationTraverser->traverse($ast);
     }
 
     /**

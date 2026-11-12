@@ -24,6 +24,49 @@ class ParserTest extends TestCase
         );
     }
 
+    public function testParseReturnsOnlyTheMethodsOfTheParsedCode(): void
+    {
+        $this->parser->parse('<?php class First { public function a() { if ($x) { return 1; } } }');
+
+        $metrics = $this->parser->parse('<?php class Second { public function b() {} }');
+
+        $this->assertSame(['\\Second::b'], array_keys($metrics));
+        $this->assertArrayHasKey('cyclomatic_complexity', $metrics['\\Second::b']);
+        $this->assertArrayHasKey('halstead', $metrics['\\Second::b']);
+        $this->assertArrayHasKey('understandability', $metrics['\\Second::b']);
+    }
+
+    public function testGetIgnoredReportsTheItemsOfTheLastParsedCode(): void
+    {
+        $this->parser->parse('<?php /** @cca-ignore */ class First { public function a() {} }');
+        $this->parser->parse('<?php class Second { /** @cca-ignore */ public function b() {} }');
+
+        $this->assertSame([], $this->parser->getIgnoredClasses());
+        $this->assertSame(['\\Second::b' => '\\Second::b'], $this->parser->getIgnoredMethods());
+    }
+
+    public function testGetIgnoredIsEmptyAfterAParseError(): void
+    {
+        $this->parser->parse('<?php class First { /** @cca-ignore */ public function a() {} }');
+
+        try {
+            $this->parser->parse('<?php class {');
+            $this->fail('Expected a parse error');
+        } catch (\Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException) {
+        }
+
+        $this->assertSame(['classes' => [], 'methods' => []], $this->parser->getIgnored());
+    }
+
+    public function testGetIgnoredContainsIgnoredMethodsOfAnonymousClasses(): void
+    {
+        $this->parser->parse(
+            '<?php class A { public function y() { return new class { /** @cca-ignore */ public function z() {} }; } }'
+        );
+
+        $this->assertSame(['\\A::z' => '\\A::z'], $this->parser->getIgnoredMethods());
+    }
+
     public function testSkipsIgnoredClass(): void
     {
         $code = <<<'CODE'
