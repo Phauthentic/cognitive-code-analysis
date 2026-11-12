@@ -9,6 +9,7 @@ use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollect
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report\CheckstyleReport;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -100,6 +101,32 @@ class CheckstyleReporterTest extends TestCase
         $this->expectExceptionMessage('Directory /nonexistent/path does not exist');
 
         $report->export($collection, '/nonexistent/path/report.xml');
+    }
+
+    #[Test]
+    #[DataProvider('pathProvider')]
+    public function testExportNormalizesPath(string $path, string $expected): void
+    {
+        $collection = new CognitiveMetricsCollection();
+        $collection->add($this->createMetric('App\Example', 'foo', $path, 42, 15.5));
+
+        (new CheckstyleReport($this->configAboveThreshold))->export($collection, $this->filename);
+
+        $this->assertStringContainsString('<file name="' . $expected . '">', (string) file_get_contents($this->filename));
+    }
+
+    /**
+     * @return array<string, array{string, string}>
+     */
+    public static function pathProvider(): array
+    {
+        return [
+            'absolute path keeps root slash' => ['/app/src/A.php', '/app/src/A.php'],
+            'leading ./ is stripped' => ['./src/A.php', 'src/A.php'],
+            'repeated ./ is stripped' => ['././src/A.php', 'src/A.php'],
+            'dot directory is kept' => ['.hidden/A.php', '.hidden/A.php'],
+            'backslashes are converted' => ['src\\A.php', 'src/A.php'],
+        ];
     }
 
     private function createMetric(

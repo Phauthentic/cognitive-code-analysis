@@ -9,6 +9,7 @@ use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollect
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report\GitLabCodeQualityReport;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -101,6 +102,33 @@ class GitLabCodeQualityReporterTest extends TestCase
         $this->expectExceptionMessage('Directory /nonexistent/path does not exist');
 
         $report->export($collection, '/nonexistent/path/report.json');
+    }
+
+    #[Test]
+    #[DataProvider('pathProvider')]
+    public function testExportNormalizesPath(string $path, string $expected): void
+    {
+        $collection = new CognitiveMetricsCollection();
+        $collection->add($this->createMetric('App\Example', 'foo', $path, 42, 15.5));
+
+        (new GitLabCodeQualityReport($this->configAboveThreshold))->export($collection, $this->filename);
+
+        $data = json_decode((string) file_get_contents($this->filename), true);
+        $this->assertSame($expected, $data[0]['location']['path']);
+    }
+
+    /**
+     * @return array<string, array{string, string}>
+     */
+    public static function pathProvider(): array
+    {
+        return [
+            'absolute path keeps root slash' => ['/app/src/A.php', '/app/src/A.php'],
+            'leading ./ is stripped' => ['./src/A.php', 'src/A.php'],
+            'repeated ./ is stripped' => ['././src/A.php', 'src/A.php'],
+            'dot directory is kept' => ['.hidden/A.php', '.hidden/A.php'],
+            'backslashes are converted' => ['src\\A.php', 'src/A.php'],
+        ];
     }
 
     private function createMetric(

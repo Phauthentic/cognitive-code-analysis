@@ -8,6 +8,7 @@ use DOMDocument;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetrics;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
+use Phauthentic\CognitiveCodeAnalysis\Business\Utility\ReportPath;
 use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
 
 /**
@@ -42,7 +43,7 @@ class CheckstyleReport implements ReportGeneratorInterface
         $dom->appendChild($root);
 
         foreach ($groupedByFile as $filePath => $fileMetrics) {
-            $normalizedPath = $this->normalizePath($filePath);
+            $normalizedPath = ReportPath::normalize($filePath);
             $fileEl = $dom->createElement('file');
             $fileEl->setAttribute('name', $normalizedPath);
             $root->appendChild($fileEl);
@@ -101,13 +102,6 @@ class CheckstyleReport implements ReportGeneratorInterface
         }
 
         return $grouped;
-    }
-
-    private function normalizePath(string $path): string
-    {
-        $path = str_replace('\\', '/', $path);
-
-        return ltrim($path, './');
     }
 
     private function scoreToSeverity(float $score): string

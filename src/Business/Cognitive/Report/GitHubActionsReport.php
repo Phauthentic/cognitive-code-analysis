@@ -7,6 +7,7 @@ namespace Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetrics;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
+use Phauthentic\CognitiveCodeAnalysis\Business\Utility\ReportPath;
 use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
 
 /**
@@ -34,7 +35,7 @@ class GitHubActionsReport implements ReportGeneratorInterface
             }
 
             $level = $this->scoreToLevel($metric->getScore());
-            $path = $this->normalizePath($metric->getFileName());
+            $path = ReportPath::normalize($metric->getFileName());
             $line = $metric->getLine();
             $message = $this->buildMessage($metric);
             $lines[] = sprintf('::%s file=%s,line=%d::%s', $level, $path, $line, $message);
@@ -48,13 +49,6 @@ class GitHubActionsReport implements ReportGeneratorInterface
         if (file_put_contents($filename, $content) === false) {
             throw new CognitiveAnalysisException("Unable to write to file: {$filename}");
         }
-    }
-
-    private function normalizePath(string $path): string
-    {
-        $path = str_replace('\\', '/', $path);
-
-        return ltrim($path, './');
     }
 
     private function scoreToLevel(float $score): string
