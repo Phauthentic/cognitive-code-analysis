@@ -14,7 +14,7 @@ class GitChangeCounter implements ChangeCounterInterface
     public function getNumberOfChangesForFile(string $filename, string $since): int
     {
         $command = sprintf(
-            'git -C %s rev-list --since=%s --no-merges --count HEAD -- %s',
+            'git -C %s rev-list --since=%s --no-merges --count HEAD -- %s 2>/dev/null',
             escapeshellarg(dirname($filename)),
             escapeshellarg($since),
             escapeshellarg(basename($filename))

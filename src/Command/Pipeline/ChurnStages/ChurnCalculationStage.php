@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\ChurnStages;
 
 use Phauthentic\CognitiveCodeAnalysis\Business\MetricsFacade;
+use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\ChurnExecutionContext;
 use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\ChurnPipelineStage;
 use Phauthentic\CognitiveCodeAnalysis\Command\Result\OperationResult;
@@ -27,12 +28,17 @@ class ChurnCalculationStage implements ChurnPipelineStage
         $coverageReader = $context->getCoverageReader();
 
         // Calculate churn metrics
-        $metrics = $this->metricsFacade->calculateChurn(
-            path: $commandContext->getPath(),
-            vcsType: $commandContext->getVcsType(),
-            since: $commandContext->getSince(),
-            coverageReader: $coverageReader
-        );
+        try {
+            $metrics = $this->metricsFacade->calculateChurn(
+                path: $commandContext->getPath(),
+                vcsType: $commandContext->getVcsType(),
+                since: $commandContext->getSince(),
+                coverageReader: $coverageReader
+            );
+        } catch (CognitiveAnalysisException $e) {
+            // The command prints the failure message, so it is not written to the output here.
+            return OperationResult::failure('Churn calculation failed: ' . $e->getMessage());
+        }
 
         // Store metrics in context
         $context->setData('churnMetrics', $metrics);
