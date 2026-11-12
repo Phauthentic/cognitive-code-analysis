@@ -80,6 +80,12 @@ class ScoreCalculator
                 $metricValue = 0;
             }
 
+            // A disabled metric keeps its raw value but contributes no weight to the score.
+            if (!$metricConfigs[$configKey]->enabled) {
+                $metrics->{$setMethod}(0.0);
+                continue;
+            }
+
             $metrics->{$setMethod}(
                 $this->calculateLogWeight(
                     (float) $metricValue,

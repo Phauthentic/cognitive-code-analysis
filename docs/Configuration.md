@@ -59,28 +59,42 @@ cognitive:
       lineCount:
         threshold: 60
         scale: 2.0
+        enabled: true
       argCount:
         threshold: 4
         scale: 1.0
+        enabled: true
       returnCount:
         threshold: 2
         scale: 5.0
+        enabled: true
       variableCount:
         threshold: 2
         scale: 5.0
+        enabled: true
       propertyCallCount:
         threshold: 2
         scale: 15.0
+        enabled: true
       ifCount:
         threshold: 3
         scale: 1.0
+        enabled: true
       ifNestingLevel:
         threshold: 1
         scale: 1.0
+        enabled: true
       elseCount:
         threshold: 1
         scale: 1.0
+        enabled: true
 ```
+
+### Disabling a metric
+
+Setting `enabled: false` on a metric gives it a weight of `0`, so it does not count toward the combined cognitive complexity score.
+The raw value of a disabled metric is still collected and reported; only its weight is zeroed.
+`enabled` defaults to `true`.
 
 ## Showing additional metrics
 
