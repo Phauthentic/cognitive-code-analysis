@@ -107,3 +107,16 @@ cognitive:
 - **`false`**: Results are displayed as a flat list without grouping
 
 When `groupByClass` is enabled, the output will show separate tables for each class, making it easier to understand the complexity within specific classes. When disabled, all methods are shown in a single table sorted by their complexity score.
+
+## CSV Report: If Count Columns
+
+The CSV report does not contain the `If Count`, `If Count Weight` and `If Count Weight Delta` columns by default.
+Set `csvAppendIfCountColumns` to `true` to append them at the very end of each row, after `Combined Cognitive Complexity`.
+
+```yaml
+cognitive:
+  csvAppendIfCountColumns: false
+```
+
+This option only exists to keep the CSV column positions backwards compatible for consumers that read columns by index.
+It will be removed in the next major version, when the If Count columns move to their logical position before `If Nesting Level`.

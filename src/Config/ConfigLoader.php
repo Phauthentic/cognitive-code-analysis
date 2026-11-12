@@ -110,6 +110,12 @@ class ConfigLoader implements ConfigurationInterface
                         ->booleanNode('groupByClass')
                             ->defaultValue(true)
                         ->end()
+                        // Keeps CSV column positions backwards compatible for consumers that read columns
+                        // by index. Will be removed in the next major version, when the If Count columns
+                        // move to their logical position before If Nesting Level.
+                        ->booleanNode('csvAppendIfCountColumns')
+                            ->defaultValue(false)
+                        ->end()
                         ->booleanNode('showDetailedCognitiveMetrics')
                             ->defaultValue(true)
                         ->end()

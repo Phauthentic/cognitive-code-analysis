@@ -31,6 +31,10 @@ class CognitiveConfig
         public readonly ?CacheConfig $cache = null,
         public readonly ?PerformanceConfig $performance = null,
         public readonly array $customReporters = [],
+        // Keeps CSV column positions backwards compatible for consumers that read columns by index.
+        // Will be removed in the next major version, when the If Count columns move to their
+        // logical position before If Nesting Level.
+        public readonly bool $csvAppendIfCountColumns = false,
     ) {
     }
 
@@ -60,6 +64,7 @@ class CognitiveConfig
             'cache' => $this->cache?->toArray(),
             'performance' => $this->performance?->toArray(),
             'customReporters' => $this->customReporters,
+            'csvAppendIfCountColumns' => $this->csvAppendIfCountColumns,
         ];
     }
 }

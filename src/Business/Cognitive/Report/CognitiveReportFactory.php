@@ -36,7 +36,7 @@ class CognitiveReportFactory implements CognitiveReportFactoryInterface
         // Check built-in exporters first
         $builtIn = match ($type) {
             'json' => new JsonReport(),
-            'csv' => new CsvReport(),
+            'csv' => new CsvReport($config->csvAppendIfCountColumns),
             'html' => new HtmlReport($config),
             'markdown' => new MarkdownReport($config),
             'checkstyle' => new CheckstyleReport($config),

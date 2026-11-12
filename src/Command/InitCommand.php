@@ -165,6 +165,8 @@ class InitCommand extends Command
                 'showCyclomaticComplexity' => self::DEFAULT_SHOW_CYCLOMATIC_COMPLEXITY,
                 'showDetailedCognitiveMetrics' => self::DEFAULT_SHOW_DETAILED_COGNITIVE_METRICS,
                 'groupByClass' => self::DEFAULT_GROUP_BY_CLASS,
+                // Backwards compatible CSV column positions, removed in the next major version.
+                'csvAppendIfCountColumns' => false,
             ],
         ];
     }
