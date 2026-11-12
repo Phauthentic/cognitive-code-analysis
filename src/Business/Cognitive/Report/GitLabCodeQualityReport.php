@@ -7,6 +7,7 @@ namespace Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetrics;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
+use Phauthentic\CognitiveCodeAnalysis\Business\Utility\ReportPath;
 use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
 
 /**
@@ -75,7 +76,7 @@ class GitLabCodeQualityReport implements ReportGeneratorInterface
             number_format($score, 1),
             number_format($threshold, 1)
         );
-        $path = $this->normalizePath($metric->getFileName());
+        $path = ReportPath::normalize($metric->getFileName());
 
         return [
             'description' => $description,
@@ -89,13 +90,6 @@ class GitLabCodeQualityReport implements ReportGeneratorInterface
                 ],
             ],
         ];
-    }
-
-    private function normalizePath(string $path): string
-    {
-        $path = str_replace('\\', '/', $path);
-
-        return ltrim($path, './');
     }
 
     private function scoreToSeverity(float $score): string

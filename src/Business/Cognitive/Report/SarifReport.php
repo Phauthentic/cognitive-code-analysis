@@ -7,6 +7,7 @@ namespace Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetrics;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
+use Phauthentic\CognitiveCodeAnalysis\Business\Utility\ReportPath;
 use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
 
 /**
@@ -101,7 +102,7 @@ class SarifReport implements ReportGeneratorInterface
      */
     private function buildResult(CognitiveMetrics $metric): array
     {
-        $path = $this->normalizePath($metric->getFileName());
+        $path = ReportPath::normalize($metric->getFileName());
         $line = $metric->getLine();
         $message = sprintf(
             'Method %s has cognitive complexity %s (threshold: %s)',
@@ -134,13 +135,6 @@ class SarifReport implements ReportGeneratorInterface
                 'primaryLocationLineHash' => $fingerprint,
             ],
         ];
-    }
-
-    private function normalizePath(string $path): string
-    {
-        $path = str_replace('\\', '/', $path);
-
-        return ltrim($path, './');
     }
 
     private function scoreToLevel(float $score): string
