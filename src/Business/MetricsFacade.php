@@ -90,11 +90,14 @@ class MetricsFacade
         $metricsCollection = $this->getCognitiveMetrics($path);
 
         $counter = $this->changeCounterFactory->create($vcsType);
+        $changesPerFile = [];
         foreach ($metricsCollection as $metric) {
-            $metric->setTimesChanged($counter->getNumberOfChangesForFile(
-                filename: $metric->getFilename(),
+            $filename = $metric->getFilename();
+            $changesPerFile[$filename] ??= $counter->getNumberOfChangesForFile(
+                filename: $filename,
                 since: $since,
-            ));
+            );
+            $metric->setTimesChanged($changesPerFile[$filename]);
         }
 
         return $this->churnCalculator->calculate($metricsCollection, $coverageReader);
