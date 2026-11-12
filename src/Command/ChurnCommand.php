@@ -65,7 +65,7 @@ class ChurnCommand extends Command
             ->addOption(
                 name: self::OPTION_VCS,
                 mode: InputArgument::OPTIONAL,
-                description: 'Path to a configuration file',
+                description: 'Version control system to use for change detection (default: git).',
                 default: 'git'
             )
             ->addOption(
