@@ -59,6 +59,22 @@ interface ReportGeneratorInterface
 - `getRiskChurn()` - Churn weighted by missing coverage, or `null` without coverage data
 - `getRiskLevel()` - Risk level, or `null` without coverage data
 - `hasCoverageData()` - Whether coverage data is available
+- `hasRiskData()` - Whether risk churn and risk level are available
+
+The collection itself is iterable and countable, and it provides helpers to select and order the classes for your report.
+The filter and sort helpers return a new collection and leave the original unchanged.
+
+- `filter(Closure $callback)` - Classes for which the callback returns `true`
+- `filterWithChurnGreaterThan(float $churn)` - Classes with a churn above the given value
+- `filterWithScoreGreaterThan(float $score)` - Classes with a score above the given value
+- `filterWithCoverage()` - Classes that have coverage data
+- `filterWithRiskData()` - Classes that have risk data
+- `sortByChurnDescending()` - Classes ordered by churn, highest first
+- `sortByScoreDescending()` - Classes ordered by score, highest first
+- `getByClassName(string $className)` - The metrics of one class, or `null` if it is not in the collection
+- `contains(string $className)` - Whether the collection has metrics for the class
+- `getClassNames()` - All class names in the collection
+- `isEmpty()` - Whether the collection has no classes
 
 ## Configuration
 
