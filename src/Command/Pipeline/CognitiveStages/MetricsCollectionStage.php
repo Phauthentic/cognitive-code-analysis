@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\CognitiveStages;
 
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetrics;
 use Phauthentic\CognitiveCodeAnalysis\Business\MetricsFacade;
 use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\ExecutionContext;
 use Phauthentic\CognitiveCodeAnalysis\Command\Pipeline\PipelineStage;
@@ -36,7 +37,12 @@ class MetricsCollectionStage extends PipelineStage
         $context->setData('metricsCollection', $metricsCollection);
 
         // Record statistics
-        $context->setStatistic('filesProcessed', count($commandContext->getPaths()));
+        // Distinct files that produced metrics; the collection is keyed by class::method.
+        $filesProcessed = count(array_unique(array_map(
+            static fn (CognitiveMetrics $metric): string => $metric->getFileName(),
+            iterator_to_array($metricsCollection, false)
+        )));
+        $context->setStatistic('filesProcessed', $filesProcessed);
         $context->setStatistic('metricsCollected', count($metricsCollection));
 
         return OperationResult::success();

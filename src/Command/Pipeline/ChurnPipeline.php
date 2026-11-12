@@ -29,7 +29,11 @@ class ChurnPipeline
                 continue;
             }
 
+            $startTime = microtime(true);
+
             $result = $stage->execute($context);
+
+            $context->recordTiming($stage->getStageName(), microtime(true) - $startTime);
 
             if ($result->isFailure()) {
                 return $result;
