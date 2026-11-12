@@ -107,19 +107,16 @@ class ScoreCalculator
      *
      * The formula used for the calculation is:
      *
-     *     weight = log(1 + (value - threshold) / scale, base)
+     *     weight = ln(1 + (value - threshold) / scale)
      *
      * - If `value` is less than or equal to `threshold`, the function returns `0.0`.
      * - If `value` exceeds `threshold`, the function returns a logarithmic weight
      *   based on the difference between `value` and `threshold`, scaled by the
-     *   `scale` parameter.
-     * - The logarithm base can be adjusted using the `base` parameter (default is
-     *   natural logarithm with base `M_E`).
+     *   `scale` parameter, using the natural logarithm.
      *
      * Parameters:
      * - `value` (float): The actual value being evaluated.
      * - `threshold` (float): The threshold value to compare against.
-     * - `base` (float): The base of the logarithm. Default is natural logarithm (base `M_E`).
      * - `scale` (float): A scaling factor to control the steepness of the logarithmic curve. Default is `1.0`.
      *
      * Returns:
@@ -132,13 +129,13 @@ class ScoreCalculator
      * $value = 75.0;
      * $threshold = 50.0;
      * $scale = 10.0;
-     * $weight = calculateLogWeight($value, $threshold, M_E, $scale);
-     * echo $weight;  // Output: 2.302585
+     * $weight = calculateLogWeight($value, $threshold, $scale);
+     * echo $weight;  // Output: 1.252763
      * ```
      *
      * In this example, since the `value` (75) is greater than the `threshold` (50),
-     * the function calculates the logarithmic weight as log(1 + (75 - 50) / 10, M_E)
-     * which results in approximately 2.302585.
+     * the function calculates the logarithmic weight as ln(1 + (75 - 50) / 10) = ln(3.5)
+     * which results in approximately 1.252763.
      */
     private function calculateLogWeight(float $value, float $threshold, float $scale = 1.0): float
     {

@@ -44,24 +44,25 @@ Churn reporter handle code churn metrics data and implement the `ReportGenerator
 ```php
 interface ReportGeneratorInterface
 {
-    /**
-     * @param array<string, array<string, mixed>> $classes
-     */
-    public function export(array $classes, string $filename): void;
+    public function export(ChurnMetricsCollection $metrics, string $filename): void;
 }
 ```
 
-**Data Structure:** Array with class names as keys and arrays containing:
-- `file` - File path
-- `score` - Churn score
-- `churn` - Churn value
-- `timesChanged` - Number of times changed
-- `coverage` - Test coverage (optional)
-- `riskLevel` - Risk level (optional)
+**Data Structure:** `ChurnMetricsCollection` (from `Phauthentic\CognitiveCodeAnalysis\Business\Churn`) contains one `ChurnMetrics` object per class with methods like:
+
+- `getClassName()` - Class name
+- `getFile()` - File path
+- `getScore()` - Cognitive complexity score of the class (sum of its method scores)
+- `getTimesChanged()` - Number of times the file changed
+- `getChurn()` - Churn value (`timesChanged × score`)
+- `getCoverage()` - Test coverage between `0.0` and `1.0`, or `null` without coverage data
+- `getRiskChurn()` - Churn weighted by missing coverage, or `null` without coverage data
+- `getRiskLevel()` - Risk level, or `null` without coverage data
+- `hasCoverageData()` - Whether coverage data is available
 
 ## Configuration
 
-Add your custom reporter to the `config.yml` file under the `customReporters` section:
+Add your custom reporter to your configuration file (for example `phpcca.yaml`) under the `customReporters` section:
 
 ```yaml
 cognitive:
@@ -189,12 +190,13 @@ declare(strict_types=1);
 
 namespace My\Custom;
 
+use Phauthentic\CognitiveCodeAnalysis\Business\Churn\ChurnMetricsCollection;
 use Phauthentic\CognitiveCodeAnalysis\Business\Churn\Report\ReportGeneratorInterface;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 
 class ChurnReporter implements ReportGeneratorInterface
 {
-    public function export(array $classes, string $filename): void
+    public function export(ChurnMetricsCollection $metrics, string $filename): void
     {
         // Ensure directory exists
         $directory = dirname($filename);
@@ -203,7 +205,7 @@ class ChurnReporter implements ReportGeneratorInterface
         }
 
         // Generate churn content
-        $churnContent = $this->generateChurnContent($classes);
+        $churnContent = $this->generateChurnContent($metrics);
 
         // Write to file
         if (file_put_contents($filename, $churnContent) === false) {
@@ -211,20 +213,20 @@ class ChurnReporter implements ReportGeneratorInterface
         }
     }
 
-    private function generateChurnContent(array $classes): string
+    private function generateChurnContent(ChurnMetricsCollection $metrics): string
     {
         $content = "Churn Report\n";
         $content .= "============\n\n";
-        
-        foreach ($classes as $className => $data) {
-            $content .= "Class: {$className}\n";
-            $content .= "File: {$data['file']}\n";
-            $content .= "Score: {$data['score']}\n";
-            $content .= "Churn: {$data['churn']}\n";
-            $content .= "Times Changed: {$data['timesChanged']}\n";
+
+        foreach ($metrics as $metric) {
+            $content .= "Class: {$metric->getClassName()}\n";
+            $content .= "File: {$metric->getFile()}\n";
+            $content .= "Score: {$metric->getScore()}\n";
+            $content .= "Churn: {$metric->getChurn()}\n";
+            $content .= "Times Changed: {$metric->getTimesChanged()}\n";
             $content .= "---\n";
         }
-        
+
         return $content;
     }
 }
@@ -232,15 +234,18 @@ class ChurnReporter implements ReportGeneratorInterface
 
 ## Using Your Custom Reporter
 
-Once configured, you can use your custom reporter by specifying its name when generating reports:
+Once configured, use the reporter name as the `--report-type` and pass a `--report-file`:
 
 ```bash
 # For cognitive metrics
-php bin/cognitive-report --format=pdf --output=report.pdf
+bin/phpcca analyse src --config=phpcca.yaml --report-type=pdf --report-file=report.pdf
 
-# For churn metrics  
-php bin/churn-report --format=churn --output=churn.txt
+# For churn metrics
+bin/phpcca churn src --config=phpcca.yaml --report-type=churn --report-file=churn.txt
 ```
+
+Built-in report types take precedence, so do not give a custom reporter the name of a built-in report type.
+The reporter is checked before the analysis starts, and the command fails if its `class` or `file` cannot be loaded.
 
 ## Best Practices
 
@@ -255,11 +260,16 @@ php bin/churn-report --format=churn --output=churn.txt
 For inspiration, examine the built-in reporter:
 
 **Cognitive reporter:**
-- 
+
 - `JsonReport` - JSON format
-- `CsvReport` - CSV format  
+- `CsvReport` - CSV format
 - `HtmlReport` - HTML with Bootstrap styling
 - `MarkdownReport` - Markdown tables
+- `CheckstyleReport` - Checkstyle XML
+- `JUnitReport` - JUnit XML
+- `SarifReport` - SARIF
+- `GitLabCodeQualityReport` - GitLab Code Quality JSON
+- `GitHubActionsReport` - GitHub Actions workflow commands
 
 **Churn reporter:**
 
@@ -280,7 +290,7 @@ For inspiration, examine the built-in reporter:
 
 **Debug Tips:**
 
-- Check the configuration syntax in `config.yml`
-- Verify file paths are absolute or relative to the project root
+- Check the configuration syntax in your configuration file
+- Verify file paths are absolute or relative to the directory you run `bin/phpcca` from
 - Test with simple reporter first before complex implementations
 - Use the built-in reporter as templates for your custom ones

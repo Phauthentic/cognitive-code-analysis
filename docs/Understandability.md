@@ -13,7 +13,7 @@ Cyclomatic complexity counts paths through code but treats structures like `swit
 Per method, the score follows three rules from the Sonar spec:
 
 1. **Ignore shorthand** — method calls and null-coalescing are not counted.
-2. **Increment for flow breaks** — loops, `if`, ternary, `catch`, `switch`/`match`, logical-operator sequences, recursion, and multi-level `break`/`continue`/`goto`.
+2. **Increment for flow breaks** — loops, `if`, `elseif`, `else`, ternary, `catch`, `switch`/`match`, logical-operator sequences, recursion, `goto`, and `break`/`continue` to an outer loop (for example `break 2;`).
 3. **Increment for nesting** — each nested flow-breaking structure adds its current nesting depth to the score.
 
 Increments fall into four categories (each adds to the total, but categories clarify nesting behavior):
@@ -21,7 +21,7 @@ Increments fall into four categories (each adds to the total, but categories cla
 | Category    | Examples                                      |
 |-------------|-----------------------------------------------|
 | Structural  | `if`, loops, ternary, `catch`, `switch`       |
-| Hybrid      | `elseif`, `else` (no nesting penalty, but increase nesting level) |
+| Hybrid      | `elseif`, `else` (no nesting penalty; their bodies are nested as deep as the `if` body) |
 | Fundamental | Logical-operator sequences, recursion, jumps  |
 | Nesting     | Extra points when structures are nested       |
 
@@ -34,9 +34,9 @@ Structural increments use `1 + nestingLevel`; hybrid increments add `1` only.
 | 0–5   | low         |
 | 6–10  | medium      |
 | 11–15 | high        |
-| 16+   | very high   |
+| 16+   | very_high   |
 
-Console output shows `score (risk)`, for example `7 (medium)`.
+Console output shows `score (risk)`, for example `7 (medium)` or `17 (very_high)`.
 
 ## Configuration
 

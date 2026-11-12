@@ -39,14 +39,12 @@ The system will:
 4. Display a message indicating which baseline was auto-detected
 
 #### Generate New Baseline
-Use the `--generate-baseline` (or `-g`) option to create a new baseline file:
+Use the `--generate-baseline` (or `-g`) flag to create a new baseline file.
+The flag takes no value.
+The file is always written to `./.phpcca/baseline/` with a timestamped filename:
 
 ```bash
-# Generate with auto-generated timestamped filename
 bin/phpcca analyse <path-to-folder> --generate-baseline
-
-# Generate with custom filename
-bin/phpcca analyse <path-to-folder> --generate-baseline=my-baseline.json
 ```
 
 ### Examples
@@ -210,7 +208,7 @@ Metrics comparison may not be accurate.
 
 ## Auto-Generated Baseline Files
 
-When using `--generate-baseline` without specifying a filename, the system automatically creates timestamped files:
+When using `--generate-baseline`, the system automatically creates timestamped files:
 
 ### Default Location
 ```
@@ -258,11 +256,8 @@ Auto-detected latest baseline file: baseline-2025-01-18_14-30-45.json
 Generate a baseline file with metadata:
 
 ```bash
-# Auto-generated timestamped filename
+# Writes ./.phpcca/baseline/baseline-YYYY-MM-DD_HH-MM-SS.json
 bin/phpcca analyse src/ --generate-baseline
-
-# Custom filename
-bin/phpcca analyse src/ --generate-baseline=my-baseline.json
 ```
 
 ### Method 2: Export Current Analysis (Legacy)
@@ -290,11 +285,11 @@ The system automatically detects baseline file format:
 To upgrade legacy baseline files to the new format:
 
 ```bash
-# Generate new baseline with current analysis
-bin/phpcca analyse src/ --generate-baseline=upgraded-baseline.json
+# Generate a new baseline in ./.phpcca/baseline/ with the current analysis
+bin/phpcca analyse src/ --generate-baseline
 
-# Use the new baseline for future comparisons
-bin/phpcca analyse src/ --baseline=upgraded-baseline.json
+# Future runs pick up the latest baseline automatically
+bin/phpcca analyse src/
 ```
 
 ### Backward Compatibility

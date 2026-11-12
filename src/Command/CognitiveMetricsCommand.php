@@ -80,7 +80,7 @@ class CognitiveMetricsCommand extends Command
                 name: self::OPTION_REPORT_TYPE,
                 shortcut: 'r',
                 mode: InputArgument::OPTIONAL,
-                description: 'Type of report to generate (json, csv, html).',
+                description: 'Type of report to generate (json, csv, html, markdown, checkstyle, junit, sarif, gitlab-codequality, github-actions, or a custom reporter).',
             )
             ->addOption(
                 name: self::OPTION_REPORT_FILE,

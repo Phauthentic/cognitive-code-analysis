@@ -11,10 +11,11 @@ bin/phpcca churn <path-to-folder> [options]
 **Options:**
 - `<path-to-folder>`: **Required.** Path to the PHP file or directory to analyze.
 - `--config, -c`: Path to a configuration file (optional).
-- `--vcs, -s`: Version control system to use for change detection (default: `git`).
-- `--since`: Start date for counting changes (default: `2000-01-01`).
-- `--report-type, -r`: Type of report to generate (`json`, `csv`, `html`).
-- `--report-file, -f`: File to save the report (default: `phpcca-churn-report.html`).
+- `--vcs`: Version control system to use for change detection (default: `git`).
+- `--since, -s`: Start date for counting changes (default: `2000-01-01`).
+- `--report-type, -r`: Type of report to generate (`json`, `csv`, `html`, `markdown`, `svg-treemap`).
+- `--report-file, -f`: File to save the report to.
+  A report is written only when both `--report-type` and `--report-file` are given.
 - `--coverage-cobertura`: Path to Cobertura XML coverage file to include coverage analysis.
 - `--debug`: Enables debug output.
 
@@ -81,7 +82,7 @@ When coverage data is provided, the output includes additional risk analysis col
 +-------------------------+-------+--------+------------+---------------+----------+------------+
 | App\Service\Foo         | 8.0   | 96.0   | 86.4       | 12            | 10.00%   | CRITICAL   |
 | App\Controller\Bar      | 10.0  | 70.0   | 3.5        | 7             | 95.00%   | LOW        |
-| App\Model\Baz           | 6.5   | 26.0   | 13.0       | 4             | 50.00%   | MEDIUM     |
+| App\Model\Baz           | 6.5   | 26.0   | 13.0       | 4             | 50.00%   | HIGH       |
 +-------------------------+-------+--------+------------+---------------+----------+------------+
 ```
 
@@ -134,7 +135,7 @@ Risk levels help you prioritize which classes need immediate attention:
 
 ## Exporting Reports
 
-You can export the churn report in various formats. The command supports four report types: `html`, `json`, `csv`, and `svg-treemap`.
+You can export the churn report in various formats. The command supports five report types: `html`, `json`, `csv`, `markdown`, and `svg-treemap`.
 
 You must use the `--report-type` option to specify the format and the `--report-file` option to specify the output file name together to generate a report.
 
@@ -149,6 +150,7 @@ bin/phpcca churn <path-to-folder> --report-type=<report-type> --report-file=<fil
 | `html` | Interactive HTML report | Easy sharing and viewing in browsers |
 | `json` | Structured JSON data | Integration with other tools, APIs |
 | `csv` | Comma-separated values | Import into spreadsheets, data analysis |
+| `markdown` | Markdown table | Pull request comments, wikis |
 | `svg-treemap` | Visual treemap representation | Visual overview of churn distribution |
 
 ### Examples
@@ -163,11 +165,15 @@ bin/phpcca churn src --report-type=json --report-file=churn-report.json
 # Generate CSV for spreadsheet analysis
 bin/phpcca churn src --report-type=csv --report-file=churn-report.csv
 
+# Generate Markdown for a pull request comment
+bin/phpcca churn src --report-type=markdown --report-file=churn-report.md
+
 # Generate SVG treemap for visual analysis
 bin/phpcca churn src --report-type=svg-treemap --report-file=churn-treemap.svg
 ```
 
-**Note:** Coverage data is currently only available in console output, not in exported reports.
+**Note:** Coverage, risk churn, and risk level are included in the console output and in the `json` and `markdown` reports.
+The `csv`, `html`, and `svg-treemap` reports do not include coverage data.
 
 ## Notes
 
