@@ -38,13 +38,66 @@ class HtmlReport implements ReportGeneratorInterface
     }
 
     /**
+     * Size of the chunks in which the rendered HTML is written to the file.
+     */
+    private const WRITE_CHUNK_SIZE = 65536;
+
+    /**
      * Export metrics to an HTML file using Bootstrap 5.
+     *
+     * The page is written to the file in chunks while it is rendered, so the whole report is never held in memory.
+     * If rendering or writing fails, the partial file is removed.
      */
     public function export(CognitiveMetricsCollection $metrics, string $filename): void
     {
-        $html = $this->generateHtml($metrics);
+        $handle = fopen($filename, 'wb');
+        if ($handle === false) {
+            throw new CognitiveAnalysisException('Could not write to file');
+        }
 
-        if (file_put_contents($filename, $html) === false) {
+        try {
+            $this->writeHtml($handle, $metrics);
+        } catch (\Throwable $exception) {
+            fclose($handle);
+            unlink($filename);
+            throw $exception;
+        }
+
+        fclose($handle);
+    }
+
+    /**
+     * @param resource $handle
+     * @throws CognitiveAnalysisException
+     */
+    private function writeHtml($handle, CognitiveMetricsCollection $metrics): void
+    {
+        $writeFailed = false;
+        $level = ob_get_level();
+
+        ob_start(static function (string $buffer, int $phase) use ($handle, &$writeFailed): string {
+            // A cleaned buffer is discarded output, so it must not reach the file
+            if (($phase & PHP_OUTPUT_HANDLER_CLEAN) === 0 && $buffer !== '' && fwrite($handle, $buffer) === false) {
+                $writeFailed = true;
+            }
+
+            return '';
+        }, self::WRITE_CHUNK_SIZE);
+
+        try {
+            $this->generateHtml($metrics);
+        } catch (\Throwable $exception) {
+            // Discard this buffer and any buffer a failed row rendering left open
+            while (ob_get_level() > $level) {
+                ob_end_clean();
+            }
+
+            throw $exception;
+        }
+
+        ob_end_flush();
+
+        if ($writeFailed) {
             throw new CognitiveAnalysisException('Could not write to file');
         }
     }
@@ -72,18 +125,20 @@ class HtmlReport implements ReportGeneratorInterface
         return $metricRow . '</td>';
     }
 
-    private function generateHtml(CognitiveMetricsCollection $metrics): string
+    private function generateHtml(CognitiveMetricsCollection $metrics): void
     {
-        return $this->config->groupByClass
-            ? $this->generateGroupedHtml($metrics)
-            : $this->generateSingleTableHtml($metrics);
+        if ($this->config->groupByClass) {
+            $this->generateGroupedHtml($metrics);
+            return;
+        }
+
+        $this->generateSingleTableHtml($metrics);
     }
 
-    private function generateGroupedHtml(CognitiveMetricsCollection $metrics): string
+    private function generateGroupedHtml(CognitiveMetricsCollection $metrics): void
     {
         $groupedByClass = $metrics->groupBy('class');
 
-        ob_start();
         $this->renderDocumentStart(count($groupedByClass));
         foreach ($groupedByClass as $class => $methods) {
             ?>
@@ -103,16 +158,13 @@ class HtmlReport implements ReportGeneratorInterface
             <?php
         }
         $this->renderDocumentEnd();
-
-        return $this->captureOutput();
     }
 
-    private function generateSingleTableHtml(CognitiveMetricsCollection $metrics): string
+    private function generateSingleTableHtml(CognitiveMetricsCollection $metrics): void
     {
         $groupedByClass = $metrics->groupBy('class');
         $totalMethods = count($metrics);
 
-        ob_start();
         $this->renderDocumentStart(count($groupedByClass));
         ?>
         <h2 class="h5 mb-3">All Methods (<?php echo $totalMethods; ?> total)</h2>
@@ -128,8 +180,6 @@ class HtmlReport implements ReportGeneratorInterface
         </table>
         <?php
         $this->renderDocumentEnd();
-
-        return $this->captureOutput();
     }
 
     private function renderDocumentStart(int $classCount): void
@@ -207,17 +257,6 @@ class HtmlReport implements ReportGeneratorInterface
 
         if ($result === false) {
             throw new CognitiveAnalysisException('Could not generate HTML method row');
-        }
-
-        return $result;
-    }
-
-    private function captureOutput(): string
-    {
-        $result = ob_get_clean();
-
-        if ($result === false) {
-            throw new CognitiveAnalysisException('Could not generate HTML');
         }
 
         return $result;

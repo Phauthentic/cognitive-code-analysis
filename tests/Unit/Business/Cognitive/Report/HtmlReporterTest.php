@@ -8,6 +8,8 @@ use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetrics;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report\HtmlReport;
 use Phauthentic\CognitiveCodeAnalysis\Business\Utility\Datetime;
+use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
+use Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig;
 use Phauthentic\CognitiveCodeAnalysis\Config\ConfigLoader;
 use Phauthentic\CognitiveCodeAnalysis\Config\ConfigService;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -59,6 +61,105 @@ class HtmlReporterTest extends TestCase
         $exporter->export($metricsCollection, $this->filename);
 
         $this->assertFileEquals(__DIR__ . '/' . $expectedFile, $this->filename);
+    }
+
+    /**
+     * @return array<string, array{bool}>
+     */
+    public static function groupByClassProvider(): array
+    {
+        return ['Grouped by class' => [true], 'Single table' => [false]];
+    }
+
+    #[Test]
+    #[DataProvider('groupByClassProvider')]
+    public function testExportOfLargeReportIsCompleteAndLeavesOutputBuffersUntouched(bool $groupByClass): void
+    {
+        $collection = new CognitiveMetricsCollection();
+        for ($c = 0; $c < 300; $c++) {
+            for ($m = 0; $m < 5; $m++) {
+                $collection->add($this->createMetrics('Class' . $c, 'method' . $m));
+            }
+        }
+        $level = ob_get_level();
+
+        (new HtmlReport($this->createConfig($groupByClass)))->export($collection, $this->filename);
+
+        $this->assertSame($level, ob_get_level());
+        $this->assertGreaterThan(65536 * 2, filesize($this->filename));
+        $content = (string)file_get_contents($this->filename);
+        $this->assertStringStartsWith('<!DOCTYPE html>', ltrim($content));
+        $this->assertMatchesRegularExpression('#</html>\s*$#', $content);
+        $this->assertSame(1500, preg_match_all('#<td>method\d+</td>#', $content));
+    }
+
+    #[Test]
+    public function testExportRemovesPartialFileAndClosesBuffersWhenRenderingFails(): void
+    {
+        $collection = new CognitiveMetricsCollection();
+        for ($i = 0; $i < 50; $i++) {
+            $collection->add($this->createMetrics('Class' . $i, 'method'));
+        }
+        $failing = $this->createMock(CognitiveMetrics::class);
+        $failing->method('getLineCount')->willThrowException(new \RuntimeException('boom'));
+        $collection->add($failing);
+        $level = ob_get_level();
+
+        try {
+            (new HtmlReport($this->createConfig(false)))->export($collection, $this->filename);
+            $this->fail('Expected exception was not thrown');
+        } catch (\RuntimeException $exception) {
+            $this->assertSame('boom', $exception->getMessage());
+        }
+
+        $this->assertFileDoesNotExist($this->filename);
+        $this->assertSame($level, ob_get_level());
+    }
+
+    #[Test]
+    public function testExportToUnwritablePathThrows(): void
+    {
+        $this->expectException(CognitiveAnalysisException::class);
+        $this->expectExceptionMessage('Could not write to file');
+
+        // fopen() emits a warning here, which is swallowed so PHPUnit does not report it
+        set_error_handler(static fn (): bool => true, E_WARNING);
+        try {
+            (new HtmlReport($this->createConfig(false)))
+                ->export($this->createSimpleMetricsCollection(), sys_get_temp_dir() . '/does-not-exist-dir/report.html');
+        } finally {
+            restore_error_handler();
+        }
+    }
+
+    private function createConfig(bool $groupByClass): CognitiveConfig
+    {
+        return new CognitiveConfig([], [], [], false, 0.5, groupByClass: $groupByClass);
+    }
+
+    private function createMetrics(string $class, string $method): CognitiveMetrics
+    {
+        return new CognitiveMetrics([
+            'class' => $class,
+            'method' => $method,
+            'file' => $class . '.php',
+            'lineCount' => 10,
+            'argCount' => 2,
+            'returnCount' => 1,
+            'variableCount' => 5,
+            'propertyCallCount' => 3,
+            'ifCount' => 4,
+            'ifNestingLevel' => 2,
+            'elseCount' => 1,
+            'lineCountWeight' => 0.5,
+            'argCountWeight' => 0.3,
+            'returnCountWeight' => 0.2,
+            'variableCountWeight' => 0.4,
+            'propertyCallCountWeight' => 0.3,
+            'ifCountWeight' => 0.6,
+            'ifNestingLevelWeight' => 0.5,
+            'elseCountWeight' => 0.2,
+        ]);
     }
 
     private function loadConfig(string $configFile): \Phauthentic\CognitiveCodeAnalysis\Config\CognitiveConfig
