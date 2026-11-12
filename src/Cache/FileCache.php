@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phauthentic\CognitiveCodeAnalysis\Cache;
 
 use Phauthentic\CognitiveCodeAnalysis\Cache\Exception\CacheException;
+use Closure;
 use Psr\Cache\CacheItemInterface;
 use Psr\Cache\CacheItemPoolInterface;
 
@@ -14,6 +15,9 @@ use Psr\Cache\CacheItemPoolInterface;
 class FileCache implements CacheItemPoolInterface
 {
     private string $cacheDirectory;
+
+    /** @var (Closure(): string)|null */
+    private ?Closure $directoryResolver = null;
 
     /**
      * @var array<CacheItemInterface>
@@ -26,7 +30,27 @@ class FileCache implements CacheItemPoolInterface
     public function __construct(string $cacheDirectory = './.phpcca.cache')
     {
         $this->cacheDirectory = rtrim($cacheDirectory, '/');
-        $this->ensureCacheDirectory();
+    }
+
+    /**
+     * Resolve the cache directory on first use instead of using the constructor value.
+     * Useful when the directory comes from configuration that is loaded after construction.
+     *
+     * @param Closure(): string $resolver
+     */
+    public function setDirectoryResolver(Closure $resolver): void
+    {
+        $this->directoryResolver = $resolver;
+    }
+
+    private function getCacheDirectory(): string
+    {
+        if ($this->directoryResolver !== null) {
+            $this->cacheDirectory = rtrim(($this->directoryResolver)(), '/');
+            $this->directoryResolver = null;
+        }
+
+        return $this->cacheDirectory;
     }
 
     /**
@@ -75,8 +99,7 @@ class FileCache implements CacheItemPoolInterface
     public function clear(): bool
     {
         try {
-            $this->removeDirectory($this->cacheDirectory);
-            $this->ensureCacheDirectory();
+            $this->removeDirectory($this->getCacheDirectory());
             return true;
         } catch (CacheException $e) {
             return false;
@@ -153,36 +176,22 @@ class FileCache implements CacheItemPoolInterface
      * @SuppressWarnings("PHPMD.ErrorControlOperator")
      * @throws CacheException
      */
-    private function ensureCacheDirectory(): void
+    private function ensureDirectory(string $dir): void
     {
-        if (
-            !is_dir($this->cacheDirectory)
-            && !@mkdir($this->cacheDirectory, 0755, true)
-        ) {
-            throw new CacheException("Failed to create cache directory: {$this->cacheDirectory}");
+        if (!is_dir($dir) && !@mkdir($dir, 0755, true) && !is_dir($dir)) {
+            throw new CacheException("Failed to create cache directory: {$dir}");
         }
     }
 
     /**
-     * Create subdirectories to avoid too many files in one directory
-     *
-     * @SuppressWarnings("PHPMD.ErrorControlOperator")
-     * @throws CacheException
+     * Subdirectories avoid too many files in one directory; they are created on write.
      */
     private function getCacheFilePath(string $key): string
     {
         $hash = md5($key);
         $subDir = substr($hash, 0, 2);
-        $dir = $this->cacheDirectory . '/' . $subDir;
 
-        if (
-            !is_dir($dir)
-            && @!mkdir($dir, 0755, true)
-        ) {
-            throw new CacheException("Failed to create cache subdirectory: {$dir}");
-        }
-
-        return $dir . '/' . $hash . '.cache';
+        return $this->getCacheDirectory() . '/' . $subDir . '/' . $hash . '.cache';
     }
 
     private function loadCacheData(string $filePath): mixed
@@ -206,6 +215,7 @@ class FileCache implements CacheItemPoolInterface
      * Sanitize data to ensure valid UTF-8 encoding
      *
      * @param mixed $data
+     * @throws CacheException
      */
     private function saveCacheData(string $filePath, mixed $data): bool
     {
@@ -216,13 +226,7 @@ class FileCache implements CacheItemPoolInterface
             return false;
         }
 
-        $dir = dirname($filePath);
-        if (
-            !is_dir($dir)
-            && !mkdir($dir, 0755, true)
-        ) {
-            return false;
-        }
+        $this->ensureDirectory(dirname($filePath));
 
         $result = file_put_contents($filePath, $json);
 

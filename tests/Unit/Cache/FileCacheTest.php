@@ -32,18 +32,46 @@ class FileCacheTest extends TestCase
         $this->removeDirectory($this->testCacheDir);
     }
 
-    public function testConstructorCreatesCacheDirectory(): void
+    public function testConstructorDoesNotCreateCacheDirectory(): void
     {
+        $this->assertDirectoryDoesNotExist($this->testCacheDir);
+    }
+
+    public function testReadsDoNotCreateCacheDirectory(): void
+    {
+        $this->cache->getItem('missing');
+        $this->cache->hasItem('missing');
+        $this->cache->deleteItem('missing');
+        $this->cache->clear();
+
+        $this->assertDirectoryDoesNotExist($this->testCacheDir);
+    }
+
+    public function testFirstWriteCreatesCacheDirectory(): void
+    {
+        $this->cache->save(new CacheItem('key', 'value', true));
+
         $this->assertDirectoryExists($this->testCacheDir);
         $this->assertDirectoryIsWritable($this->testCacheDir);
     }
 
     public function testConstructorWithTrailingSlash(): void
     {
-        $cacheDirWithSlash = $this->testCacheDir . '/';
-        $cache = new FileCache($cacheDirWithSlash);
+        $cache = new FileCache($this->testCacheDir . '/');
+        $cache->save(new CacheItem('key', 'value', true));
 
         $this->assertDirectoryExists($this->testCacheDir);
+    }
+
+    public function testDirectoryResolverOverridesConstructorDirectory(): void
+    {
+        $otherDir = $this->testCacheDir . '-other';
+        $this->cache->setDirectoryResolver(fn (): string => $otherDir);
+        $this->cache->save(new CacheItem('key', 'value', true));
+
+        $this->assertDirectoryExists($otherDir);
+        $this->assertDirectoryDoesNotExist($this->testCacheDir);
+        $this->removeDirectory($otherDir);
     }
 
     public function testGetItemReturnsMissForNonExistentKey(): void
@@ -243,7 +271,8 @@ class FileCacheTest extends TestCase
         $this->assertFalse($this->cache->hasItem('key1'));
         $this->assertFalse($this->cache->hasItem('key2'));
 
-        // Cache directory should still exist
+        // The directory is recreated lazily on the next write
+        $this->cache->save(new CacheItem('key3', 'value3', true));
         $this->assertDirectoryExists($this->testCacheDir);
     }
 
@@ -353,14 +382,14 @@ class FileCacheTest extends TestCase
         $this->expectException(CacheException::class);
         $this->expectExceptionMessage('Failed to create cache directory');
 
-        new FileCache($nonWritableDir);
+        (new FileCache($nonWritableDir))->save(new CacheItem('key', 'value', true));
     }
 
     public function testCacheSubdirectoryCreationFailure(): void
     {
         // Create a cache with a non-writable parent directory
         $parentDir = $this->testCacheDir . '/parent';
-        mkdir($parentDir, 0444); // Read-only
+        mkdir($parentDir, 0444, true); // Read-only
 
         $this->expectException(CacheException::class);
         $this->expectExceptionMessage('Failed to create cache directory');

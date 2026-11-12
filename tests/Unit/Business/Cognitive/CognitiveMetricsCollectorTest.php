@@ -106,6 +106,57 @@ class CognitiveMetricsCollectorTest extends TestCase
     }
 
     #[Test]
+    public function testConfiguredCacheDirectoryIsUsedWhenEnabled(): void
+    {
+        $dir = sys_get_temp_dir() . '/phpcca-collector-' . uniqid();
+        $collector = $this->collectorWithCacheConfig(true, $dir);
+
+        $collector->collect('./tests/TestCode', $this->configService->getConfig());
+
+        $this->assertDirectoryExists($dir);
+        $this->removeDir($dir);
+    }
+
+    #[Test]
+    public function testNoCacheDirectoryIsCreatedWhenDisabled(): void
+    {
+        $dir = sys_get_temp_dir() . '/phpcca-collector-' . uniqid();
+        $collector = $this->collectorWithCacheConfig(false, $dir);
+
+        $collector->collect('./tests/TestCode', $this->configService->getConfig());
+
+        $this->assertDirectoryDoesNotExist($dir);
+    }
+
+    private function collectorWithCacheConfig(bool $enabled, string $dir): CognitiveMetricsCollector
+    {
+        $file = tempnam(sys_get_temp_dir(), 'phpcca-cfg');
+        file_put_contents($file, "cognitive:\n  cache:\n    enabled: " . ($enabled ? 'true' : 'false') . "\n    directory: '{$dir}'\n");
+        $configService = new ConfigService(new Processor(), new ConfigLoader());
+        $configService->loadConfig($file);
+        unlink($file);
+
+        $cache = new FileCache('./.phpcca.cache.unused');
+        $cache->setDirectoryResolver(fn (): string => $configService->getConfig()->cache->directory);
+
+        return new CognitiveMetricsCollector(
+            new Parser(new ParserFactory(), new NodeTraverser()),
+            new DirectoryScanner(),
+            $configService,
+            $this->messageBus,
+            $cache
+        );
+    }
+
+    private function removeDir(string $dir): void
+    {
+        foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($dir, \FilesystemIterator::SKIP_DOTS), \RecursiveIteratorIterator::CHILD_FIRST) as $f) {
+            $f->isDir() ? rmdir($f->getPathname()) : unlink($f->getPathname());
+        }
+        rmdir($dir);
+    }
+
+    #[Test]
     public function testCollectWithValidFilePath(): void
     {
         $path = './tests/TestCode/Paginator.php';
