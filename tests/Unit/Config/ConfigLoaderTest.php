@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Tests\Unit\Config;
 
+use PHPUnit\Framework\Attributes\IgnoreDeprecations;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Yaml\Yaml;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
@@ -93,7 +94,7 @@ class ConfigLoaderTest extends TestCase
     {
         $bundled = Yaml::parseFile(__DIR__ . '/../../../phpcca.yaml')['cognitive'];
         // Blocks are only populated when present, so pass them empty to expose their leaf defaults.
-        $defaults = $this->process(['cognitive' => ['cache' => [], 'performance' => []]])['cognitive'];
+        $defaults = $this->process(['cognitive' => ['cache' => []]])['cognitive'];
 
         $this->assertEquals(
             (new ConfigLoader())->getCognitiveMetricDefaults(),
@@ -107,6 +108,19 @@ class ConfigLoaderTest extends TestCase
         foreach ($bundled as $key => $value) {
             $this->assertEquals($value, $defaults[$key], "Default for '$key' differs from phpcca.yaml");
         }
+    }
+
+    #[IgnoreDeprecations]
+    public function testPerformanceOptionIsDeprecatedButStillAccepted(): void
+    {
+        $this->expectUserDeprecationMessage(
+            'Since phauthentic/cognitive-code-analysis 1.12: '
+            . 'The "performance" option at "config.cognitive" has no effect and will be removed in 2.0.'
+        );
+
+        $config = $this->process(['cognitive' => ['performance' => ['batchSize' => 50]]]);
+
+        $this->assertSame(50, $config['cognitive']['performance']['batchSize']);
     }
 
     /**

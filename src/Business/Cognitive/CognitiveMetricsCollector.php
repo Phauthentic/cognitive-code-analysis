@@ -87,6 +87,9 @@ class CognitiveMetricsCollector
      * @param int $batchSize Number of files to process before yielding a batch
      * @return CognitiveMetricsCollection Final merged collection
      * @throws \Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException|\InvalidArgumentException
+     * @deprecated Not used by any command, and it keeps all metrics in memory, so batching saves nothing.
+     *             Will be removed in 2.0. Use collectFromPaths().
+     * @see https://github.com/Phauthentic/cognitive-code-analysis/issues/91
      */
     public function collectFromPathsInBatches(
         array $paths,

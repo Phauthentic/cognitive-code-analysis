@@ -29,6 +29,7 @@ class CognitiveConfig
         public readonly bool $groupByClass = false,
         public readonly bool $showDetailedCognitiveMetrics = true,
         public readonly ?CacheConfig $cache = null,
+        /** @deprecated Never had an effect. Will be removed in 2.0. */
         public readonly ?PerformanceConfig $performance = null,
         public readonly array $customReporters = [],
         // Keeps CSV column positions backwards compatible for consumers that read columns by index.
