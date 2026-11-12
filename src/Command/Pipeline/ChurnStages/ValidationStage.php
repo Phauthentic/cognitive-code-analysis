@@ -25,7 +25,6 @@ class ValidationStage implements ChurnPipelineStage
 
         if (!$this->specification->isSatisfiedBy($commandContext)) {
             $errorMessage = $this->specification->getDetailedErrorMessage($commandContext);
-            $context->getOutput()->writeln('<error>' . $errorMessage . '</error>');
             return OperationResult::failure($errorMessage);
         }
 

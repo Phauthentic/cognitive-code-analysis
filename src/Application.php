@@ -137,6 +137,9 @@ class Application
             ->setPublic(true);
 
         $this->containerBuilder->register(CognitiveMetricsValidationSpecificationFactory::class, CognitiveMetricsValidationSpecificationFactory::class)
+            ->setArguments([
+                new Reference(ConfigService::class),
+            ])
             ->setPublic(true);
 
         $this->containerBuilder->register(CompositeCognitiveMetricsValidationSpecification::class, CompositeCognitiveMetricsValidationSpecification::class)
@@ -144,6 +147,9 @@ class Application
             ->setPublic(true);
 
         $this->containerBuilder->register(ChurnValidationSpecificationFactory::class, ChurnValidationSpecificationFactory::class)
+            ->setArguments([
+                new Reference(ConfigService::class),
+            ])
             ->setPublic(true);
     }
 
