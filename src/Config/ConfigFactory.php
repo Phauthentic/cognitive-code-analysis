@@ -16,6 +16,7 @@ namespace Phauthentic\CognitiveCodeAnalysis\Config;
      *     showCyclomaticComplexity?: bool,
      *     showUnderstandability?: bool,
      *     groupByClass?: bool,
+     *     csvAppendIfCountColumns?: bool,
  *     showDetailedCognitiveMetrics?: bool,
  *     cache?: array{enabled?: bool, directory?: string},
  *     performance?: array{batchSize?: int},
@@ -68,7 +69,8 @@ class ConfigFactory
             showDetailedCognitiveMetrics: $cognitive['showDetailedCognitiveMetrics'] ?? true,
             cache: $cacheConfig,
             performance: $performanceConfig,
-            customReporters: $cognitive['customReporters'] ?? []
+            customReporters: $cognitive['customReporters'] ?? [],
+            csvAppendIfCountColumns: $cognitive['csvAppendIfCountColumns'] ?? false
         );
     }
 

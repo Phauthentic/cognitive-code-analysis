@@ -95,7 +95,9 @@ class CsvReporterTest extends TestCase
             18 => 'If Nesting Level Weight',
             19 => 'If Nesting Level Weight Delta',
             20 => 'Else Count',
-            21 => 'Combined Cognitive Complexity'
+            21 => 'Else Count Weight',
+            22 => 'Else Count Weight Delta',
+            23 => 'Combined Cognitive Complexity'
         ], $header);
 
         $data = fgetcsv(
@@ -130,6 +132,50 @@ class CsvReporterTest extends TestCase
         ], $data);
 
         fclose($file);
+    }
+
+    /**
+     * @return array<string, array{bool, int}>
+     */
+    public static function appendIfCountProvider(): array
+    {
+        return ['flag off' => [false, 24], 'flag on' => [true, 27]];
+    }
+
+    #[Test]
+    #[\PHPUnit\Framework\Attributes\DataProvider('appendIfCountProvider')]
+    public function testHeaderAndRowColumnCountsMatch(bool $append, int $expected): void
+    {
+        $collection = new CognitiveMetricsCollection();
+        $collection->add(new CognitiveMetrics([
+            'class' => 'C', 'method' => 'm', 'file' => 'C.php',
+            'lineCount' => 1, 'argCount' => 1, 'returnCount' => 1, 'variableCount' => 1,
+            'propertyCallCount' => 1, 'ifCount' => 7, 'ifNestingLevel' => 1, 'elseCount' => 1,
+        ]));
+
+        $exporter = new CsvReport($append);
+        $streamFile = $this->filename . '.stream';
+        $exporter->startReport($streamFile);
+        $exporter->writeMetricBatch($collection);
+        $exporter->finalizeReport();
+        $exporter->export($collection, $this->filename);
+
+        foreach ([$this->filename, $streamFile] as $path) {
+            $lines = array_map(
+                static fn (string $l): array => str_getcsv($l, ',', '"', '\\'),
+                file($path, FILE_IGNORE_NEW_LINES)
+            );
+            $this->assertCount($expected, $lines[0]);
+            $this->assertCount($expected, $lines[1]);
+            $this->assertSame('Combined Cognitive Complexity', $lines[0][23]);
+            if (!$append) {
+                continue;
+            }
+
+            $this->assertSame(['If Count', 'If Count Weight', 'If Count Weight Delta'], array_slice($lines[0], 24));
+            $this->assertSame('7', $lines[1][24]);
+        }
+        unlink($streamFile);
     }
 
     #[Test]

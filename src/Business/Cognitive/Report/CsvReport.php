@@ -4,11 +4,23 @@ declare(strict_types=1);
 
 namespace Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\Report;
 
+use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetrics;
 use Phauthentic\CognitiveCodeAnalysis\Business\Cognitive\CognitiveMetricsCollection;
 use Phauthentic\CognitiveCodeAnalysis\CognitiveAnalysisException;
 
 class CsvReport implements ReportGeneratorInterface, StreamableReportInterface
 {
+    /**
+     * @param bool $appendIfCountColumns Appends the If Count columns at the very end of each row.
+     *        This flag only exists to keep the CSV column positions backwards compatible for consumers
+     *        that read columns by index. It will be removed in the next major version, when the
+     *        If Count columns move to their logical position before If Nesting Level.
+     * @SuppressWarnings("PHPMD.BooleanArgumentFlag")
+     */
+    public function __construct(private readonly bool $appendIfCountColumns = false)
+    {
+    }
+
     /**
      * @var array<string>
      */
@@ -34,7 +46,20 @@ class CsvReport implements ReportGeneratorInterface, StreamableReportInterface
         'If Nesting Level Weight',
         'If Nesting Level Weight Delta',
         'Else Count',
+        'Else Count Weight',
+        'Else Count Weight Delta',
         'Combined Cognitive Complexity'
+    ];
+
+    /**
+     * Columns appended after "Combined Cognitive Complexity" when appendIfCountColumns is enabled.
+     *
+     * @var array<string>
+     */
+    private const IF_COUNT_HEADER = [
+        'If Count',
+        'If Count Weight',
+        'If Count Weight Delta',
     ];
 
     /** @var resource|false|null */
@@ -57,46 +82,13 @@ class CsvReport implements ReportGeneratorInterface, StreamableReportInterface
             throw new CognitiveAnalysisException(sprintf('Could not open file %s for writing', $filename));
         }
 
-        fputcsv($file, $this->header, ',', '"', '\\');
+        fputcsv($file, $this->getHeader(), ',', '"', '\\');
 
         $groupedByClass = $metrics->groupBy('class');
 
         foreach ($groupedByClass as $methods) {
             foreach ($methods as $data) {
-                fputcsv($file, [
-                    $data->getClass(),
-                    $data->getMethod(),
-
-                    $data->getLineCount(),
-                    $data->getLineCountWeight(),
-                    (string)$data->getLineCountWeightDelta(),
-
-                    $data->getArgCount(),
-                    $data->getArgCountWeight(),
-                    (string)$data->getArgCountWeightDelta(),
-
-                    $data->getReturnCount(),
-                    $data->getReturnCountWeight(),
-                    (string)$data->getReturnCountWeightDelta(),
-
-                    $data->getVariableCount(),
-                    $data->getVariableCountWeight(),
-                    (string)$data->getVariableCountWeightDelta(),
-
-                    $data->getPropertyCallCount(),
-                    $data->getPropertyCallCountWeight(),
-                    (string)$data->getPropertyCallCountWeightDelta(),
-
-                    $data->getIfNestingLevel(),
-                    $data->getIfNestingLevelWeight(),
-                    (string)$data->getIfNestingLevelWeightDelta(),
-
-                    $data->getElseCount(),
-                    $data->getElseCountWeight(),
-                    (string)$data->getElseCountWeightDelta(),
-
-                    $data->getScore()
-                ], ',', '"', '\\');
+                fputcsv($file, $this->buildRow($data), ',', '"', '\\');
             }
         }
 
@@ -136,7 +128,7 @@ class CsvReport implements ReportGeneratorInterface, StreamableReportInterface
 
         // Write header only once
         if (!$this->headerWritten) {
-            fputcsv($this->fileHandle, $this->header, ',', '"', '\\');
+            fputcsv($this->fileHandle, $this->getHeader(), ',', '"', '\\');
             $this->headerWritten = true;
         }
 
@@ -144,40 +136,7 @@ class CsvReport implements ReportGeneratorInterface, StreamableReportInterface
 
         foreach ($groupedByClass as $methods) {
             foreach ($methods as $data) {
-                fputcsv($this->fileHandle, [
-                    $data->getClass(),
-                    $data->getMethod(),
-
-                    $data->getLineCount(),
-                    $data->getLineCountWeight(),
-                    (string)$data->getLineCountWeightDelta(),
-
-                    $data->getArgCount(),
-                    $data->getArgCountWeight(),
-                    (string)$data->getArgCountWeightDelta(),
-
-                    $data->getReturnCount(),
-                    $data->getReturnCountWeight(),
-                    (string)$data->getReturnCountWeightDelta(),
-
-                    $data->getVariableCount(),
-                    $data->getVariableCountWeight(),
-                    (string)$data->getVariableCountWeightDelta(),
-
-                    $data->getPropertyCallCount(),
-                    $data->getPropertyCallCountWeight(),
-                    (string)$data->getPropertyCallCountWeightDelta(),
-
-                    $data->getIfNestingLevel(),
-                    $data->getIfNestingLevelWeight(),
-                    (string)$data->getIfNestingLevelWeightDelta(),
-
-                    $data->getElseCount(),
-                    $data->getElseCountWeight(),
-                    (string)$data->getElseCountWeightDelta(),
-
-                    $data->getScore()
-                ], ',', '"', '\\');
+                fputcsv($this->fileHandle, $this->buildRow($data), ',', '"', '\\');
             }
         }
     }
@@ -199,5 +158,62 @@ class CsvReport implements ReportGeneratorInterface, StreamableReportInterface
         $this->isStreaming = false;
         $this->fileHandle = null;
         $this->headerWritten = false;
+    }
+
+    /**
+     * @return array<string>
+     */
+    private function getHeader(): array
+    {
+        return $this->appendIfCountColumns ? array_merge($this->header, self::IF_COUNT_HEADER) : $this->header;
+    }
+
+    /**
+     * @return array<int, string|int|float|null>
+     */
+    private function buildRow(CognitiveMetrics $data): array
+    {
+        $row = [
+            $data->getClass(),
+            $data->getMethod(),
+
+            $data->getLineCount(),
+            $data->getLineCountWeight(),
+            (string)$data->getLineCountWeightDelta(),
+
+            $data->getArgCount(),
+            $data->getArgCountWeight(),
+            (string)$data->getArgCountWeightDelta(),
+
+            $data->getReturnCount(),
+            $data->getReturnCountWeight(),
+            (string)$data->getReturnCountWeightDelta(),
+
+            $data->getVariableCount(),
+            $data->getVariableCountWeight(),
+            (string)$data->getVariableCountWeightDelta(),
+
+            $data->getPropertyCallCount(),
+            $data->getPropertyCallCountWeight(),
+            (string)$data->getPropertyCallCountWeightDelta(),
+
+            $data->getIfNestingLevel(),
+            $data->getIfNestingLevelWeight(),
+            (string)$data->getIfNestingLevelWeightDelta(),
+
+            $data->getElseCount(),
+            $data->getElseCountWeight(),
+            (string)$data->getElseCountWeightDelta(),
+
+            $data->getScore()
+        ];
+
+        if ($this->appendIfCountColumns) {
+            $row[] = $data->getIfCount();
+            $row[] = $data->getIfCountWeight();
+            $row[] = (string)$data->getIfCountWeightDelta();
+        }
+
+        return $row;
     }
 }

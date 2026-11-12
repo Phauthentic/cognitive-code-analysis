@@ -8,6 +8,11 @@ cognitive:
   showUnderstandability: false
   showDetailedCognitiveMetrics: true
   groupByClass: true
+  # Appends the columns "If Count", "If Count Weight" and "If Count Weight Delta" at the very END of
+  # each CSV report row. This flag only exists to keep the CSV column positions backwards compatible
+  # for consumers that read columns by index. It will be removed in the next major version, when the
+  # If Count columns move to their logical position before "If Nesting Level".
+  csvAppendIfCountColumns: false
   metrics:
     lineCount:
       threshold: 60
