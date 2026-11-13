@@ -13,8 +13,9 @@ class GitChangeCounter implements ChangeCounterInterface
      */
     public function getNumberOfChangesForFile(string $filename, string $since): int
     {
+        // --literal-pathspecs keeps git from treating [, *, ? in file names as glob patterns.
         $command = [
-            'git', '-C', dirname($filename),
+            'git', '--literal-pathspecs', '-C', dirname($filename),
             'rev-list', '--since=' . $since, '--no-merges', '--count', 'HEAD', '--', basename($filename),
         ];
 
